@@ -1,0 +1,46 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/uufs/chpc.utah.edu/common/home/u0401321/AluDetect/src/aluDetect.h
+string
+-
+
+/uufs/chpc.utah.edu/common/home/u0401321/AluDetect/src/fastqParse.h
+string
+-
+vector
+-
+unordered_map
+-
+iostream
+-
+fstream
+-
+cstddef
+-
+limits
+-
+sstream
+-
+algorithm
+-
+iterator
+-
+utility
+-
+type_traits
+-
+
+/uufs/chpc.utah.edu/common/home/u0401321/AluDetect/tests/polyATest.cpp
+../src/aluDetect.h
+/uufs/chpc.utah.edu/common/home/u0401321/AluDetect/src/aluDetect.h
+../src/fastqParse.h
+/uufs/chpc.utah.edu/common/home/u0401321/AluDetect/src/fastqParse.h
+string
+-
+
