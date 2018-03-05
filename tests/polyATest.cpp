@@ -25,3 +25,4 @@ void runAllTests() {
 int main(int argc, char* argv[]){
   runAllTests();
   std::cout << testsPassed << "/" << totalTests << " tests passed" << std::endl;
+}

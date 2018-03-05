@@ -1,3 +1,6 @@
+#include "api/BamMultiReader.h"
+#include "api/BamWriter.h"
+using namespace BamTools;
 
 #include "fastqParse.h"
 #include <string.h>
@@ -62,7 +65,7 @@ bool aluDetect::detectPolyATail(std::string seq) {
   return false;
 }
 
-int my_main(void){
+int main(void){
 
   std::string fastqPath = "../test_data/test.fastq";
   auto fastqSeqs = bioio::read_fastq_seqs(fastqPath);
