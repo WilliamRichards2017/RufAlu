@@ -1,0 +1,2 @@
+/usr/bin/ar cr libaludetect_core.a  CMakeFiles/aludetect_core.dir/polyATail.cpp.o
+/usr/bin/ranlib libaludetect_core.a
