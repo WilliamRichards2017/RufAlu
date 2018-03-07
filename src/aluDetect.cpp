@@ -1,7 +1,3 @@
-#include "api/BamMultiReader.h"
-#include "api/BamWriter.h"
-using namespace BamTools;
-
 #include "fastqParse.h"
 #include <string.h>
 #include <list>
@@ -17,7 +13,7 @@ int main(void){
   std::cout << fastqSeqs[0];
 
   for(int i=0; i < fastqSeqs.size(); ++i){
-    aluDetect::detectPolyATail(fastqSeqs[i]);
+    polyA::detectPolyATail(fastqSeqs[i]);
   }
 
   return 0;

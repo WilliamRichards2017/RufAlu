@@ -1,6 +1,6 @@
 #include <string>
 
-class aluDetect{
+class polyA{
 
  public:
   static bool detectPolyATail(std::string);  

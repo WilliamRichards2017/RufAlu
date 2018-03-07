@@ -1,13 +1,13 @@
 # =================================
-# AluDetect
+# RufAlu
 #
-# AluDetect/CMakeLists.txt
+# RufALu/CMakeLists.txt
 # =================================
 
 #Set up min CMake version
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
-PROJECT(AluDetect)
+PROJECT(RufAlu)
 
 SET(VERSION_MAJOR "1")
 SET(VERSION_MINOR "0")
