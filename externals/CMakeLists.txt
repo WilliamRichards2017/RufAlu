@@ -2,6 +2,9 @@ include(ExternalProject)
 
 SET( ALUDETECT_DEPENDENCIES )
 
+
+include(zlib.cmake)
+LIST(APPEND ALUDETECT_DEPENDENCIES ${ZLIB_PROJECT})
 include(bamtools.cmake)
 LIST(APPEND ALUDETECT_DEPENDENCIES ${BAMTOOLS_PROJECT})
 

@@ -34,7 +34,6 @@ bool polyA::detectPolyATail(std::string seq) {
 
     if(*c=='A' and *window.back() != 'A'){
       prop+=1.0/(window.size()-1);
-      std::cout << "prop after addition is: " << prop << std::endl;
       if(prop >= 0.9){
 	std::cout << "Detected Poly a tail for sequence " << seq << " with score of " << prop << std::endl;
 	return true;
@@ -42,7 +41,6 @@ bool polyA::detectPolyATail(std::string seq) {
     }
     else if(*c != 'A' and *window.back()=='A'){
       prop-=1.0/(window.size()-1);
-      std::cout << "prop after subtraction is: " << prop << std::endl;
     }
     if(prop >= 0.9){
       std::cout << "Detected Poly a tail for sequence " << seq << " with score of " << prop << std::endl;
