@@ -15,11 +15,11 @@ int main(void){
 
   std::cout << fastqSeqs[0];
 
+  DACReads dacReads(bamPath);
+
   for(int i=0; i < fastqSeqs.size(); ++i){
     polyA::detectPolyATail(fastqSeqs[i]);
   }
-  DACReads::getAllDiscordantReads(bamPath, "out.bam");
-  DACReads::getAllChimericReads(bamPath, "out.bam");
 
   return 0;
 }

@@ -7,7 +7,8 @@
 int testsPassed = 0;
 int totalTests = 0;
 
-std::string testBam ="../test_data/big-test.bam";
+std::string testBam ="/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/test_data/big-test.bam";
+//std::string testBam = "/uufs/chpc.utah.edu/common/home/u0991464/RUFUS.test.set/Family1.mother.bam";
 
 void detectPositivePolyATail() {
   bool returnValue = polyA::detectPolyATail("AAAAAAAAAA");
@@ -33,27 +34,16 @@ void detectNegativePolyATail() {
   ++totalTests;
 }
 
-void detectChimericReads(std::string testBam, std::string out){
-  DACReads::getAllChimericReads(testBam, out);
-  std::cout << "detectChimericReads test passed!" << std::endl;
+void buildDACReads(std::string filePath){
+  DACReads dacReads(filePath);
   ++totalTests;
   ++testsPassed;
 }
-
-void detectDiscordantReads(std::string testBam, std::string out){
-  DACReads::getAllDiscordantReads(testBam, out);
-  std::cout << "detectDiscordantReads test passed!" << std::endl;
-  ++totalTests;
-  ++testsPassed;
-}
-
-
 
 void runAllTests() {
   detectPositivePolyATail();
   detectNegativePolyATail();
-  detectDiscordantReads(testBam, "out1.bam");
-  detectChimericReads(testBam, "out2.bam");
+  buildDACReads(testBam);
 }
 
 int main(int argc, char* argv[]){

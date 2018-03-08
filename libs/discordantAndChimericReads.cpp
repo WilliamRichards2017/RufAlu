@@ -4,70 +4,44 @@
 #include "fastqParse.h"
 #include "discordantAndChimericReads.h"
 
-
-
-void DACReads::getAllDiscordantReads(std::string inputFile, std::string outputFile){
-  std::cout << "inside get all discordant reads" << std::endl;
-
-
-  BamTools::BamReader reader;
-  if (!reader.Open(inputFile)){
-    std::cout << "Could not open input Bam file" << std::endl;
-    return;
-  }
+DACReads::DACReads(std::string filePath){
+  DACReads::setAllChimericReads(filePath);
+  DACReads::setAllUnmappedReads(filePath);
   
-  
-  const BamTools::SamHeader header = reader.GetHeader();
-  const BamTools::RefVector references = reader.GetReferenceData();
-
-  BamTools::BamWriter writer;
-  if(!writer.Open(outputFile, header, references)){
-    std::cout << "Could not open output Bam file" << std::endl;
-  }
-
-  BamTools::BamAlignment al;
-  while(reader.GetNextAlignment(al)){
-    //Discordant reads
-    if(al.HasTag("S")){
-      writer.SaveAlignment(al);
-      std::cout << "found discordant read" << std::endl;
-      std::cout << al.QueryBases << std::endl;
-      std::cout << "Alignment flag: " << al.AlignmentFlag << std::endl;
-
-    }
-  }
-
 }
 
-void DACReads::getAllChimericReads(std::string inputFile, std::string outputFile){
-  std::cout << "inside get all discordant reads" << std::endl;
+DACReads::~DACReads(){
+  delete &chimericReads_;
+  delete &unmappedReads_;
+}
 
+void DACReads::setAllUnmappedReads(std::string inputFile){
+  return;
+}
+
+void DACReads::setAllChimericReads(std::string inputFile){
+  std::cout << "inside get all chimeric reads" << std::endl;
 
   BamTools::BamReader reader;
   if (!reader.Open(inputFile)){
     std::cout << "Could not open input Bam file" << std::endl;
     return;
-  }
-
-
-  const BamTools::SamHeader header = reader.GetHeader();
-  const BamTools::RefVector references = reader.GetReferenceData();
-
-  BamTools::BamWriter writer;
-  if(!writer.Open(outputFile, header, references)){
-    std::cout << "Could not open output Bam file" << std::endl;
   }
 
   BamTools::BamAlignment al;
   while(reader.GetNextAlignment(al)){
     //Chimeric reads
-    if(al.HasTag("SA")){
-      writer.SaveAlignment(al);
-      std::cout << "found discordant read" << std::endl;
-      std::cout << al.QueryBases << std::endl;
-      std::cout << "Alignment flag: " << al.AlignmentFlag << std::endl;
-
+    if(al.HasTag("SA")) {
+      chimericReads_.push_back(al);
+      std::cout << "read flag field is:" << al.AlignmentFlag << std::endl;
     }
   }
+}
 
+std::vector<BamTools::BamAlignment> DACReads::getAllChimericReads(){
+  return chimericReads_;
+}
+
+std::vector<BamTools::BamAlignment> DACReads::getAllUnmappedReads(){
+  return unmappedReads_;
 }

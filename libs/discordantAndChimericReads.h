@@ -1,9 +1,20 @@
+#include "api/BamMultiReader.h"
+#include "api/BamWriter.h"
+
+#include <vector>
+
 class DACReads{
 
  public:
-  static void getAllDiscordantReads(std::string, std::string);
-  static void getAllChimericReads(std::string, std::string);
-  static void getAllDiscordantAndChimericReads(std::string);
- private:
+  DACReads(std::string);
+  ~DACReads();
 
+  std::vector<BamTools::BamAlignment> getAllAluCandidateReads();
+  std::vector<BamTools::BamAlignment> getAllChimericReads();
+  std::vector<BamTools::BamAlignment> getAllUnmappedReads();
+ private:
+  std::vector<BamTools::BamAlignment> chimericReads_;
+  std::vector<BamTools::BamAlignment> unmappedReads_;
+  void setAllChimericReads(std::string);
+  void setAllUnmappedReads(std::string);
 };
