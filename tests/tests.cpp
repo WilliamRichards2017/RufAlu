@@ -35,9 +35,11 @@ void detectNegativePolyATail() {
 }
 
 void buildDACReads(std::string filePath){
-  DACReads dacReads(filePath);
+  //DACReads dacReads(filePath);
+  DACReads *dacReads = new DACReads(filePath);
   ++totalTests;
   ++testsPassed;
+  delete dacReads;
 }
 
 void runAllTests() {

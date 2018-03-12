@@ -4,7 +4,7 @@
 # src/CMakeLists.txt
 # =================================
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/src/)
 
 # set header and source files
 set(ALUDETECT_SRC
@@ -23,6 +23,7 @@ endif()
 
 set(CMAKE_BUILD_TYPE Debug) # uncomment this when you need a debug build
 
+
 #create binary
 add_executable(aluDetect
   ${ALUDETECT_SRC}
@@ -34,5 +35,5 @@ target_link_libraries(aluDetect
 )
 
 
-install(TARGETS aluDetect DESTINATION bin)
+
 
