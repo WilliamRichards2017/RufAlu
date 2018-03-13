@@ -13,6 +13,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 add_library(aludetect_core STATIC
 	polyATail.cpp
 	discordantAndChimericReads.cpp
+	knownAlus.cpp
   )
 
 SET(CORE_LIB aludetect_core CACHE STRING "THE CORE LIBRARY")
