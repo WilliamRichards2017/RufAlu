@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "../libs/polyATail.h"
 #include "../libs/discordantAndChimericReads.h"
+#include "../libs/knownAlus.h"
 
 int main(void){
 
@@ -13,10 +14,8 @@ int main(void){
   auto fastqSeqs = bioio::read_fastq_seqs(fastqPath);
   auto recordCount = bioio::count_fastq_records(fastqPath);
 
-  //std::cout << fastqSeqs[0];
-
-  //DACReads dacReads(bamPath);
   DACReads *dacReads = new DACReads(bamPath);
+  KnownAlus *knownAlus = new KnownAlus(fastqPath, fastqPath);
 
   std::cout << "finished building DAC reads\n";
  
@@ -25,7 +24,7 @@ int main(void){
   std::cout << "destroyed DAC reads\n";
   
   for(int i=0; i < fastqSeqs.size(); ++i){
-  polyA::detectPolyATail(fastqSeqs[i]);
+    polyA::detectPolyATail(fastqSeqs[i]);
   }
   
   return 0;
