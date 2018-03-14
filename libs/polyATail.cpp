@@ -19,7 +19,7 @@ bool polyA::detectPolyATail(std::string seq) {
       const char* c = &seq[i];
       window.push_front(c);
       if(*c=='A'){
-	prop+=0.1;
+	prop+=1.0/(windowSize);
       }
     }
   }
@@ -42,7 +42,8 @@ bool polyA::detectPolyATail(std::string seq) {
       }
     }
     else if(*c != 'A' and *window.back()=='A'){
-      prop-=1.0/(window.size()-1);
+      //prop-=1.0/(window.size()-1);
+      prop = std::max(0.0, prop-(1.0/(windowSize)));
     }
     if(prop >= 0.9){
       std::cout << "Detected Poly a tail for sequence " << seq << " with score of " << prop << std::endl;
