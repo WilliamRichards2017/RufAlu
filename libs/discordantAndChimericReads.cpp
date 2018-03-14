@@ -36,7 +36,6 @@ void DACReads::setAllUnmappedReads(std::string inputFile){
   BamTools::BamAlignment al;
   while(reader.GetNextAlignment(al)){
     if(!al.IsMapped()){
-      std::cout << "found unmapped read" << std::endl;
       unmappedReads_->push_back(&al);
     }
   }

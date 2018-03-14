@@ -23,9 +23,9 @@ int main(void){
   
   std::cout << "destroyed DAC reads\n";
   
-  for(int i=0; i < fastqSeqs.size(); ++i){
-    polyA::detectPolyATail(fastqSeqs[i]);
-  }
+  //  for(int i=0; i < fastqSeqs.size(); ++i){
+  //  polyA::detectPolyATail(fastqSeqs[i]);
+  //}
   
   return 0;
 }

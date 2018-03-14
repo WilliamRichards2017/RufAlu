@@ -11,7 +11,7 @@ std::string testBam ="/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/test_data/
 //std::string testBam = "/uufs/chpc.utah.edu/common/home/u0991464/RUFUS.test.set/Family1.mother.bam";
 
 void detectPositivePolyATail() {
-  bool returnValue = polyA::detectPolyATail("AAAAAAAAAA");
+  bool returnValue = polyA::detectPolyATail("ggccgggcgcggtggctcacgcctgtaatcccagcactttgggaggccgaggcgggaggattgcttgagcccaggagttcgagaccagcctgggcaacatagcgagaccccgtctctacaaaaaatacaaaaattagccgggcgtggtggcgcgcgcctgtagtcccagctactcgggaggctgaggcaggaggatcgcttgagcccaggagttcgaggctgcagtgagctatgatcgcgccactgcactccagcctgggcgacagagcgagaccctgtctcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
   if(returnValue){
     std::cout << "detectPositivePolyA test passed!" << std::endl;
     ++testsPassed;
@@ -23,7 +23,7 @@ void detectPositivePolyATail() {
 }
 
 void detectNegativePolyATail() {
-  bool returnValue = polyA::detectPolyATail("CCCCCCCCCCAAAAAAAATTAAA");
+  bool returnValue = polyA::detectPolyATail("cccccccaaaaaaaagccgggggttttttttt");
   if(!returnValue){
     std::cout << "detectNegativePolyA test passed!" << std::endl;
     ++testsPassed;
