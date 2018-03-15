@@ -1,4 +1,5 @@
 #include "knownAlus.h"
+#include <cstring>
 #include "fastqParse.h"
 #include "polyATail.h"
 #include <zlib.h>
@@ -11,7 +12,7 @@
 
 KSEQ_INIT(gzFile, gzread)
 
-void example()
+void runMiniMap()
 {
 
   mm_idxopt_t iopt;
@@ -61,36 +62,54 @@ void example()
   gzclose(f);
 }
 
-KnownAlus::KnownAlus(std::string contigFilePath, std::string aluFilePath) : contigFilePath_(contigFilePath), aluFilePath_(aluFilePath){
-  mm_idxopt_t iopt;
-  mm_mapopt_t mopt;
+KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath) : contigFilePath_(contigFilePath), aluFilePath_(aluFilePath){
+  contigsContainingKnownAlus_ = new std::vector<const char *>;
+  
   KnownAlus::findContigsContainingKnownAlus();
-  example();
 }
 
 KnownAlus::~KnownAlus(){
   contigsContainingKnownAlus_->clear();
 }
 
-void KnownAlus::findContigsContainingKnownAlus(){
-  contigsContainingKnownAlus_ = new std::vector<std::string*>;
+void findContigsContainingPolyATails(){
   std::vector<std::string> fastaSeqs = bioio::read_fasta_seqs("../test_data/primate_non-LTR_Retrotransposon.fasta");
-  //auto recordCount = bioio::count_fasta_records("../test_data/primate_non-LTR_Retrotransposon.fasta");
+  auto recordCount = bioio::count_fasta_records("../test_data/primate_non-LTR_Retrotransposon.fasta");
 
   for(int i=0; i < fastaSeqs.size(); ++i){
-    //if(polyA::detectPolyATail(std::string(fastaSeqs[i]))){
-    bool b = polyA::detectPolyATail(fastaSeqs[i]);
-    if(b){
-      std::cout << "found alu w/poly a tail" << std::endl;
-      contigsContainingKnownAlus_->push_back(&fastaSeqs[i]);
-
+    if(polyA::detectPolyATail(std::string(fastaSeqs[i]))){
+      bool b = polyA::detectPolyATail(fastaSeqs[i]);
+      if(b){
+	std::cout << "found alu w/poly a tail" << std::endl;      
+      }
     }
-  }
-  
-  std::cout << "found " << contigsContainingKnownAlus_->size() << " reads containing known alu sequences" << std::endl;
-
+  }  
 }
 
-std::vector<std::string*> * KnownAlus::getContigsContainingKnownAlus(){
+void KnownAlus::findContigsContainingKnownAlus(){
+
+
+  mm_idxopt_t iopt;
+  mm_mapopt_t mopt;
+  mm_set_opt(0, &iopt, &mopt);
+
+  mopt.flag |= MM_F_CIGAR; // perform alignment
+
+
+  std::string outs = "index.fa.fai";
+  
+  const char* out = outs.c_str();
+
+  mm_idx_reader_t *indexReader = mm_idx_reader_open(contigFilePath_.c_str(), &iopt, NULL);
+
+
+  mm_idx_t *fastaIndex = mm_idx_reader_read(indexReader, 40);  
+  std::cout << "inside findContigsContainingKnownAlus" << std::endl;
+  
+}
+
+
+std::vector<const char *> * KnownAlus::getContigsContainingKnownAlus(){
+  
   return contigsContainingKnownAlus_;
 }
