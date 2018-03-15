@@ -1,5 +1,7 @@
 INCLUDE_DIRECTORIES(
     ${BAMTOOLS_INCLUDE}
+    ${ZLIB_INCLUDE}
+    ${MINIMAP2_INCLUDE}
 )
 
 set(CMAKE_BUILD_TYPE Debug) # uncomment this when you need a debug build
@@ -21,6 +23,7 @@ SET(CORE_LIB aludetect_core CACHE STRING "THE CORE LIBRARY")
 TARGET_LINK_LIBRARIES(${CORE_LIB}
   ${BAMTOOLS_LIB}
   ${ZLIB_LIBRARY}
+  ${MINIMAP2_LIB}
 )
 
 add_dependencies(${CORE_LIB} ${ALUDETECT_EXTERNAL_PROJECT})
