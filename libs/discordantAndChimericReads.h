@@ -1,3 +1,6 @@
+#ifndef DISCORDANTANDCHIMERICREADS_H
+#define DISCORDANTANDCHIMERICREADS_H
+
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
 
@@ -18,3 +21,5 @@ class DACReads{
   void setAllChimericReads(std::string);
   void setAllUnmappedReads(std::string);
 };
+
+#endif // DISCORDANTANDCHIMERICREADS_H

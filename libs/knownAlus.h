@@ -1,3 +1,6 @@
+#ifndef KNOWNALUS_H
+#define KNOWNALUS_H
+
 #include "fastqParse.h"
 #include <vector>
 #include <tuple>
@@ -19,6 +22,9 @@ class KnownAlus{
   std::vector<const char *> *contigsContainingKnownAlus_;
   
   void findContigsContainingKnownAlus();
+  void alignContigsContainingKnownAlus(const char *);
   void runMiniMap();
 
 };
+
+#endif // KNOWNALUS_H
