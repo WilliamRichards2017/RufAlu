@@ -6,17 +6,19 @@ using FastaRecord = std::tuple<std::string, std::string>;
 
 class KnownAlus{
  public:
-  KnownAlus(std::string, std::string);
+  KnownAlus(const char *, const char *, const char *);
   ~KnownAlus();
   
-  std::vector<std::string*> * getContigsContainingKnownAlus();
+  std::vector<const char *> * getContigsContainingKnownAlus();
   
 
  private:
-  std::string contigFilePath_;
-  std::string aluFilePath_;
-  std::vector<std::string*> *contigsContainingKnownAlus_;
+  const char * contigFilePath_;
+  const char * aluFilePath_;
+  const char * aluIndexPath_;
+  std::vector<const char *> *contigsContainingKnownAlus_;
   
   void findContigsContainingKnownAlus();
+  void runMiniMap();
 
 };

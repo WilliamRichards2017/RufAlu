@@ -1,7 +1,12 @@
 #include "../libs/polyATail.h"
 #include "../libs/discordantAndChimericReads.h"
 #include "../libs/fastqParse.h"
+#include "../libs/knownAlus.h"
+
+#include <stdio.h>
 #include <string>
+
+
 
 
 int testsPassed = 0;
@@ -40,12 +45,21 @@ void buildDACReads(std::string filePath){
   ++totalTests;
   ++testsPassed;
   delete dacReads;
+  std::cout << "successfully built DACReads" << std::endl;
+}
+
+void testMiniMapAlignment(const char * contigFp, const char * aluFp, const char * aluIndex){
+  KnownAlus *knownAlus = new KnownAlus(contigFp, aluFp, aluIndex);
+  std::cout << "produced successfull minimap alignment" << std::endl;
+  ++totalTests;
+  ++testsPassed;
 }
 
 void runAllTests() {
   detectPositivePolyATail();
   detectNegativePolyATail();
   buildDACReads(testBam);
+  testMiniMapAlignment("../../RUFUS/scripts/Family1.child.bam.generator.V2.overlap.hashcount.fastq", "../test_data/primate_non-LTR_Retrotransposon.fasta", "../test_data/primate_non-LTR_Retrotransposon.fasta.fai");
 }
 
 int main(int argc, char* argv[]){
