@@ -1,3 +1,5 @@
+MESSAGE("BAMTOOLS LIB DIR: ${BAMTOOLS_INCLUDE}")
+
 INCLUDE_DIRECTORIES(
     ${BAMTOOLS_INCLUDE}
     ${ZLIB_INCLUDE}
@@ -16,6 +18,7 @@ add_library(aludetect_core STATIC
 	polyATail.cpp
 	discordantAndChimericReads.cpp
 	knownAlus.cpp
+	
   )
 
 SET(CORE_LIB aludetect_core CACHE STRING "THE CORE LIBRARY")

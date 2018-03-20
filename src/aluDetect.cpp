@@ -2,9 +2,9 @@
 #include <string.h>
 #include <list>
 #include <stdio.h>
-#include "../libs/polyATail.h"
-#include "../libs/discordantAndChimericReads.h"
-#include "../libs/knownAlus.h"
+#include "libs/polyATail.h"
+#include "libs/discordantAndChimericReads.h"
+#include "libs/knownAlus.h"
 
 int main(void){
 
@@ -23,13 +23,15 @@ int main(void){
 
   const char * aluFilePath = "../test_data/primate_non-LTR_Retrotransposon.fasta";
   const char * aluIndexPath =  "../test_data/primate_non-LTR_Retrotransposon.fasta.fai";
+  const char * refIndexPath = "/uufs/chpc.utah.edu/common/home/marth-ucgdstor/resources/references/human/GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.fai";
+  
 
   //const char * contigFilePath = "../test_data/primate_non-LTR_Retrotransposon.fasta";
   //const char * aluFilePath = "/uufs/chpc.utah.edu/common/home/marth-ucgdstor/resources/references/human/GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
   //const char * aluIndexPath = "/uufs/chpc.utah.edu/common/home/marth-ucgdstor/resources/references/human/GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.fai";
 
   DACReads *dacReads = new DACReads(bamPath);
-  KnownAlus *knownAlus = new KnownAlus(contigFilePath, aluFilePath, aluIndexPath);
+  KnownAlus *knownAlus = new KnownAlus(contigFilePath, aluFilePath, aluIndexPath, refIndexPath);
 
   std::cout << "finished building DAC reads\n";
  
