@@ -49,7 +49,7 @@ void buildDACReads(std::string filePath){
 }
 
 void testMiniMapAlignment(const char * contigFp, const char * aluFp, const char * aluIndex){
-  KnownAlus *knownAlus = new KnownAlus(contigFp, aluFp, aluIndex, aluIndex);
+  KnownAlus *knownAlus = new KnownAlus(contigFp, aluFp, aluIndex, aluIndex, aluIndex);
   std::cout << "produced successfull minimap alignment" << std::endl;
   ++totalTests;
   ++testsPassed;

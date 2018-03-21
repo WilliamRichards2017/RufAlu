@@ -23,6 +23,7 @@ int main(void){
 
   const char * aluFilePath = "../test_data/primate_non-LTR_Retrotransposon.fasta";
   const char * aluIndexPath =  "../test_data/primate_non-LTR_Retrotransposon.fasta.fai";
+  const char * refPath = "/uufs/chpc.utah.edu/common/home/marth-ucgdstor/resources/references/human/GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
   const char * refIndexPath = "/uufs/chpc.utah.edu/common/home/marth-ucgdstor/resources/references/human/GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.fai";
   
 
@@ -31,7 +32,7 @@ int main(void){
   //const char * aluIndexPath = "/uufs/chpc.utah.edu/common/home/marth-ucgdstor/resources/references/human/GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.fai";
 
   DACReads *dacReads = new DACReads(bamPath);
-  KnownAlus *knownAlus = new KnownAlus(contigFilePath, aluFilePath, aluIndexPath, refIndexPath);
+  KnownAlus *knownAlus = new KnownAlus(contigFilePath, aluFilePath, aluIndexPath, refPath, refIndexPath);
 
   std::cout << "finished building DAC reads\n";
  
