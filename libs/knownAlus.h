@@ -7,6 +7,8 @@
 #include <vector>
 #include <string>
 #include <utility> // std::pair
+#include "api/BamMultiReader.h"
+#include "api/BamWriter.h"
 
 
 
@@ -53,6 +55,8 @@ class KnownAlus{
   void mapContigsToRef(const char *);
   void recoverPolyATails();
   void findContigsContainingPolyATails(const char *);
+  void findReadsContainingPolyATails(std::vector<BamTools::BamAlignment>);
+
 };
 
 #endif // KNOWNALUS_H

@@ -17,10 +17,10 @@ void printWindow(std::list<const char*> window){
 
 bool polyA::detectPolyATail(std::string seq) {
   std::list<const char*> window;
-  int windowSize=10;
+  int windowSize = 12;
   int pos = 0;
   float prop = 0.0;
-  if(seq.length() < 10 ){
+  if(seq.length() < windowSize ){
     return false;
   }
   else{

@@ -59,6 +59,18 @@ void KnownAlus::findContigsContainingPolyATails(const char * inputFile){
   }
 }
 
+void KnownAlus::findReadsContainingPolyATails(std::vector<BamTools::BamAlignment> contigs){
+
+  for(auto it = std::begin(contigs); it != std::end(contigs); ++it){
+    bool b = polyA::detectPolyATail(it->QueryBases);
+   if(b){
+    std::cout << "found polyATail evidence supporting alu" << std::endl;
+    std::cout <<  it->QueryBases << std::endl;
+    std::cout << "supporting read was found at region: " << it->Position << ", " << it->GetEndPosition() << std::endl;
+   }
+  }
+}
+
 bool overlap(std::pair<int, int> a, std::vector<std::pair<int, int> > b){
   for (auto it = std::begin(b); it != std::end(b); ++it){
     if((a.first >= it->first && a.first <= it->second) || (a.second >= it->first && a.second <= it->second)){
@@ -98,7 +110,7 @@ std::vector<BamTools::BamAlignment> intersectBams(const char * a, const char * b
     std::pair<int, int> coords = std::make_pair(bl.Position, bl.GetEndPosition());
     if (overlap(coords, aCoords)){
       intersection.push_back(bl);
-      std::cout << "found overlap at coords " << coords.first << ", " << coords.second << std::endl;
+      //std::cout << "found overlap at coords " << coords.first << ", " << coords.second << std::endl;
     }
   }
 
@@ -205,7 +217,8 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath, cons
   //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
   //KnownAlus::recoverPolyATails();
   //findContigsContainingPolyATails("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/alu_intersect.bam");
-  intersectBams("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
+  std::vector<BamTools::BamAlignment> reads = intersectBams("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
+  findReadsContainingPolyATails(reads);
 }
 
 KnownAlus::~KnownAlus(){
