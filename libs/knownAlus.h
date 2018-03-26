@@ -51,6 +51,8 @@ class KnownAlus{
   void findContigsContainingKnownAlus();
   void alignContigsContainingKnownAlus(const char *);
   void mapContigsToRef(const char *);
+  void recoverPolyATails();
+  void findContigsContainingPolyATails(const char *);
 };
 
 #endif // KNOWNALUS_H
