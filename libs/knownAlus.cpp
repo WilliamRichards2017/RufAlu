@@ -22,6 +22,7 @@
 KSEQ_INIT(gzFile, gzread)
 
 void exec(char const* cmd) {
+  std::cout << "executing command " << cmd << std::endl;
   char buffer[512];
   std::string result = "";
   FILE* pipe = popen(cmd, "r");
@@ -213,8 +214,8 @@ void KnownAlus::findContigsContainingKnownAlus()
 
 KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath){
   contigsContainingKnownAlus_ = new std::vector<fastqRead *>;
-  //KnownAlus::findContigsContainingKnownAlus();
-  //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
+  KnownAlus::findContigsContainingKnownAlus();
+  KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
   //KnownAlus::recoverPolyATails();
   //findContigsContainingPolyATails("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/alu_intersect.bam");
   std::vector<BamTools::BamAlignment> reads = intersectBams("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
@@ -227,13 +228,22 @@ KnownAlus::~KnownAlus(){
 
 void KnownAlus::mapContigsToRef(const char * contigs){
   std::string cmd = "";
+  std::string sort = "";
+  exec("chmod +x /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools");
   cmd+= "cd /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/externals/minimap2/src/minimap2_project ; ./minimap2 -a ";
   cmd+= refPath_;
   cmd += " /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/";
   cmd+= contigs;
   cmd+= " > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sam";
-  std::cout << "executing command " << cmd << std::endl;
+  //std::cout << "executing command " << cmd << std::endl;
   exec(cmd.c_str());
+  //convert sam to bam
+  exec("samtools view -Sb /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sam > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.bam");
+  //Sort bam file by position
+  exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam");
+  //Index sorted bamfile
+  exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam");
+  
 }
 
 void KnownAlus::recoverPolyATails(){
