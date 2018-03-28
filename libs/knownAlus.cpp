@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <unordered_map>
 
 #include "fastqParse.h"
 #include "knownAlus.h"
@@ -21,6 +22,29 @@
 #include "api/BamWriter.h"
 
 KSEQ_INIT(gzFile, gzread)
+
+std::string getChromosomeFromRefID(const char * bamPath, int32_t id){
+  std::cout << "Inside getChromeFromRefId\n";
+  std::unordered_map<std::string, std::vector<BamTools::RefData> > m_map;
+  std::vector<BamTools::RefData> refData;
+
+  auto iter = m_map.find(bamPath);
+  if (iter == m_map.end()){
+
+    BamTools::BamReader reader;
+    if (!reader.Open(bamPath)){
+      std::cout << "Could not open input Bam file" << bamPath << std::endl;
+      return;
+    }
+    m_map[bamPath] = reader.GetReferenceData();
+    refData = m_map[bamPath];
+    //iter = m_map[bamPath];
+    //close bam reader
+    reader.Close();
+  }
+
+  return refData[id].RefName;
+}
 
 
 void KnownAlus::findContigsContainingPolyATails(const char * inputFile){
@@ -35,12 +59,14 @@ void KnownAlus::findContigsContainingPolyATails(const char * inputFile){
 
   while(reader.GetNextAlignment(al)){
     bool b = polyA::detectPolyATail(al.QueryBases);
+    std::string chrom = getChromosomeFromRefID(inputFile, al.RefID);
+    std::cout << "read is on chromosome: " << chrom << std::endl;
     if(b){
       std::cout << "found alu w/ poly a tail" << std::endl;
       std::cout <<  al.QueryBases << std::endl;
-    }
-    
+    }    
   }
+  reader.Close();
 }
 
 void KnownAlus::findReadsContainingPolyATails(std::vector<BamTools::BamAlignment> contigs){
@@ -129,10 +155,11 @@ void KnownAlus::findContigsContainingKnownAlus()
 
 KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath){
   contigsContainingKnownAlus_ = new std::vector<fastqRead *>;
+  findContigsContainingPolyATails("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam");
   KnownAlus::findContigsContainingKnownAlus();
   KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
   //KnownAlus::recoverPolyATails();
-  //findContigsContainingPolyATails("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/alu_intersect.bam");
+  
   std::vector<BamTools::BamAlignment> reads = util::intersectBams("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
   findReadsContainingPolyATails(reads);
 }
