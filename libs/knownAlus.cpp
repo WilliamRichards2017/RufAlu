@@ -15,30 +15,13 @@
 #include "kseq.h"
 #include "minimap.h"
 #include "polyATail.h"
+#include "util.h"
 
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
 
 KSEQ_INIT(gzFile, gzread)
 
-void exec(char const* cmd) {
-  std::cout << "executing command " << cmd << std::endl;
-  char buffer[512];
-  std::string result = "";
-  FILE* pipe = popen(cmd, "r");
-  if (!pipe) throw std::runtime_error("popen() failed!");
-  try {
-    while (!feof(pipe)) {
-      if (fgets(buffer, 128, pipe) != NULL)
-	result += buffer;
-    }
-  } catch (...) {
-    pclose(pipe);
-    throw;
-  }
-  pclose(pipe);
-  return;
-}
 
 void KnownAlus::findContigsContainingPolyATails(const char * inputFile){
 
@@ -70,74 +53,6 @@ void KnownAlus::findReadsContainingPolyATails(std::vector<BamTools::BamAlignment
     std::cout << "supporting read was found at region: " << it->Position << ", " << it->GetEndPosition() << std::endl;
    }
   }
-}
-
-bool overlap(std::pair<int, int> a, std::vector<std::pair<int, int> > b){
-  for (auto it = std::begin(b); it != std::end(b); ++it){
-    if((a.first >= it->first && a.first <= it->second) || (a.second >= it->first && a.second <= it->second)){
-      return true;
-    }
-  }
-  return false;
-}
-
-std::vector<BamTools::BamAlignment> intersectBams(const char * a, const char * b){
-  std::vector<BamTools::BamAlignment> intersection;
-
-
-  std::vector<std::pair<int, int> > aCoords;
-  BamTools::BamReader reader;
-  if (!reader.Open(a)){
-    std::cout << "Could not open the following input bamfile: " << a << std::endl;
-    return intersection;
-  }
-
-  BamTools::BamAlignment al;
-
-  while(reader.GetNextAlignment(al)){
-    std::pair<int,int> coords = std::make_pair(al.Position, al.GetEndPosition());
-    aCoords.push_back(coords);
-    //std::cout << "pushing back coords " << coords.first << ", " << coords.second << std::endl;
-  }
-
-  if (!reader.Open(b)){
-    std::cout << "Could not open the following input bamfile: " << b << std::endl;
-    return intersection;
-  }
-  
-  BamTools::BamAlignment bl;
-  
-  while(reader.GetNextAlignment(bl)){
-    std::pair<int, int> coords = std::make_pair(bl.Position, bl.GetEndPosition());
-    if (overlap(coords, aCoords)){
-      intersection.push_back(bl);
-      //std::cout << "found overlap at coords " << coords.first << ", " << coords.second << std::endl;
-    }
-  }
-
-  return intersection;
-}
-
-
-const char *contigsToFastq(std::vector<fastqRead *> *contigs, const char * outFile){
-
-  std::ofstream out;
-  out.open(outFile);
-
-  for(auto it = std::begin(*contigs); it != std::end(*contigs); ++it){
-
-    //out << (*it)->id << std::endl;
-    out << '@' << (*it)->name << std::endl;
-    out << (*it)->seq << std::endl;
-    out << '+' << std::endl;
-    out << (*it)->qual << std::endl;
-    std::cout << "name: " << (*it)->name <<  std::endl;
-    std::cout << "sequence: " << (*it)->seq <<  std::endl;
-    std::cout << "quality: " << (*it)->qual <<  std::endl;
-        
-  }  
-  
-  return outFile;
 }
 
 void KnownAlus::findContigsContainingKnownAlus()
@@ -218,7 +133,7 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath, cons
   KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
   //KnownAlus::recoverPolyATails();
   //findContigsContainingPolyATails("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/alu_intersect.bam");
-  std::vector<BamTools::BamAlignment> reads = intersectBams("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
+  std::vector<BamTools::BamAlignment> reads = util::intersectBams("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
   findReadsContainingPolyATails(reads);
 }
 
@@ -229,20 +144,20 @@ KnownAlus::~KnownAlus(){
 void KnownAlus::mapContigsToRef(const char * contigs){
   std::string cmd = "";
   std::string sort = "";
-  exec("chmod +x /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools");
+  util::exec("chmod +x /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools");
   cmd+= "cd /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/externals/minimap2/src/minimap2_project ; ./minimap2 -a ";
   cmd+= refPath_;
   cmd += " /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/";
   cmd+= contigs;
   cmd+= " > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sam";
   //std::cout << "executing command " << cmd << std::endl;
-  exec(cmd.c_str());
+  util::exec(cmd.c_str());
   //convert sam to bam
-  exec("samtools view -Sb /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sam > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.bam");
+  util::exec("samtools view -Sb /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sam > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.bam");
   //Sort bam file by position
-  exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam");
+  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam");
   //Index sorted bamfile
-  exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam");
+  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam");
   
 }
 
@@ -253,7 +168,7 @@ void KnownAlus::recoverPolyATails(){
   cmd += " > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/alu_intersect.bam";
   
   std::cout << "executing command " << cmd << std::endl;
-  exec(cmd.c_str());
+  util::exec(cmd.c_str());
   
 
 }
@@ -264,6 +179,6 @@ std::vector<fastqRead *> * KnownAlus::getContigsContainingKnownAlus(){
 
 void KnownAlus::alignContigsContainingKnownAlus(const char * refPath){
 
-  const char * fastq = contigsToFastq(contigsContainingKnownAlus_, "contigs.fastq"); 
+  const char * fastq = util::contigsToFastq(contigsContainingKnownAlus_, "contigs.fastq"); 
   KnownAlus::mapContigsToRef(fastq);
 }

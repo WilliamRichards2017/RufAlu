@@ -15,6 +15,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 
 add_library(aludetect_core STATIC
+	util.cpp
 	polyATail.cpp
 	discordantAndChimericReads.cpp
 	knownAlus.cpp
