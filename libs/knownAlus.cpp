@@ -78,7 +78,6 @@ void KnownAlus::findReadsContainingPolyATails(std::vector<BamTools::BamAlignment
 
 void KnownAlus::findContigsContainingKnownAlus()
 {
-
   mm_idxopt_t iopt;
   mm_mapopt_t mopt;
   int n_threads = 3;
@@ -118,10 +117,7 @@ void KnownAlus::findContigsContainingKnownAlus()
       }
 
       fastqRead *f = new fastqRead(std::string(ks->name.s), ks->seq.s, qual);
-
       contigsContainingKnownAlus_->push_back(f);
-
-
       
       //std::cout << "nreg is: " << n_reg << std::endl;
       for (j = 0; j < n_reg; ++j) { // traverse hits and print them out
@@ -152,14 +148,22 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath, cons
   contigsContainingKnownAlus_ = new std::vector<fastqRead *>;
   KnownAlus::populateRefData("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
   KnownAlus::findContigsContainingKnownAlus();
-  //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
+  KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
     
   std::vector<BamTools::BamAlignment> reads = util::intersectBams("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
   findReadsContainingPolyATails(reads, "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
+  delete[] &reads;
 }
 
 KnownAlus::~KnownAlus(){
-  contigsContainingKnownAlus_->clear();
+  //contigsContainingKnownAlus_->clear();
+  //delete[] contigsContainingKnownAlus_;
+  // delete[] &refData_;
+  delete contigFilePath_;
+  delete aluFilePath_;
+  delete aluIndexPath_;
+  delete refPath_;
+  delete refIndexPath_;
 }
 
 void KnownAlus::mapContigsToRef(const char * contigs){
@@ -189,4 +193,5 @@ void KnownAlus::alignContigsContainingKnownAlus(const char * refPath){
 
   const char * fastq = util::contigsToFastq(contigsContainingKnownAlus_, "contigs.fastq"); 
   KnownAlus::mapContigsToRef(fastq);
+  delete fastq;
 }

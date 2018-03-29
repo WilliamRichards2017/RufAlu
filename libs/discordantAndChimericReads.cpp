@@ -5,8 +5,8 @@
 #include "discordantAndChimericReads.h"
 
 DACReads::DACReads(std::string filePath){      
-  chimericReads_ = new std::vector<BamTools::BamAlignment*>;
-  unmappedReads_ = new std::vector<BamTools::BamAlignment*>;
+  chimericReads_ = new std::vector<BamTools::BamAlignment>;
+  unmappedReads_ = new std::vector<BamTools::BamAlignment>;
   DACReads::setAllChimericReads(filePath);
   DACReads::setAllUnmappedReads(filePath);
   
@@ -14,16 +14,8 @@ DACReads::DACReads(std::string filePath){
 
 DACReads::~DACReads(){
 
-  //  for(unsigned i = 0; i < chimericReads_->size(); ++i){
-  //  delete &(chimericReads_)[i];
-  // }
-
-  //for(unsigned i = 0; i < unmappedReads_->size(); ++i){
-  //  delete &(unmappedReads_)[i];
-  // }
-    
-  chimericReads_->clear();
-  unmappedReads_->clear();
+  delete[] chimericReads_;
+  delete[] unmappedReads_;
 }
 
 void DACReads::setAllUnmappedReads(std::string inputFile){
@@ -36,10 +28,10 @@ void DACReads::setAllUnmappedReads(std::string inputFile){
   BamTools::BamAlignment al;
   while(reader.GetNextAlignment(al)){
     if(!al.IsMapped()){
-      unmappedReads_->push_back(&al);
+      unmappedReads_->push_back(al);
     }
   }
-
+  reader.Close();
   return;
 }
 
@@ -54,17 +46,18 @@ void DACReads::setAllChimericReads(std::string inputFile){
   while(reader.GetNextAlignment(al)){
     //Chimeric reads
     if(al.HasTag("SA")) {
-      chimericReads_->push_back(&al);
+      chimericReads_->push_back(al);
       //std::cout << "read flag field is:" << al.AlignmentFlag << std::endl;
     }
   }
+  reader.Close();
   return;
 }
 
-std::vector<BamTools::BamAlignment*> * DACReads::getAllChimericReads(){
+std::vector<BamTools::BamAlignment> * DACReads::getAllChimericReads(){
   return chimericReads_;
 }
 
-std::vector<BamTools::BamAlignment*> * DACReads::getAllUnmappedReads(){
+std::vector<BamTools::BamAlignment> * DACReads::getAllUnmappedReads(){
   return unmappedReads_;
 }

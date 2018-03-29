@@ -12,12 +12,12 @@ class DACReads{
   DACReads(std::string);
   ~DACReads();
 
-  std::vector<BamTools::BamAlignment*> * getAllAluCandidateReads();
-  std::vector<BamTools::BamAlignment*> * getAllChimericReads();
-  std::vector<BamTools::BamAlignment*> * getAllUnmappedReads();
+  std::vector<BamTools::BamAlignment> * getAllAluCandidateReads();
+  std::vector<BamTools::BamAlignment> * getAllChimericReads();
+  std::vector<BamTools::BamAlignment> * getAllUnmappedReads();
  private:
-  std::vector<BamTools::BamAlignment*> *chimericReads_;
-  std::vector<BamTools::BamAlignment*> *unmappedReads_;
+  std::vector<BamTools::BamAlignment> *chimericReads_;
+  std::vector<BamTools::BamAlignment> *unmappedReads_;
   void setAllChimericReads(std::string);
   void setAllUnmappedReads(std::string);
 };
