@@ -29,12 +29,15 @@ class KnownAlus{
   const char * refIndexPath_;
 
   std::vector<fastqRead *> *contigsContainingKnownAlus_;
+  std::vector<BamTools::RefData> refData_;
+
+  void populateRefData(const char *);
   void findContigsContainingKnownAlus();
   void alignContigsContainingKnownAlus(const char *);
   void mapContigsToRef(const char *);
-  void recoverPolyATails();
   void findContigsContainingPolyATails(const char *);
-  void findReadsContainingPolyATails(std::vector<BamTools::BamAlignment>);
+  void findReadsContainingPolyATails(std::vector<BamTools::BamAlignment>, const char *);
+  std::string getChromosomeFromRefID(int32_t);
 
 };
 
