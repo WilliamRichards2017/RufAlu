@@ -1,3 +1,7 @@
+#include <stdexcept>
+#include <string>
+
+
 #include "util.h"
 
 void util::exec(char const* cmd) {
@@ -26,6 +30,37 @@ bool util::overlap(std::pair<int, int> a, std::vector<std::pair<int, int> > b){
     }
   }
   return false;
+}
+
+const std::vector<std::string> util::Split(const std::string& line, const char delim)
+{
+  std::vector<std::string> tokens;
+  std::stringstream lineStream(line);
+  std::string token;
+  while(getline(lineStream, token, delim)){
+    tokens.push_back(token);
+  }
+  return tokens;
+}
+
+const char * util::getRootDirectory(std::string rufAluPath){
+  
+  std::vector<std::string> tokens = util::Split(rufAluPath, '/');
+
+  std::string rootDir = "";
+
+  while((tokens.front() != "RufAlu") && (!tokens.empty())){
+    rootDir+="/";
+    rootDir+= tokens.front();
+    tokens.erase(tokens.begin());
+  }
+
+  if(tokens.front() !="RufAlu"){
+    std::cout << "Unable to parse path to RufAlu, exiting now" << std::endl;
+    exit (EXIT_FAILURE);
+  }
+  return rootDir.c_str();
+
 }
 
 std::vector<BamTools::BamAlignment> util::intersectBams(const char * a, const char * b){

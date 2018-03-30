@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <stdexcept>
 #include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +24,9 @@ KSEQ_INIT(gzFile, gzread)
 
 void KnownAlus::populateRefData(const char * bamPath){
   BamTools::BamReader reader;
+
+  const char * rootDir = util::getRootDirectory(bamPath);
+  std::cout << "RUFUS root path is: " << rootDir << std::endl;
   if (!reader.Open(bamPath)){
     std::cout << "Could not open input Bam file" << bamPath << std::endl;
     exit (EXIT_FAILURE);
@@ -146,6 +148,11 @@ void KnownAlus::findContigsContainingKnownAlus()
 
 KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath){
   contigsContainingKnownAlus_ = new std::vector<fastqRead *>;
+
+  const char * rootDir = util::getRootDirectory(std::string(aluFilePath));
+  std::cout << "RUFUS root path is: " << rootDir << std::endl;
+
+
   KnownAlus::populateRefData("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
   KnownAlus::findContigsContainingKnownAlus();
   KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
