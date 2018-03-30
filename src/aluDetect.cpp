@@ -35,10 +35,10 @@ int main(int argc, char *argv[] ){
   KnownAlus *knownAlus = new KnownAlus(contigFilePath, aluFilePath, aluIndexPath, refPath, refIndexPath);
 
   //odelete bamPath;
-  delete aluFilePath;
-  delete aluIndexPath;
-  delete refPath;
-  delete refIndexPath;
+  //delete aluFilePath;
+  //delete aluIndexPath;
+  //delete refPath;
+  //delete refIndexPath;
   
 
   return 0;

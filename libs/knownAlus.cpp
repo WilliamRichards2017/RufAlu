@@ -24,9 +24,6 @@ KSEQ_INIT(gzFile, gzread)
 
 void KnownAlus::populateRefData(const char * bamPath){
   BamTools::BamReader reader;
-
-  const char * rootDir = util::getRootDirectory(bamPath);
-  std::cout << "RUFUS root path is: " << rootDir << std::endl;
   if (!reader.Open(bamPath)){
     std::cout << "Could not open input Bam file" << bamPath << std::endl;
     exit (EXIT_FAILURE);
@@ -159,7 +156,7 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath, cons
     
   std::vector<BamTools::BamAlignment> reads = util::intersectBams("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
   findReadsContainingPolyATails(reads, "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
-  delete[] &reads;
+
 }
 
 KnownAlus::~KnownAlus(){
@@ -200,5 +197,5 @@ void KnownAlus::alignContigsContainingKnownAlus(const char * refPath){
 
   const char * fastq = util::contigsToFastq(contigsContainingKnownAlus_, "contigs.fastq"); 
   KnownAlus::mapContigsToRef(fastq);
-  delete fastq;
+
 }
