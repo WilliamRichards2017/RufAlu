@@ -32,6 +32,7 @@ int main(int argc, char *argv[] ){
   const char * refIndexPath = "/uufs/chpc.utah.edu/common/home/marth-ucgdstor/resources/references/human/GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.fai";*/
 
   //DACReads *dacReads = new DACReads(bamPath);
+
   KnownAlus *knownAlus = new KnownAlus(contigFilePath, aluFilePath, aluIndexPath, refPath, refIndexPath);
 
   //odelete bamPath;

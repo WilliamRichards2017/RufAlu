@@ -18,7 +18,7 @@ class KnownAlus{
   KnownAlus(const char *, const char *, const char *, const char *, const char *);
   ~KnownAlus();
   
-  std::vector<fastqRead *> * getContigsContainingKnownAlus();
+  std::vector<fastqRead> * getContigsContainingKnownAlus();
   
 
  private:
@@ -28,8 +28,8 @@ class KnownAlus{
   const char * refPath_;
   const char * refIndexPath_;
 
-  std::vector<fastqRead *> *contigsContainingKnownAlus_;
-  std::vector<BamTools::RefData> refData_;
+  std::vector<fastqRead> *contigsContainingKnownAlus_;
+  const std::vector<BamTools::RefData> *refData_;
 
   void populateRefData(const char *);
   void findContigsContainingKnownAlus();

@@ -28,7 +28,7 @@ void KnownAlus::populateRefData(const char * bamPath){
     std::cout << "Could not open input Bam file" << bamPath << std::endl;
     exit (EXIT_FAILURE);
   }
-  refData_ = reader.GetReferenceData();
+  refData_ = &(reader.GetReferenceData());
 }
 
 std::string KnownAlus::getChromosomeFromRefID(int32_t id){
@@ -36,7 +36,7 @@ std::string KnownAlus::getChromosomeFromRefID(int32_t id){
   if(id == -1){
     return "unmapped";
   }
-  return refData_[id].RefName;
+  return (*refData_)[id].RefName;
 }
 
 
@@ -116,7 +116,7 @@ void KnownAlus::findContigsContainingKnownAlus()
       }
 
       fastqRead *f = new fastqRead(std::string(ks->name.s), ks->seq.s, qual);
-      contigsContainingKnownAlus_->push_back(f);
+      contigsContainingKnownAlus_->push_back(*f);
       
       //std::cout << "nreg is: " << n_reg << std::endl;
       for (j = 0; j < n_reg; ++j) { // traverse hits and print them out
@@ -144,7 +144,7 @@ void KnownAlus::findContigsContainingKnownAlus()
 
 
 KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath){
-  contigsContainingKnownAlus_ = new std::vector<fastqRead *>;
+  contigsContainingKnownAlus_ = new std::vector<fastqRead>;
 
   const char * rootDir = util::getRootDirectory(std::string(aluFilePath));
   std::cout << "RUFUS root path is: " << rootDir << std::endl;
@@ -152,7 +152,7 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath, cons
 
   KnownAlus::populateRefData("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
   KnownAlus::findContigsContainingKnownAlus();
-  KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
+  //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
     
   std::vector<BamTools::BamAlignment> reads = util::intersectBams("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
   findReadsContainingPolyATails(reads, "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
@@ -161,8 +161,8 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath, cons
 
 KnownAlus::~KnownAlus(){
   //contigsContainingKnownAlus_->clear();
-  //delete[] contigsContainingKnownAlus_;
-  // delete[] &refData_;
+  delete[] contigsContainingKnownAlus_;
+  delete[] refData_;
   delete contigFilePath_;
   delete aluFilePath_;
   delete aluIndexPath_;
@@ -189,7 +189,7 @@ void KnownAlus::mapContigsToRef(const char * contigs){
   util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam");
   
 }
-std::vector<fastqRead *> * KnownAlus::getContigsContainingKnownAlus(){
+std::vector<fastqRead> * KnownAlus::getContigsContainingKnownAlus(){
   return contigsContainingKnownAlus_;
 }
 

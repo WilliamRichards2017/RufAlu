@@ -37,7 +37,7 @@ class util{
   static void exec(char const*);
   static bool overlap(std::pair<int, int>, std::vector<std::pair<int, int> >);
   static std::vector<BamTools::BamAlignment> intersectBams(const char *, const char *);
-  static const char * contigsToFastq(std::vector<fastqRead *>*, const char *);
+  static const char * contigsToFastq(std::vector<fastqRead>*, const char *);
 
   static const std::vector<std::string> Split(const std::string&, const char);
   static const char * getRootDirectory(std::string);
