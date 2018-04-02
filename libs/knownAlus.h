@@ -15,7 +15,7 @@
 
 class KnownAlus{
  public:
-  KnownAlus(const char *, const char *, const char *, const char *, const char *);
+  KnownAlus(const char *, const char *, const char *, const char *, const char *, const char *);
   ~KnownAlus();
   
   std::vector<fastqRead> * getContigsContainingKnownAlus();
@@ -23,6 +23,7 @@ class KnownAlus{
 
  private:
   const char * contigFilePath_;
+  const char * mutationPath_;
   const char * aluFilePath_;
   const char * aluIndexPath_;
   const char * refPath_;

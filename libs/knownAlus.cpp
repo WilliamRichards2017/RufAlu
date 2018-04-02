@@ -143,19 +143,20 @@ void KnownAlus::findContigsContainingKnownAlus()
 }
 
 
-KnownAlus::KnownAlus(const char * contigFilePath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath){
+// TODO: pass in mutations as path
+KnownAlus::KnownAlus(const char * contigFilePath, const char * mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath){
   contigsContainingKnownAlus_ = new std::vector<fastqRead>;
 
-  const char * rootDir = util::getRootDirectory(std::string(aluFilePath));
-  std::cout << "RUFUS root path is: " << rootDir << std::endl;
+  //const char * rootDir = util::getRootDirectory(std::string(aluFilePath));
+  //std::cout << "RUFUS root path is: " << rootDir << std::endl;
 
 
-  KnownAlus::populateRefData("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
+  KnownAlus::populateRefData(mutationPath_);
   KnownAlus::findContigsContainingKnownAlus();
-  //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
+  KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
     
-  std::vector<BamTools::BamAlignment> reads = util::intersectBams("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
-  findReadsContainingPolyATails(reads, "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/Family1.child.bam.generator.Mutations.fastq.bam");
+  std::vector<BamTools::BamAlignment> reads = util::intersect("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", mutationPath_);
+  findReadsContainingPolyATails(reads, mutationPath_);
 
 }
 
@@ -168,13 +169,18 @@ KnownAlus::~KnownAlus(){
   delete aluIndexPath_;
   delete refPath_;
   delete refIndexPath_;
+  delete mutationPath_;
 }
 
 void KnownAlus::mapContigsToRef(const char * contigs){
+
+  std::string basepath  = util::baseName(std::string(contigs));
+  std::cout << "Base path is: " << basepath << std::endl;
+
   std::string cmd = "";
   std::string sort = "";
   util::exec("chmod +x /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools");
-  cmd+= "cd /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/externals/minimap2/src/minimap2_project ; ./minimap2 -a ";
+  cmd+= "cd /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/externals/minimap2/src/minimap2_project ; ./minimap2 -ax sr ";
   cmd+= refPath_;
   cmd += " /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/";
   cmd+= contigs;

@@ -4,6 +4,10 @@
 
 #include "util.h"
 
+std::string util::baseName(std::string path){
+  return path.substr(path.find_last_of("/\\")+1);
+}
+
 void util::exec(char const* cmd) {
   std::cout << "executing command " << cmd << std::endl;
   char buffer[512];
@@ -31,6 +35,7 @@ bool util::overlap(std::pair<int, int> a, std::vector<std::pair<int, int> > b){
   }
   return false;
 }
+
 
 const std::vector<std::string> util::Split(const std::string& line, const char delim)
 {
@@ -61,6 +66,43 @@ const char * util::getRootDirectory(std::string rufAluPath){
   }
   return rootDir.c_str();
 
+}
+
+std::vector<BamTools::BamAlignment> util::intersect(const char * a, const char * b){
+  
+  std::vector<BamTools::BamAlignment> intersection;
+  std::vector<BamTools::BamRegion> coords;
+
+  BamTools::BamReader reader;
+  if(!reader.Open(a)){
+    std::cout << "Could not open the following input bamfile: " << a << std::endl;
+    return intersection;
+  }
+
+  BamTools::BamAlignment al;
+
+  while(reader.GetNextAlignment(al)){
+    BamTools::BamRegion region = BamTools::BamRegion(al.RefID, al.Position, al.RefID, al.GetEndPosition()); 
+    coords.push_back(region);
+  }
+
+  reader.Close();
+  
+  if(!reader.Open(b)){
+    std::cout << "could not open the following input bamfile: " << b << std::endl;
+  }
+
+  
+  for(auto it = std::begin(coords); it != std::end(coords); ++it){
+    reader.SetRegion(coords.back());
+    coords.pop_back();
+    while(reader.GetNextAlignment(al)){
+      std::cout << "found overlapping read" << std::endl;
+      intersection.push_back(al);
+    }
+  }
+  
+  
 }
 
 std::vector<BamTools::BamAlignment> util::intersectBams(const char * a, const char * b){

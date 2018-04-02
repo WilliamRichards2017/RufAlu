@@ -12,17 +12,23 @@
 
 int main(int argc, char *argv[] ){
   
-  if ( argc != 4 ){ 
+  if ( argc != 5 ){ 
     std::cout << "Please provide the proper number of arguments";
     exit (EXIT_FAILURE);
 
   }
 
   const char * contigFilePath = argv[1];
-  const char * aluFilePath = argv[2];
+  const char * mutationPath = argv[2];
+  const char * aluFilePath = argv[3];
   const char * aluIndexPath = (std::string(aluFilePath) + ".fai").c_str();
-  const char * refPath = argv[3];
+  const char * refPath = argv[4];
   const char * refIndexPath = (std::string(refPath) + ".fai").c_str();;
+
+  std::cout << "Contig file path is: " << contigFilePath << std::endl;
+  std::cout << "Alu Path path is: " << aluFilePath << std::endl;
+  std::cout << "Reference path is: " << refPath << std::endl;
+  
   
   /*const char * bamPath = "../test_data/big-test.bam";
   const char * contigFilePath = "../../RUFUS/scripts/Family1.child.bam.generator.V2.overlap.hashcount.fastq";
@@ -33,7 +39,7 @@ int main(int argc, char *argv[] ){
 
   //DACReads *dacReads = new DACReads(bamPath);
 
-  KnownAlus *knownAlus = new KnownAlus(contigFilePath, aluFilePath, aluIndexPath, refPath, refIndexPath);
+  KnownAlus *knownAlus = new KnownAlus(contigFilePath, mutationPath, aluFilePath, aluIndexPath, refPath, refIndexPath);
 
   //odelete bamPath;
   //delete aluFilePath;
