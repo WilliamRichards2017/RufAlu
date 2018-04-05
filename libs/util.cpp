@@ -70,10 +70,13 @@ const char * util::getRootDirectory(std::string rufAluPath){
 
 std::vector<BamTools::BamAlignment> util::intersect(const char * a, const char * b){
   
+  std::cout << "Inside intersect" << std::endl;
+
   std::vector<BamTools::BamAlignment> intersection;
   std::vector<BamTools::BamRegion> coords;
 
   BamTools::BamReader reader;
+  reader.LocateIndex();
   if(!reader.Open(a)){
     std::cout << "Could not open the following input bamfile: " << a << std::endl;
     return intersection;
@@ -83,9 +86,12 @@ std::vector<BamTools::BamAlignment> util::intersect(const char * a, const char *
 
   while(reader.GetNextAlignment(al)){
     BamTools::BamRegion region = BamTools::BamRegion(al.RefID, al.Position, al.RefID, al.GetEndPosition()); 
+    std::cout << "Pushing back coords  " << al.Position << ", " << al.GetEndPosition() << std::endl;
+    //if(region.LeftPosition != 0 || region.RightPosition != 0){
     coords.push_back(region);
+    //}
   }
-
+  
   reader.Close();
   
   if(!reader.Open(b)){
@@ -94,15 +100,19 @@ std::vector<BamTools::BamAlignment> util::intersect(const char * a, const char *
 
   
   for(auto it = std::begin(coords); it != std::end(coords); ++it){
+    //std::cout << "looping through regions" << std::endl;
+    std::cout << "setting region to be " << coords.back().LeftPosition << ", " << coords.back().LeftRefID << ", " << coords.back().RightPosition << ", " << coords.back().RightRefID << std::endl;
     reader.SetRegion(coords.back());
+    //std::cout << "tryna pop" << std::endl;
     coords.pop_back();
-    while(reader.GetNextAlignment(al)){
+    BamTools::BamAlignment bl;
+    while(reader.GetNextAlignment(bl)){
       std::cout << "found overlapping read" << std::endl;
-      intersection.push_back(al);
+      intersection.push_back(bl);
     }
   }
   
-  
+  return intersection;  
 }
 
 std::vector<BamTools::BamAlignment> util::intersectBams(const char * a, const char * b){
@@ -135,7 +145,6 @@ std::vector<BamTools::BamAlignment> util::intersectBams(const char * a, const ch
       //std::cout << "found overlap at coords " << coords.first << ", " << coords.second << std::endl;
     }
   }
-
   return intersection;
 }
   

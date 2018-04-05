@@ -8,6 +8,12 @@
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
 
+struct coords {
+  int leftPos;
+  int RightPos;
+  const char * chrom;
+  
+};
 
 struct fastqRead {
   std::string name;

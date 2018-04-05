@@ -15,6 +15,7 @@
 #include "kseq.h"
 #include "minimap.h"
 #include "polyATail.h"
+#include "intersect.h"
 #include "util.h"
 
 #include "api/BamMultiReader.h"
@@ -33,7 +34,7 @@ void KnownAlus::populateRefData(const char * bamPath){
 
 std::string KnownAlus::getChromosomeFromRefID(int32_t id){
   std::cout << "id is " << id << std::endl;
-  if(id == -1){
+  if(id == -1) {
     return "unmapped";
   }
   return (*refData_)[id].RefName;
@@ -62,15 +63,17 @@ std::string KnownAlus::getChromosomeFromRefID(int32_t id){
   reader.Close();
   }*/
 
-void KnownAlus::findReadsContainingPolyATails(std::vector<BamTools::BamAlignment> contigs, const char * inputFile){
-  
+void KnownAlus::findReadsContainingPolyATails(std::vector<BamTools::BamAlignment>  contigs, const char * inputFile){
+  //std::cout << "inside findReadsContainingPlolyATails()" << std::endl;
   for(auto it = std::begin(contigs); it != std::end(contigs); ++it){
+    //std::cout << "looping through contigs" << std::endl;
     bool b = polyA::detectPolyATail(it->QueryBases);
     if(b){
       std::cout << "found polyATail evidence supporting alu" << std::endl;
       std::cout <<  it->QueryBases << std::endl;
-      std::string chrom = getChromosomeFromRefID(it->RefID); 
-      std::cout << "supporting read was found at region: " << it->Position << ", " << it->GetEndPosition() << " Chrom: " << chrom << std::endl;
+      //std::string chrom = getChromosomeFromRefID(1); 
+      //std::string chrom = "Null";
+      std::cout << "supporting read was found at region: " << it->Position << ", " << it->GetEndPosition() << " RefID: " << it->RefID<< std::endl;
     }
   }
 }
@@ -143,19 +146,25 @@ void KnownAlus::findContigsContainingKnownAlus()
 }
 
 
-// TODO: pass in mutations as path
 KnownAlus::KnownAlus(const char * contigFilePath, const char * mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath){
   contigsContainingKnownAlus_ = new std::vector<fastqRead>;
 
   //const char * rootDir = util::getRootDirectory(std::string(aluFilePath));
   //std::cout << "RUFUS root path is: " << rootDir << std::endl;
+  const char * contigsWithAlus = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam";
 
 
   KnownAlus::populateRefData(mutationPath_);
-  KnownAlus::findContigsContainingKnownAlus();
-  KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
-    
-  std::vector<BamTools::BamAlignment> reads = util::intersect("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam", mutationPath_);
+  //KnownAlus::findContigsContainingKnownAlus();
+  //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
+  std::cout << "finished aligning contings to known alus, now intersecting bams" << std::endl;
+ 
+  Intersect intersect{contigsWithAlus, mutationPath_};
+  std::vector<BamTools::BamAlignment> reads = intersect.getIntersection();
+
+  std::cout << "size of intersection is: " << reads.size() << std::endl;
+
+  std::cout << "finished intersection, now finding supporting reads with polyA tail" << std::endl;
   findReadsContainingPolyATails(reads, mutationPath_);
 
 }

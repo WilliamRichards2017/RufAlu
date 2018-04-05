@@ -16,6 +16,7 @@ void printWindow(std::list<const char*> window){
 }
 
 bool polyA::detectPolyATail(std::string seq) {
+  //std::cout << "detecting polyATail for sequence: " << seq << std::endl;
   std::list<const char*> window;
   int windowSize = 12;
   int pos = 0;
