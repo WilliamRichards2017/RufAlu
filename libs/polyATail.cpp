@@ -18,7 +18,7 @@ void printWindow(std::list<const char*> window){
 bool polyA::detectPolyATail(std::string seq) {
   //std::cout << "detecting polyATail for sequence: " << seq << std::endl;
   std::list<const char*> window;
-  int windowSize = 12;
+  int windowSize = 30;
   int pos = 0;
   float prop = 0.0;
   if(seq.length() < windowSize ){
@@ -39,12 +39,14 @@ bool polyA::detectPolyATail(std::string seq) {
     return true;
   }
   
-  for(unsigned i = 10; i < seq.length(); ++i){
+  for(unsigned i = windowSize; i < seq.length(); ++i){
     const char* c = &seq[i];
     window.push_front(c);
     if(toupper(*c)=='A' and toupper(*window.back()) != 'A'){
       prop+=1.0/windowSize;
-      if(prop >= 0.9){
+      //printWindow(window);
+      //std::cout << "Prop is: " << prop << std::endl;
+      if(prop >= 0.90){
 	std::cout << "Detected Poly a tail for sequence " << seq << " with score of " << prop << std::endl;
 	window.clear();
 	return true;

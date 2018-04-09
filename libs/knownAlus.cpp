@@ -71,9 +71,9 @@ void KnownAlus::findReadsContainingPolyATails(std::vector<BamTools::BamAlignment
     if(b){
       std::cout << "found polyATail evidence supporting alu" << std::endl;
       std::cout <<  it->QueryBases << std::endl;
-      //std::string chrom = getChromosomeFromRefID(1); 
-      //std::string chrom = "Null";
-      std::cout << "supporting read was found at region: " << it->Position << ", " << it->GetEndPosition() << " RefID: " << it->RefID<< std::endl;
+      //std::string chrom = getChromosomeFromRefID(it->RefID);
+      std::string chrom = "Null";
+      std::cout << "supporting read was found at region: " << it->Position << ", " << it->GetEndPosition() << " RefID: " << it->RefID << " " << "Name: " << it->Name << std::endl;
     }
   }
 }
@@ -161,6 +161,10 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * mutationPath, con
  
   Intersect intersect{contigsWithAlus, mutationPath_};
   std::vector<BamTools::BamAlignment> reads = intersect.getIntersection();
+
+  for(auto it = std::begin(reads); it != std::end(reads); ++it){
+    std::cout << it->QueryBases << std::endl;
+  }
 
   std::cout << "size of intersection is: " << reads.size() << std::endl;
 

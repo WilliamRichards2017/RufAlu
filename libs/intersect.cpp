@@ -29,29 +29,41 @@ void Intersect::intersectBams(){
   BamTools::BamAlignment al;
 
   while(reader.GetNextAlignment(al)){
-    std::cout << "looping through reads in file a" << std::endl;
-    BamTools::BamRegion region = BamTools::BamRegion(al.RefID, al.Position, al.RefID, al.GetEndPosition()); 
-    std::cout << "left Ref Id: " << al.RefID << "   left position: " << al.Position << "   right Ref Id: " << al.RefID << "  right position: " << al.GetEndPosition() << std::endl;
+    //std::cout << "looping through reads in file a" << std::endl;
+    
     if(al.RefID != -1){
+     //if(al.Name.compare("NODE_1348.bam.generator.V2_336_L191_D11:8:3::MH0")==0) {
+    
+    // std::cout << "left Ref Id: " << al.RefID << "   left position: " << al.Position << "   right Ref Id: " << al.RefID << "  right position: " << al.GetEndPosition() << std::endl;
+      BamTools::BamRegion region = BamTools::BamRegion(al.RefID, al.Position, al.RefID, al.GetEndPosition()); 
+      std::cout << "left Ref Id: " << al.RefID << "   left position: " << al.Position << "   right Ref Id: " << al.RefID << "  right position: " << al.GetEndPosition() << std::endl;
       coords.push_back(region);
     }
   }
 
   reader.Close();
   
+
   if(!reader.Open(b_)){
     std::cout << "could not open the following input bamfile: " << b_ << std::endl;
     exit (EXIT_FAILURE);
   }
 
+
+  BamTools::BamAlignment bl;
+
   for(auto it = std::begin(coords); it != std::end(coords); ++it){
+    //std::cout << "looping through coords: " << std::endl;
     reader.SetRegion(*it);
-    while(reader.GetNextAlignment(al)){
+
+    while(reader.GetNextAlignment(bl)){
       //std::cout << "found overlapping read" << std::endl;
-      intersection_.push_back(al);
+      intersection_.push_back(bl);
     }
   }
 }
+
+
 
 std::vector<BamTools::BamAlignment>  Intersect::getIntersection(){
   return intersection_;
