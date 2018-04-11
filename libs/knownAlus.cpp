@@ -60,13 +60,17 @@ const char * getContigHits(const char * overlapPath){
   while(overlapReader.GetNextAlignment(bl)){
     for(auto it = std::begin(hitNames); it !=std::end(hitNames); ++it){
       if (bl.Name.compare(*it) == 0){
-	std::cout << "found hit for alu\n";
-	std::cout << "read name is: " << bl.Name << std::endl;
-	
+	//std::cout << "found hit for alu\n";
+	//std::cout << "read name is: " << bl.Name << std::endl;
 	writer.SaveAlignment(al);	  
       }
     }
   }
+
+  //sort and index bam file before returning path
+  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam");
+  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam");
+
   return out;
 }
 
@@ -86,29 +90,6 @@ std::string KnownAlus::getChromosomeFromRefID(int32_t id){
   }
   return (*refData_)[id].RefName;
 }
-
-
-/*void KnownAlus::findContigsContainingPolyATails(const char * inputFile){
-
-  BamTools::BamReader reader;
-  if (!reader.Open(inputFile)){
-    std::cout << "Could not open input Bam file" << inputFile << std::endl;
-    return;
-  }
-
-  BamTools::BamAlignment al;
-
-  while(reader.GetNextAlignment(al)){
-    bool b = polyA::detectPolyATail(al.QueryBases);
-    std::string chrom = getChromosomeFromRefID(inputFile, al.RefID);
-    std::cout << "read is on chromosome: " << chrom << std::endl;
-    if(b){
-      std::cout << "found alu w/ poly a tail" << std::endl;
-      std::cout <<  al.QueryBases << std::endl;
-    }    
-  }
-  reader.Close();
-  }*/
 
 void KnownAlus::findReadsContainingPolyATails(std::vector<BamTools::BamAlignment>  contigs, const char * inputFile){
   //std::cout << "inside findReadsContainingPlolyATails()" << std::endl;
@@ -210,10 +191,6 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * mutationPath, con
   const char * contigBamPath = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1348.bam.generator.V2.overlap.hashcount.fastq.bam";
  
   const char * contigsWithAluHits = getContigHits(contigBamPath);
-
-  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam");
-  //Index sorted bamfile                                                                                                                                                                                                                 
-  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam");
  
   Intersect intersect{contigsWithAluHits, mutationPath_};
   std::vector<BamTools::BamAlignment> reads = intersect.getIntersection();

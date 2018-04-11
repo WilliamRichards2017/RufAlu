@@ -29,8 +29,8 @@ void Intersect::intersectBams(){
   BamTools::BamAlignment al;
 
   while(reader.GetNextAlignment(al)){
-    std::cout << "looping through reads in file " << a_ << std::endl;
-    std::cout << "al.RefID: " << al.RefID << std::endl;
+    //std::cout << "looping through reads in file " << a_ << std::endl;
+    //std::cout << "al.RefID: " << al.RefID << std::endl;
     
     //if(al.RefID != -1){
     //if(al.Name.compare("NODE_1348.bam.generator.V2_539_L424_D15:12:14::MH0")==0) {
