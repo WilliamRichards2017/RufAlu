@@ -11,7 +11,8 @@ class Intersect{
  public:
   Intersect(const char *, const char *);
   ~Intersect();
-  
+
+  static const char * getContigHits(const char *);
   std::vector<BamTools::BamAlignment>  getIntersection();
 
  private:

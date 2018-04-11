@@ -23,57 +23,6 @@
 
 KSEQ_INIT(gzFile, gzread)
 
-
-const char * getContigHits(const char * overlapPath){
-  BamTools::BamReader overlapReader;
-  BamTools::BamReader aluReader;
-
-
-  const char * out = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam";
-
-  if (!overlapReader.Open(overlapPath)){
-    std::cout << "Could not open input Bam file" << overlapPath << std::endl;
-    exit (EXIT_FAILURE);
-  }
-
-  const BamTools::SamHeader header = overlapReader.GetHeader();
-  const BamTools::RefVector references = overlapReader.GetReferenceData();
-  BamTools::BamWriter writer;
-
-  if (!writer.Open(out, header, references)){	
-    std::cout << "could not open bam writer" << std::endl;
-  }
-  if (!aluReader.Open("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam")){
-    std::cout << "Could not open input Bam file contigs-with-alus.sorted.bam" << std::endl;
-    exit (EXIT_FAILURE);
-  }
-
-  std::vector<std::string> hitNames;
-
-  BamTools::BamAlignment al; 
-  while(aluReader.GetNextAlignment(al)){
-    hitNames.push_back(al.Name);
-  }
-  aluReader.Close();
-
-  BamTools::BamAlignment bl;
-  while(overlapReader.GetNextAlignment(bl)){
-    for(auto it = std::begin(hitNames); it !=std::end(hitNames); ++it){
-      if (bl.Name.compare(*it) == 0){
-	//std::cout << "found hit for alu\n";
-	//std::cout << "read name is: " << bl.Name << std::endl;
-	writer.SaveAlignment(al);	  
-      }
-    }
-  }
-
-  //sort and index bam file before returning path
-  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam");
-  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam");
-
-  return out;
-}
-
 void KnownAlus::populateRefData(const char * bamPath){
   BamTools::BamReader reader;
   if (!reader.Open(bamPath)){
@@ -175,22 +124,21 @@ void KnownAlus::findContigsContainingKnownAlus()
 }
 
 
-KnownAlus::KnownAlus(const char * contigFilePath, const char * mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath){
+KnownAlus::KnownAlus(const char * contigFilePath, const char * contigBamPath, const char * mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), contigBamPath_(contigBamPath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath){
   contigsContainingKnownAlus_ = new std::vector<fastqRead>;
 
   //const char * rootDir = util::getRootDirectory(std::string(aluFilePath));
   //std::cout << "RUFUS root path is: " << rootDir << std::endl;
   const char * contigsWithAlus = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam";
 
+  std::cout << "Contig bam path is: " << contigBamPath_ << std::endl;
 
   KnownAlus::populateRefData(mutationPath_);
   //KnownAlus::findContigsContainingKnownAlus();
   //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
   std::cout << "finished aligning contings to known alus, now intersecting bams" << std::endl;
 
-  const char * contigBamPath = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1348.bam.generator.V2.overlap.hashcount.fastq.bam";
- 
-  const char * contigsWithAluHits = getContigHits(contigBamPath);
+  const char * contigsWithAluHits = Intersect::getContigHits(contigBamPath_);
  
   Intersect intersect{contigsWithAluHits, mutationPath_};
   std::vector<BamTools::BamAlignment> reads = intersect.getIntersection();
