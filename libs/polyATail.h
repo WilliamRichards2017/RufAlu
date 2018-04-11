@@ -7,6 +7,7 @@ class polyA{
   
  public:
   static bool detectPolyATail(std::string);  
+  static bool detectPolyTTail(std::string);
  private:
 };
 
