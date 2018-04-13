@@ -8,10 +8,27 @@
 #include <iostream>
 #include <stdexcept>
 
-
-
-
 Intersect::~Intersect(){
+}
+
+bool checkForClips(BamTools::BamAlignment al){
+
+  //std::cout << "read name is: " << bl.Name << std::endl;                                                                                                                                                                              
+  std::vector<int> clipSizes;
+  std::vector<int> readPositions;
+  std::vector<int> genomePositions;
+  if (al.GetSoftClips(clipSizes, readPositions, genomePositions)){
+    std::cout << "found some soft clips BB " << std::endl;
+    return true;
+  }
+
+  for (auto it = std::begin(al.CigarData); it != std::end(al.CigarData); ++it){
+    if (it->Type == 'C' || it->Type == 'H'){
+      std::cout << "Detected soft of hard clip of type: " << it->Type << std::endl;
+      return true;
+    }
+  }
+  return false;
 }
 
 const char * Intersect::getContigHits(const char * overlapPath){
@@ -50,11 +67,16 @@ const char * Intersect::getContigHits(const char * overlapPath){
       if (bl.Name.compare(*it) == 0){
 	//std::cout << "found hit for alu\n";
 	//std::cout << "read name is: " << bl.Name << std::endl;
-	writer.SaveAlignment(al);  
+	std::vector<int> clipSizes;
+	std::vector<int> readPositions;
+	std::vector<int> genomePositions;
+	if (checkForClips(bl)) {
+	  writer.SaveAlignment(bl);  
+	}
       }
     }
   }
-
+  
   //sort and index bam file before returning path
   util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam");
   util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam");
@@ -66,7 +88,7 @@ void Intersect::intersectBams(){
   std::cout << "Inside intersectBams " << std::endl;
   //std::vector<BamTools::BamAlignment> * intersection_ = new std::vector<BamTools::BamAlignment>;
   //std::vector<BamTools::BamAlignment>  intersection_;
-  std::vector<BamTools::BamRegion> coords;
+  std::vector<std::pair<BamTools::BamRegion, BamTools::BamAlignment> > coords;
 
   BamTools::BamReader reader;
   if(!reader.Open(a_)){
@@ -85,10 +107,14 @@ void Intersect::intersectBams(){
     //if(al.Name.compare("NODE_1348.bam.generator.V2_539_L424_D15:12:14::MH0")==0) {
     
     // std::cout << "left Ref Id: " << al.RefID << "   left position: " << al.Position << "   right Ref Id: " << al.RefID << "  right position: " << al.GetEndPosition() << std::endl;
-      BamTools::BamRegion region = BamTools::BamRegion(al.RefID, al.Position, al.RefID, al.GetEndPosition()+5); 
-      std::cout << "left Ref Id: " << al.RefID << "   left position: " << al.Position << "   right Ref Id: " << al.RefID << "  right position: " << al.GetEndPosition() << std::endl;
-      coords.push_back(region);
-      //}
+    std::pair<BamTools::BamRegion, BamTools::BamAlignment> regionPair;
+    BamTools::BamRegion region = BamTools::BamRegion(al.RefID, al.Position, al.RefID, al.GetEndPosition()+5); 
+   
+    regionPair.first = region;
+    regionPair.second = al;
+    std::cout << "left Ref Id: " << al.RefID << "   left position: " << al.Position << "   right Ref Id: " << al.RefID << "  right position: " << al.GetEndPosition() << std::endl;
+    coords.push_back(regionPair);
+    //}
   }
 
   reader.Close();
@@ -103,19 +129,27 @@ void Intersect::intersectBams(){
   BamTools::BamAlignment bl;
 
   for(auto it = std::begin(coords); it != std::end(coords); ++it){
-    //std::cout << "looping through coords: " << std::endl;
-    reader.SetRegion(*it);
+    contigWindow cWindow{};
 
+    cWindow.contig = (*it).second;
+    //std::cout << "looping through coords: " << std::endl;
+    reader.SetRegion((*it).first);
+    
     while(reader.GetNextAlignment(bl)){
+      cWindow.window.push_back(bl);
       //std::cout << "found overlapping read" << std::endl;
-      intersection_.push_back(bl);
+      //intersection_.push_back(bl);
     }
+    intersection_.push_back(cWindow);
+    //std::cout << "pushing back cWindow" << std::endl;
+    //util::printContigWindow(cWindow);
+        
   }
 }
 
 
 
-std::vector<BamTools::BamAlignment>  Intersect::getIntersection(){
+std::vector<contigWindow>  Intersect::getIntersection(){
   return intersection_;
 }
 

@@ -8,6 +8,8 @@
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
 
+#include "intersect.h"
+
 struct coords {
   int leftPos;
   int RightPos;
@@ -46,6 +48,8 @@ class util{
   static std::vector<BamTools::BamAlignment> intersectBams(const char *, const char *);
   static const char * contigsToFastq(std::vector<fastqRead>*, const char *);
   static std::string baseName(std::string);
+  static void printContigWindow(contigWindow c);
+
 
   static const std::vector<std::string> Split(const std::string&, const char);
   static const char * getRootDirectory(std::string);

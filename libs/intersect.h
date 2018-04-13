@@ -6,6 +6,12 @@
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
 
+struct contigWindow{
+  BamTools::BamAlignment contig;
+  std::vector<BamTools::BamAlignment> window;
+
+};
+
 class Intersect{
 
  public:
@@ -13,12 +19,12 @@ class Intersect{
   ~Intersect();
 
   static const char * getContigHits(const char *);
-  std::vector<BamTools::BamAlignment>  getIntersection();
+  std::vector<contigWindow>  getIntersection();
 
  private:
   const char * a_;
   const char * b_;
-  std::vector<BamTools::BamAlignment>  intersection_;
+  std::vector<contigWindow>  intersection_;
   void intersectBams();
   
 

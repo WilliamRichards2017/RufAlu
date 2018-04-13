@@ -4,6 +4,13 @@
 
 #include "util.h"
 
+void util::printContigWindow(contigWindow c){
+  std::cout << "contig is: " << c.contig.Name << std::endl;
+  for (auto it = std::begin(c.window); it != std::end(c.window); ++it){
+    std::cout << it->QueryBases << std::endl;
+  }
+}
+
 std::string util::baseName(std::string path){
   return path.substr(path.find_last_of("/\\")+1);
 }

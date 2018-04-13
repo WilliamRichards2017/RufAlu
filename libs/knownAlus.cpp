@@ -40,18 +40,21 @@ std::string KnownAlus::getChromosomeFromRefID(int32_t id){
   return (*refData_)[id].RefName;
 }
 
-void KnownAlus::findReadsContainingPolyATails(std::vector<BamTools::BamAlignment>  contigs, const char * inputFile){
+void KnownAlus::findReadsContainingPolyATails(std::vector<contigWindow>  contigs, const char * inputFile){
   //std::cout << "inside findReadsContainingPlolyATails()" << std::endl;
   for(auto it = std::begin(contigs); it != std::end(contigs); ++it){
-    //std::cout << "looping through contigs" << std::endl;
-    bool b = polyA::detectPolyATail(it->QueryBases);
-    bool t = polyA::detectPolyTTail(it->QueryBases);
-    if(b || t){
-      std::cout << "found poly A/T Tail evidence supporting alu" << std::endl;
-      std::cout <<  it->QueryBases << std::endl;
-      //std::string chrom = getChromosomeFromRefID(it->RefID);
-      std::string chrom = "Null";
-      std::cout << "supporting read was found at region: " << it->Position << ", " << it->GetEndPosition() << " RefID: " << it->RefID << " " << "Name: " << it->Name << std::endl;
+    std::cout << "Findiing support for cotig " << it->contig.Name << std::endl;
+    
+    for (auto rIt = std::begin((*it).window); rIt != std::end((*it).window); ++rIt){
+      bool b = polyA::detectPolyATail(rIt->QueryBases);
+      bool t = polyA::detectPolyTTail(rIt->QueryBases);
+      if(b || t){
+	std::cout << "found poly A/T Tail evidence supporting alu" << std::endl;
+	std::cout <<  rIt->QueryBases << std::endl;
+	//std::string chrom = getChromosomeFromRefID(it->RefID);                                                                                                                      
+	std::string chrom = "Null";
+	std::cout << "supporting read was found at region: " << rIt->Position << ", " << rIt->GetEndPosition() << " RefID: " << rIt->RefID << " " << "Name: " << rIt->Name << std::endl;
+      }
     }
   }
 }
@@ -61,7 +64,6 @@ void KnownAlus::findContigsContainingKnownAlus()
   mm_idxopt_t iopt;
   mm_mapopt_t mopt;
   int n_threads = 3;
-
 
   std::cout << "reading in contig fasta file " << contigFilePath_ << std::endl;
 
@@ -103,7 +105,7 @@ void KnownAlus::findContigsContainingKnownAlus()
       for (j = 0; j < n_reg; ++j) { // traverse hits and print them out
 	//std::cout << "traversing hits" << std::endl;
         mm_reg1_t *r = &reg[j];
-        assert(r->p); // with MM_F_CIGAR, this should not be NULL
+        //assert(r->p); // with MM_F_CIGAR, this should not be NULL
 
 	printf("%s\t%d\t%d\t%d\t%c\t", ks->name.s, ks->seq.l, r->qs, r->qe, "+-"[r->rev]);
         printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\tcg:Z:", mi->seq[r->rid].name, mi->seq[r->rid].len, r->rs, r->re, r->mlen, r->blen, r->mapq);
@@ -134,21 +136,15 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * contigBamPath, co
   std::cout << "Contig bam path is: " << contigBamPath_ << std::endl;
 
   KnownAlus::populateRefData(mutationPath_);
-  //KnownAlus::findContigsContainingKnownAlus();
+  KnownAlus::findContigsContainingKnownAlus();
   //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
   std::cout << "finished aligning contings to known alus, now intersecting bams" << std::endl;
 
   const char * contigsWithAluHits = Intersect::getContigHits(contigBamPath_);
  
   Intersect intersect{contigsWithAluHits, mutationPath_};
-  std::vector<BamTools::BamAlignment> reads = intersect.getIntersection();
-
-  for(auto it = std::begin(reads); it != std::end(reads); ++it){
-    std::cout << it->QueryBases << std::endl;
-  }
-
-  std::cout << "size of intersection is: " << reads.size() << std::endl;
-
+  std::vector<contigWindow> reads = intersect.getIntersection();
+ 
   std::cout << "finished intersection, now finding supporting reads with polyA tail" << std::endl;
   findReadsContainingPolyATails(reads, mutationPath_);
 
