@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "polyATests.hpp"
+#include "knownAluTests.hpp"
 
 
 GTEST_API_ int main(int argc, char** argv)
