@@ -19,11 +19,13 @@ int main(int argc, char *argv[] ){
   }
 
   const char * contigFilePath = argv[1];
+
+
+
   std::string temp = std::string(contigFilePath);
   temp += ".bam";
   const char * contigBamPath = temp.c_str();
-  //const char * contigBamPath = (std::string(contigFilePath)+ ".bam").c_str();
-  //const char * contigBamPath = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1348.bam.generator.V2.overlap.hashcount.fastq.bam";
+
   const char * mutationPath = argv[2];
   const char * aluFilePath = argv[3];
   const char * aluIndexPath = (std::string(aluFilePath) + ".fai").c_str();

@@ -8,6 +8,7 @@
 #include <string>
 #include <utility> // std::pair
 
+#include "intersect.h" //contigWindow struct
 #include "util.h"
 
 #include "api/BamMultiReader.h"
@@ -38,7 +39,7 @@ class KnownAlus{
   void alignContigsContainingKnownAlus(const char *);
   void mapContigsToRef(const char *);
   void findContigsContainingPolyATails(const char *);
-  void findReadsContainingPolyATails(std::vector<BamTools::BamAlignment>, const char *);
+  void findReadsContainingPolyATails(std::vector<contigWindow>, const char *);
   std::string getChromosomeFromRefID(int32_t);
 
 };
