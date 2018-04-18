@@ -1,3 +1,4 @@
+
 #include <assert.h>
 #include <cstring>
 #include <stdio.h>
@@ -70,10 +71,11 @@ void KnownAlus::findReadsContainingPolyATails(std::vector<contigWindow>  contigs
     b->name_rufus_contig = it->contig.Name;
     uint32_t count = 0;
     for (auto rIt = std::begin((*it).window); rIt != std::end((*it).window); ++rIt){
-      bool a = polyA::detectPolyATail(rIt->QueryBases);
-      bool t = polyA::detectPolyTTail(rIt->QueryBases);
-      if(a || t){
+      std::pair<bool, int> a  = polyA::detectPolyATail(rIt->QueryBases);
+      std::pair<bool, int> t  = polyA::detectPolyTTail(rIt->QueryBases);
+      if(a.first || t.first){
 	b->score_numHits++;
+	std::cout << "max poly tail for read is: " << a.second << " or " << t.second << std::endl;
 	if(count == 0){
 	  b->chrom1 = rIt->RefID;
 	  b->chrom1Start = rIt->Position;

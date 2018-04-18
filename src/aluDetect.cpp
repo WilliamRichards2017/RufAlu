@@ -18,15 +18,11 @@ int main(int argc, char *argv[] ){
 
   }
 
-  const char * contigFilePath = argv[1];
+  std::string contigFilePath = std::string(argv[1]);
+  std::string contigBamPath = contigFilePath + ".bam";
+  std::string mutationPath = std::string(argv[2]);
 
 
-
-  std::string temp = std::string(contigFilePath);
-  temp += ".bam";
-  const char * contigBamPath = temp.c_str();
-
-  const char * mutationPath = argv[2];
   const char * aluFilePath = argv[3];
   const char * aluIndexPath = (std::string(aluFilePath) + ".fai").c_str();
   const char * refPath = argv[4];

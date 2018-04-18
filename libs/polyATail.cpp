@@ -15,15 +15,19 @@ void printWindow(std::list<const char*> window){
   std::cout << std::endl;
 }
 
-bool polyA::detectPolyATail(std::string seq) {
+std::pair<bool, int> polyA::detectPolyATail(std::string seq) {
   //std::cout << "detecting polyATail for sequence: " << seq << std::endl;
   std::list<const char*> window;
   int windowSize = 10;
   int pos = 0;
+  int currentTail;
+  int maxTail = 0;
   float prop = 0.0;
   float targetProp = 0.95;
+  bool b = false;
   if(seq.length() < windowSize ){
-    return false;
+    std::pair<bool, int> r = std::make_pair(false,0);
+    return r;
   }
   else{
     for(int i = 0; i < windowSize; ++i){
@@ -31,13 +35,21 @@ bool polyA::detectPolyATail(std::string seq) {
       window.push_front(c);
       if(*c=='A'){
 	prop+=1.0/(windowSize);
+	++currentTail; 
+      }
+      else {
+	currentTail = 0;
+      }
+      if(currentTail > maxTail){
+	maxTail = currentTail;
       }
     }
   }
+  
   if(prop >= targetProp){
     std::cout << "Detected Poly a tail for sequence " << seq << " with score of " << prop << std::endl;
     window.clear();
-    return true;
+    b = true;
   }
   
   for(unsigned i = windowSize; i < seq.length(); ++i){
@@ -50,35 +62,48 @@ bool polyA::detectPolyATail(std::string seq) {
       if(prop >= targetProp){
 	std::cout << "Detected Poly a tail for sequence " << seq << " with score of " << prop << std::endl;
 	window.clear();
-	return true;
+	b = true;
       }
+      currentTail++;
     }
     else if(toupper(*c) != 'A' and toupper(*window.back())=='A'){
       //prop-=1.0/(window.size()-1);
       prop = std::max(0.0, prop-(1.0/(windowSize)));
+      currentTail = 0;
     }
+    else {
+      currentTail=0;
+    }
+    if(currentTail > maxTail){
+      maxTail = currentTail;
+    }
+    
     if(prop >= targetProp){
       std::cout << "Detected Poly a tail for sequence " << seq << " with score of " << prop << std::endl;
-      return true;
+      b = true;
     }   
     window.pop_back();
     }
   //std::cout<< "Failed to detected Poly a tail for sequence "<< seq << " with score of " << prop << std::endl;
   window.clear();
-  return false;
+  std::pair<bool, int> ret = std::make_pair(b, maxTail);
+  return ret;
 }
 
 
-bool polyA::detectPolyTTail(std::string seq) {
+std::pair<bool, int> polyA::detectPolyTTail(std::string seq) {
   //std::cout << "detecting polyATail for sequence: " << seq << std::endl;                                                                                                                                                                    
   std::list<const char*> window;
   int windowSize = 20;
   int pos = 0;
+  int maxTail = 0;
+  bool b = false;
   float prop = 0.0;
   float targetProp = 0.95;
 
   if(seq.length() < windowSize ){
-    return false;
+    std::pair<bool, int> r = std::make_pair(false,0);
+    return r;
   }
   else{
     for(int i = 0; i < windowSize; ++i){
@@ -86,39 +111,49 @@ bool polyA::detectPolyTTail(std::string seq) {
       window.push_front(c);
       if(*c=='T'){
         prop+=1.0/(windowSize);
+	maxTail++;
+      }
+      else{
+	maxTail = 0;
       }
     }
   }
   if(prop >= targetProp){
     std::cout << "Detected Poly T tail for sequence " << seq << " with score of " << prop << std::endl;
     window.clear();
-    return true;
+    b = true;
   }
 
   for(unsigned i = windowSize; i < seq.length(); ++i){
     const char* c = &seq[i];
     window.push_front(c);
     if(toupper(*c)=='T' and toupper(*window.back()) != 'T'){
+      maxTail++;
       prop+=1.0/windowSize;
       //printWindow(window);                                                                                                                                                                                                                  
       //std::cout << "Prop is: " << prop << std::endl;                                                                                                                                                                                        
       if(prop >= targetProp){
 	std::cout << "Detected Poly a tail for sequence " << seq << " with score of " << prop << std::endl;
         window.clear();
-        return true;
+        b = true;
       }
     }
     else if(toupper(*c) != 'T' and toupper(*window.back())=='T'){
       //prop-=1.0/(window.size()-1);                                                                                                                                                                                                          
       prop = std::max(0.0, prop-(1.0/(windowSize)));
+      maxTail = 0;
+    }
+    else{
+      maxTail = 0;
     }
     if(prop >= targetProp){
       std::cout << "Detected Poly T tail for sequence " << seq << " with score of " << prop << std::endl;
-      return true;
+      b = true;
     }
     window.pop_back();
   }
   //std::cout<< "Failed to detected Poly a tail for sequence "<< seq << " with score of " << prop << std::endl;                                                                                                                               
   window.clear();
-  return false;
+  std::pair<bool, int> ret = std::make_pair(b, maxTail);
+  return ret;
 }

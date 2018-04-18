@@ -155,7 +155,7 @@ std::vector<BamTools::BamAlignment> util::intersectBams(const char * a, const ch
   return intersection;
 }
   
-  const char *util::contigsToFastq(std::vector<fastqRead> *contigs, const char * outFile){
+std::string util::contigsToFastq(std::vector<fastqRead> *contigs, std::string outFile){
 
   std::ofstream out;
   out.open(outFile);

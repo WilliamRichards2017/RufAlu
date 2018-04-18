@@ -6,8 +6,8 @@
 class polyA{
   
  public:
-  static bool detectPolyATail(std::string);  
-  static bool detectPolyTTail(std::string);
+  static std::pair<bool, int> detectPolyATail(std::string);  
+  static std::pair<bool, int> detectPolyTTail(std::string);
  private:
 };
 

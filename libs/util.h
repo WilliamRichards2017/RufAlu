@@ -46,7 +46,7 @@ class util{
   static bool overlap(std::pair<int, int>, std::vector<std::pair<int, int> >);
   static std::vector<BamTools::BamAlignment> intersect(const char *, const char *);
   static std::vector<BamTools::BamAlignment> intersectBams(const char *, const char *);
-  static const char * contigsToFastq(std::vector<fastqRead>*, const char *);
+  static std::string contigsToFastq(std::vector<fastqRead>*, std::string);
   static std::string baseName(std::string);
   static void printContigWindow(contigWindow c);
 
