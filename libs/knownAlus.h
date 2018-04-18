@@ -25,6 +25,7 @@ struct bedPELine {
   std::string name_rufus_contig;
   std::string name_alu_hit;
   int32_t score_numHits;
+  int32_t longestTail;
 };
 
 class KnownAlus{

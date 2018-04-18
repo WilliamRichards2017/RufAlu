@@ -1,4 +1,3 @@
-
 #include <assert.h>
 #include <cstring>
 #include <stdio.h>
@@ -43,12 +42,13 @@ std::string KnownAlus::getChromosomeFromRefID(int32_t id){
 }
 
 void writeBedPEHeader(std::ofstream &bed){
-  bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "Contig Name" << '\t' << "Alu Hit" << '\t' << "Num Hits" << std::endl;
+  bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "Contig Name" << '\t' << "Alu Hit" << '\t' << "Num Hits" << '\t' << "longest_tail" << std::endl;
 }
 
 
 void KnownAlus::writeHitToBed(std::ofstream &bed, bedPELine * b){
-  bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << std::endl;
+  std::cout << "Inside writeTobed" << std::endl;
+  bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << b->longestTail << std::endl;
 }
 
 void KnownAlus::findReadsContainingPolyATails(std::vector<contigWindow>  contigs, std::string inputFile){
@@ -70,10 +70,16 @@ void KnownAlus::findReadsContainingPolyATails(std::vector<contigWindow>  contigs
     //std::cout << "Finding support for contig " << it->contig.Name << std::endl;
     b->name_rufus_contig = it->contig.Name;
     uint32_t count = 0;
+    uint32_t maxTail = 0;
     for (auto rIt = std::begin((*it).window); rIt != std::end((*it).window); ++rIt){
+      std::cout << "Looping through contig window" << std::endl;
       std::pair<bool, int> a  = polyA::detectPolyATail(rIt->QueryBases);
       std::pair<bool, int> t  = polyA::detectPolyTTail(rIt->QueryBases);
+      std::cout << "Right after detect poly a and t tail" << std::endl;
       if(a.first || t.first){
+	if(a.second > maxTail || t.second > maxTail){
+	  maxTail = std::max(a.second, t.second);
+	}
 	b->score_numHits++;
 	std::cout << "max poly tail for read is: " << a.second << " or " << t.second << std::endl;
 	if(count == 0){
@@ -97,6 +103,7 @@ void KnownAlus::findReadsContainingPolyATails(std::vector<contigWindow>  contigs
       }
 
     }
+    b->longestTail = maxTail;
     if (b->score_numHits > 0){
       writeHitToBed(bed, b);
     }
@@ -188,6 +195,13 @@ KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std:
  
   Intersect intersect{contigsWithAluHits, mutationPath_};
   std::vector<contigWindow> reads = intersect.getIntersection();
+  
+  std::cout << "size of reads intersection: " << reads.size() << std::endl;
+
+
+  //for(auto it = std::begin(reads); it != std::end(reads); ++it){
+  //util::printContigWindow(*it);
+  //}
  
   std::cout << "finished intersection, now finding supporting reads with polyA tail" << std::endl;
   findReadsContainingPolyATails(reads, std::string(mutationPath_));
