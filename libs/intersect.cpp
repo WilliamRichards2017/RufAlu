@@ -19,13 +19,13 @@ bool checkForClips(BamTools::BamAlignment al){
   std::vector<int> readPositions;
   std::vector<int> genomePositions;
   if (al.GetSoftClips(clipSizes, readPositions, genomePositions)){
-    std::cout << "found some soft clips BB " << std::endl;
+    //std::cout << "found some soft clips BB " << std::endl;
     return true;
   }
 
   for (auto it = std::begin(al.CigarData); it != std::end(al.CigarData); ++it){
     if (it->Type == 'C' || it->Type == 'H'){
-      std::cout << "Detected soft of hard clip of type: " << it->Type << std::endl;
+      //std::cout << "Detected soft of hard clip of type: " << it->Type << std::endl;
       return true;
     }
   }
@@ -68,9 +68,6 @@ const char * Intersect::getContigHits(const char * overlapPath){
       if (bl.Name.compare(*it) == 0){
 	//std::cout << "found hit for alu\n";
 	//std::cout << "read name is: " << bl.Name << std::endl;
-	std::vector<int> clipSizes;
-	std::vector<int> readPositions;
-	std::vector<int> genomePositions;
 	if (checkForClips(bl)) {
 	  writer.SaveAlignment(bl);  
 	}
@@ -113,7 +110,7 @@ void Intersect::intersectBams(){
    
     regionPair.first = region;
     regionPair.second = al;
-    std::cout << "left Ref Id: " << al.RefID << "   left position: " << al.Position << "   right Ref Id: " << al.RefID << "  right position: " << al.GetEndPosition() << std::endl;
+    //std::cout << "left Ref Id: " << al.RefID << "   left position: " << al.Position << "   right Ref Id: " << al.RefID << "  right position: " << al.GetEndPosition() << std::endl;
     coords.push_back(regionPair);
     //}
   }

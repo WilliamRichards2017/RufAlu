@@ -50,9 +50,15 @@ void KnownAlus::writeHitToBed(std::ofstream &bed, bedPELine * b){
   bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << std::endl;
 }
 
-void KnownAlus::findReadsContainingPolyATails(std::vector<contigWindow>  contigs, const char * inputFile){
+void KnownAlus::findReadsContainingPolyATails(std::vector<contigWindow>  contigs, std::string inputFile){
   std::ofstream bed;
-  bed.open("bed_test.bed");
+  std::cout <<"***********************************************************" << std::endl;
+  std::cout << "***********************************************************" << std::endl;
+  std::cout << "Base name is: " << util::baseName(inputFile) << std::endl;
+  std::cout <<"***********************************************************" << std::endl;
+  std::cout <<"***********************************************************" << std::endl;
+  std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(inputFile) + ".bed";
+  bed.open(bs);
   writeBedPEHeader(bed);
   //std::cout << "inside findReadsContainingPlolyATails()" << std::endl;
   for(auto it = std::begin(contigs); it != std::end(contigs); ++it){
@@ -84,7 +90,7 @@ void KnownAlus::findReadsContainingPolyATails(std::vector<contigWindow>  contigs
 	std::cout << "found poly A/T Tail evidence supporting alu" << std::endl;
 	std::cout <<  rIt->QueryBases << std::endl;
 	//std::string chrom = getChromosomeFromRefID(it->RefID);                                                                                                                      
-	std::string chrom = "Null";
+	//std::string chrom = "Null";
 	std::cout << "supporting read was found at region: " << rIt->Position << ", " << rIt->GetEndPosition() << " RefID: " << rIt->RefID << " " << "Name: " << rIt->Name << std::endl;
       }
 
@@ -173,7 +179,7 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * contigBamPath, co
 
   KnownAlus::populateRefData(contigBamPath_);
   KnownAlus::findContigsContainingKnownAlus();
-  //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
+  KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
   std::cout << "finished aligning contings to known alus, now intersecting bams" << std::endl;
 
   const char * contigsWithAluHits = Intersect::getContigHits(contigBamPath_);
@@ -182,7 +188,7 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * contigBamPath, co
   std::vector<contigWindow> reads = intersect.getIntersection();
  
   std::cout << "finished intersection, now finding supporting reads with polyA tail" << std::endl;
-  findReadsContainingPolyATails(reads, mutationPath_);
+  findReadsContainingPolyATails(reads, std::string(mutationPath_));
 
 }
 
