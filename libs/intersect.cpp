@@ -32,10 +32,10 @@ bool checkForClips(BamTools::BamAlignment al){
   return false;
 }
 
-const char * Intersect::getContigHits(const char * overlapPath){
+std::string Intersect::getContigHits(std::string overlapPath, std::string stub){
   BamTools::BamReader overlapReader;
   BamTools::BamReader aluReader;
-  const char * out = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam";
+  std::string out = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted" + stub + ".bam";
 
   if (!overlapReader.Open(overlapPath)){
     std::cout << "Could not open input Bam overlap file" << overlapPath << std::endl;
@@ -49,8 +49,8 @@ const char * Intersect::getContigHits(const char * overlapPath){
   if (!writer.Open(out, header, references)){
     std::cout << "could not open bam writer" << std::endl;
   }
-  if (!aluReader.Open("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam")){
-    std::cout << "Could not open input Bam file contigs-with-alus.sorted.bam" << std::endl;
+  if (!aluReader.Open("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub + ".bam")){
+    std::cout << "Could not open input Bam file contigs-with-alus.sorted" + stub + ".bam" << std::endl;
     exit (EXIT_FAILURE);
   }
 
@@ -76,8 +76,8 @@ const char * Intersect::getContigHits(const char * overlapPath){
   }
   
   //sort and index bam file before returning path
-  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam");
-  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted.bam");
+  util::exec(("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted" + stub + ".bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted" + stub + ".bam").c_str());
+  util::exec(("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus-all-hits.sorted" + stub + ".bam").c_str());
 
   return out;
 }
@@ -151,7 +151,7 @@ std::vector<contigWindow>  Intersect::getIntersection(){
   return intersection_;
 }
 
-Intersect::Intersect(const char * a, const char * b) : a_(a), b_(b) {
+Intersect::Intersect(std::string a, std::string  b) : a_(a), b_(b) {
   std::cout << "input bam files for intersection are: "<< a_ << ", " << b_ << std::endl;
   Intersect::intersectBams();
 }

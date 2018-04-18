@@ -23,7 +23,7 @@
 
 KSEQ_INIT(gzFile, gzread)
 
-void KnownAlus::populateRefData(const char * bamPath){
+void KnownAlus::populateRefData(std::string bamPath){
   BamTools::BamReader reader;
   if (!reader.Open(bamPath)){
     std::cout << "Could not open input Bam file" << bamPath << std::endl;
@@ -114,7 +114,7 @@ void KnownAlus::findContigsContainingKnownAlus()
   mm_set_opt(0, &iopt, &mopt); //initialize alignment parameters to default
   mopt.flag |= MM_F_CIGAR; // perform alignment                                                                                                                                                                                               
 
-  gzFile f = gzopen(contigFilePath_, "r");
+  gzFile f = gzopen(contigFilePath_.c_str(), "r");
   assert(f);
   kseq_t *ks = kseq_init(f);
 
@@ -148,9 +148,9 @@ void KnownAlus::findContigsContainingKnownAlus()
 	//std::cout << "traversing hits" << std::endl;
         mm_reg1_t *r = &reg[j];
         //assert(r->p); // with MM_F_CIGAR, this should not be NULL
-
 	printf("%s\t%d\t%d\t%d\t%c\t", ks->name.s, ks->seq.l, r->qs, r->qe, "+-"[r->rev]);
         printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\tcg:Z:", mi->seq[r->rid].name, mi->seq[r->rid].len, r->rs, r->re, r->mlen, r->blen, r->mapq);
+	//std::cout << "checking if alu name is: " << mi->seq[r->rid].name << std::endl;
         for (i = 0; i < r->p->n_cigar; ++i) { // IMPORTANT: this gives the CIGAR in the aligned regions. NO soft/hard clippings!
 	  printf("%d%c", r->p->cigar[i]>>4, "MIDSHN"[r->p->cigar[i]&0xf]);
 	}
@@ -168,12 +168,12 @@ void KnownAlus::findContigsContainingKnownAlus()
 }
 
 
-KnownAlus::KnownAlus(const char * contigFilePath, const char * contigBamPath, const char * mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), contigBamPath_(contigBamPath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath){
+KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std::string mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), contigBamPath_(contigBamPath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(contigBamPath)){
   contigsContainingKnownAlus_ = new std::vector<fastqRead>;
 
   //const char * rootDir = util::getRootDirectory(std::string(aluFilePath));
   //std::cout << "RUFUS root path is: " << rootDir << std::endl;
-  const char * contigsWithAlus = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam";
+  std::string contigsWithAlus = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub_ + ".bam";
 
   std::cout << "Contig bam path is: " << contigBamPath_ << std::endl;
 
@@ -182,7 +182,7 @@ KnownAlus::KnownAlus(const char * contigFilePath, const char * contigBamPath, co
   KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
   std::cout << "finished aligning contings to known alus, now intersecting bams" << std::endl;
 
-  const char * contigsWithAluHits = Intersect::getContigHits(contigBamPath_);
+  std::string contigsWithAluHits = Intersect::getContigHits(contigBamPath_, stub_);
  
   Intersect intersect{contigsWithAluHits, mutationPath_};
   std::vector<contigWindow> reads = intersect.getIntersection();
@@ -196,12 +196,12 @@ KnownAlus::~KnownAlus(){
   //contigsContainingKnownAlus_->clear();
   delete[] contigsContainingKnownAlus_;
   delete[] refData_;
-  delete contigFilePath_;
+  // delete contigFilePath_;
   delete aluFilePath_;
   delete aluIndexPath_;
   delete refPath_;
   delete refIndexPath_;
-  delete mutationPath_;
+  //delete mutationPath_;
 }
 
 void KnownAlus::mapContigsToRef(const char * contigs){
@@ -216,15 +216,15 @@ void KnownAlus::mapContigsToRef(const char * contigs){
   cmd+= refPath_;
   cmd += " /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/";
   cmd+= contigs;
-  cmd+= " > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sam";
+  cmd+= " > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus" + stub_ + ".sam";
   //std::cout << "executing command " << cmd << std::endl;
   util::exec(cmd.c_str());
   //convert sam to bam
-  util::exec("samtools view -Sb /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sam > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.bam");
+  util::exec(("samtools view -Sb /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus" + stub_ +".sam > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus" + stub_ + ".bam").c_str());
   //Sort bam file by position
-  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam");
+  util::exec(("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus" + stub_ + ".bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub_ + ".bam").c_str());
   //Index sorted bamfile
-  util::exec("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted.bam");
+  util::exec(("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub_ + ".bam").c_str());
   
 }
 std::vector<fastqRead> * KnownAlus::getContigsContainingKnownAlus(){

@@ -15,15 +15,15 @@ struct contigWindow{
 class Intersect{
 
  public:
-  Intersect(const char *, const char *);
+  Intersect(std::string, std::string);
   ~Intersect();
 
-  static const char * getContigHits(const char *);
+  static std::string getContigHits(std::string, std::string);
   std::vector<contigWindow>  getIntersection();
 
  private:
-  const char * a_;
-  const char * b_;
+  std::string a_;
+  std::string b_;
   std::vector<contigWindow>  intersection_;
   void intersectBams();
   

@@ -29,25 +29,29 @@ struct bedPELine {
 
 class KnownAlus{
  public:
-  KnownAlus(const char *, const char *, const char *, const char *, const char *, const char *, const char *);
+  KnownAlus(std::string, std::string, std::string, const char *, const char *, const char *, const char *);
   ~KnownAlus();
   
   std::vector<fastqRead> * getContigsContainingKnownAlus();
   
 
  private:
-  const char * contigFilePath_;
-  const char * contigBamPath_;
-  const char * mutationPath_;
+  std::string contigFilePath_;
+  std::string contigBamPath_;
+  std::string  mutationPath_;
   const char * aluFilePath_;
   const char * aluIndexPath_;
   const char * refPath_;
   const char * refIndexPath_;
 
+  std::string stub_;
+
+  
+
   std::vector<fastqRead> *contigsContainingKnownAlus_;
   const std::vector<BamTools::RefData> *refData_;
 
-  void populateRefData(const char *);
+  void populateRefData(std::string);
   void writeHitToBed(std::ofstream&, bedPELine *);
   void findContigsContainingKnownAlus();
   void alignContigsContainingKnownAlus(const char *);

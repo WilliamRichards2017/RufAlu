@@ -168,9 +168,9 @@ std::vector<BamTools::BamAlignment> util::intersectBams(const char * a, const ch
     out << (*it).seq << std::endl;
     out << '+' << std::endl;
     out << (*it).qual << std::endl;
-    std::cout << "name: " << (*it).name <<  std::endl;
-    std::cout << "sequence: " << (*it).seq <<  std::endl;
-    std::cout << "quality: " << (*it).qual <<  std::endl;
+    //std::cout << "name: " << (*it).name <<  std::endl;
+    //std::cout << "sequence: " << (*it).seq <<  std::endl;
+    //std::cout << "quality: " << (*it).qual <<  std::endl;
 
   }
 
