@@ -168,7 +168,7 @@ void KnownAlus::findContigsContainingKnownAlus()
 }
 
 
-KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std::string mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), contigBamPath_(contigBamPath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(contigBamPath)){
+KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std::string mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), contigBamPath_(contigBamPath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_("." + util::baseName(contigBamPath)){
   contigsContainingKnownAlus_ = new std::vector<fastqRead>;
 
   //const char * rootDir = util::getRootDirectory(std::string(aluFilePath));
@@ -233,7 +233,7 @@ std::vector<fastqRead> * KnownAlus::getContigsContainingKnownAlus(){
 
 void KnownAlus::alignContigsContainingKnownAlus(const char * refPath){
 
-  const char * fastq = util::contigsToFastq(contigsContainingKnownAlus_, "contigs.fastq"); 
-  KnownAlus::mapContigsToRef(fastq);
+  std::string fastq = util::contigsToFastq(contigsContainingKnownAlus_, stub_ + "contigs.fastq"); 
+  KnownAlus::mapContigsToRef(fastq.c_str());
 
 }
