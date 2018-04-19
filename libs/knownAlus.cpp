@@ -72,16 +72,16 @@ void KnownAlus::findReadsContainingPolyATails(std::vector<contigWindow>  contigs
     uint32_t count = 0;
     uint32_t maxTail = 0;
     for (auto rIt = std::begin((*it).window); rIt != std::end((*it).window); ++rIt){
-      std::cout << "Looping through contig window" << std::endl;
-      std::pair<bool, int> a  = polyA::detectPolyATail(rIt->QueryBases);
-      std::pair<bool, int> t  = polyA::detectPolyTTail(rIt->QueryBases);
-      std::cout << "Right after detect poly a and t tail" << std::endl;
-      if(a.first || t.first){
-	if(a.second > maxTail || t.second > maxTail){
-	  maxTail = std::max(a.second, t.second);
-	}
+      bool a  = polyA::detectPolyATail(*rIt);
+      bool t  = polyA::detectPolyTTail(*rIt);
+      uint32_t longestTail = polyA::longestTail(*rIt);
+      if(longestTail > maxTail){
+	maxTail=longestTail;
+      }
+      //std::cout << "max poly tail for read is: " << maxTail << std::endl;
+
+      if(a || t){
 	b->score_numHits++;
-	std::cout << "max poly tail for read is: " << a.second << " or " << t.second << std::endl;
 	if(count == 0){
 	  b->chrom1 = rIt->RefID;
 	  b->chrom1Start = rIt->Position;

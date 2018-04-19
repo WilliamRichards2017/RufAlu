@@ -15,10 +15,10 @@ Intersect::~Intersect(){
 bool checkForClips(BamTools::BamAlignment al){
 
   //std::cout << "read name is: " << bl.Name << std::endl;                                                                                                                                                                              
-  std::vector<int> clipSizes;
-  std::vector<int> readPositions;
-  std::vector<int> genomePositions;
-  if (al.GetSoftClips(clipSizes, readPositions, genomePositions)){
+  //std::vector<int> clipSizes;
+  //std::vector<int> readPositions;
+  //std::vector<int> genomePositions;
+  /*if (al.GetSoftClips(clipSizes, readPositions, genomePositions)){
     //std::cout << "found some soft clips BB " << std::endl;
     return true;
   }
@@ -28,6 +28,10 @@ bool checkForClips(BamTools::BamAlignment al){
       //std::cout << "Detected soft of hard clip of type: " << it->Type << std::endl;
       return true;
     }
+    }*/
+  if(al.HasTag("SA")){
+    std::cout << "found SA tag" << std::endl;
+    return true;
   }
   return false;
 }
@@ -68,7 +72,7 @@ std::string Intersect::getContigHits(std::string overlapPath, std::string stub){
       if (bl.Name.compare(*it) == 0){
 	//std::cout << "found hit for alu\n";
 	//std::cout << "read name is: " << bl.Name << std::endl;
-	if (checkForClips(bl)) {
+	if (checkForClips(bl) and bl.MapQuality > 0) {
 	  writer.SaveAlignment(bl);  
 	}
       }

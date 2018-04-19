@@ -15,19 +15,55 @@ void printWindow(std::list<const char*> window){
   std::cout << std::endl;
 }
 
-std::pair<bool, int> polyA::detectPolyATail(std::string seq) {
+std::vector<uint32_t> getClipPositions(BamTools::BamAlignment al){
+  std::vector<BamTools::CigarOp> cigar = al.CigarData;
+
+  std::vector<uint32_t> clips;
+
+  std::vector<int> clipSizes;
+  std::vector<int> readPositions;
+  std::vector<int> genomePositions;
+
+  if (al.GetSoftClips(clipSizes, readPositions, genomePositions)){
+    for(auto it = std::begin(readPositions); it != std::end(readPositions); ++it){
+      clips.push_back(*it);
+    }
+  }
+
+  uint32_t pos = 0;
+  for(auto it = std::begin(cigar); it != std::end(cigar); ++it){
+    if (it->Type == 'H'){
+      clips.push_back(pos);
+    }
+    pos+= it->Length;
+  }
+  return clips;
+}
+
+bool checkBounds(int32_t pos, std::vector<uint32_t> posVec, std::string readName){
+  for(auto it = std::begin(posVec); it != std::end(posVec); ++it){
+    if((pos > (*it)-11) and pos < (*it)+11){
+      std::cout << "AYYY check bounds passed for read: " << readName << std::endl;
+      std::cout << "Start of tail detected at position: " << pos << "clipping starts at: " << *it << std::endl;
+      return true;
+    }
+  }
+}
+
+bool polyA::detectPolyATail(BamTools::BamAlignment al) {
+  std::string seq = al.QueryBases;
+
+
+  std::vector<uint32_t> clips = getClipPositions(al);
+
   //std::cout << "detecting polyATail for sequence: " << seq << std::endl;
   std::list<const char*> window;
   int windowSize = 10;
   int pos = 0;
-  int currentTail = 0;
-  int maxTail = 0;
   float prop = 0.0;
   float targetProp = 0.95;
-  bool b = false;
   if(seq.length() < windowSize ){
-    std::pair<bool, int> r = std::make_pair(false,0);
-    return r;
+    return false;
   }
   else{
     for(int i = 0; i < windowSize; ++i){
@@ -35,24 +71,13 @@ std::pair<bool, int> polyA::detectPolyATail(std::string seq) {
       window.push_front(c);
       if(*c=='A'){
 	prop+=1.0/(windowSize);
-	++currentTail; 
-      }
-      else {
-	currentTail = 0;
-      }
-      if(currentTail > maxTail){
-	maxTail = currentTail;
       }
     }
   }
-  
-  if(prop >= targetProp){
+  if(prop >= targetProp and checkBounds(10, clips, al.Name)){
     std::cout << "Detected Poly a tail for sequence " << seq << " with score of " << prop << std::endl;
     window.clear();
-    b = true;
-    std::pair<bool, int> ret = std::make_pair(b, maxTail);
-    return ret;
-
+    return true;
   }
   
   for(unsigned i = windowSize; i < seq.length(); ++i){
@@ -62,59 +87,42 @@ std::pair<bool, int> polyA::detectPolyATail(std::string seq) {
       prop+=1.0/windowSize;
       //printWindow(window);
       //std::cout << "Prop is: " << prop << std::endl;
-      if(prop >= targetProp){
+      if(prop >= targetProp and checkBounds(i-windowSize, clips, al.Name)){
 	std::cout << "Detected Poly a tail for sequence " << seq << " with score of " << prop << std::endl;
 	window.clear();
-	b = true;
-	std::pair<bool, int> ret = std::make_pair(b, maxTail);
-	return ret;
-
+	return true;
       }
-      currentTail++;
     }
     else if(toupper(*c) != 'A' and toupper(*window.back())=='A'){
       //prop-=1.0/(window.size()-1);
       prop = std::max(0.0, prop-(1.0/(windowSize)));
-      currentTail = 0;
     }
-    else {
-      currentTail=0;
-    }
-    if(currentTail > maxTail){
-      maxTail = currentTail;
-    }
-    
-    if(prop >= targetProp){
+    if(prop >= targetProp and checkBounds(i-windowSize, clips, al.Name)){
       std::cout << "Detected Poly a tail for sequence " << seq << " with score of " << prop << std::endl;
-      b = true;
-      std::pair<bool, int> ret = std::make_pair(b, maxTail);
-      return ret;
-
+      return true;
     }   
     window.pop_back();
-    }
+  }
   //std::cout<< "Failed to detected Poly a tail for sequence "<< seq << " with score of " << prop << std::endl;
   window.clear();
-  std::cout << "About to return value of: " << b << " and " << maxTail << std::endl;
-  std::pair<bool, int> ret = std::make_pair(b, maxTail);
-  return ret;
+  return false;
 }
 
 
-std::pair<bool, int> polyA::detectPolyTTail(std::string seq) {
+bool polyA::detectPolyTTail(BamTools::BamAlignment al) {
+  std::string seq = al.QueryBases;
   //std::cout << "detecting polyATail for sequence: " << seq << std::endl;                                                                                                                                                                    
+  std::vector<uint32_t> clips = getClipPositions(al);
+
+
   std::list<const char*> window;
   int windowSize = 20;
   int pos = 0;
-  int maxTail = 0;
-  int currentTail = 0;
-  bool b = false;
   float prop = 0.0;
   float targetProp = 0.95;
 
   if(seq.length() < windowSize ){
-    std::pair<bool, int> r = std::make_pair(false,0);
-    return r;
+    return false;
   }
   else{
     for(int i = 0; i < windowSize; ++i){
@@ -122,66 +130,75 @@ std::pair<bool, int> polyA::detectPolyTTail(std::string seq) {
       window.push_front(c);
       if(*c=='T'){
         prop+=1.0/(windowSize);
-	currentTail++;
-      }
-      else{
-	currentTail = 0;
-      }
-      if(currentTail > maxTail){
-        maxTail = currentTail;
       }
     }
   }
-  if(prop >= targetProp){
+  if(prop >= targetProp and checkBounds(0, clips, al.Name)){
     std::cout << "Detected Poly T tail for sequence " << seq << " with score of " << prop << std::endl;
     window.clear();
-    b = true;
-    std::pair<bool, int> ret = std::make_pair(b, maxTail);
-    return ret;
-
+    return true;
   }
 
   for(unsigned i = windowSize; i < seq.length(); ++i){
     const char* c = &seq[i];
     window.push_front(c);
     if(toupper(*c)=='T' and toupper(*window.back()) != 'T'){
-      currentTail++;
       prop+=1.0/windowSize;
       //printWindow(window);                                                                                                                                                                                                                  
       //std::cout << "Prop is: " << prop << std::endl;                                                                                                                                                                                        
-      if(prop >= targetProp){
-	std::cout << "Detected Poly T tail for sequence " << seq << " with score of " << prop << std::endl;
+      if(prop >= targetProp and checkBounds(i-windowSize, clips, al.Name)){
+	std::cout << "Detected Poly t tail for sequence " << seq << " with score of " << prop << std::endl;
         window.clear();
-        b = true;
-	std::pair<bool, int> ret = std::make_pair(b, maxTail);
-	return ret;
-
+        return true;
       }
     }
     else if(toupper(*c) != 'T' and toupper(*window.back())=='T'){
       //prop-=1.0/(window.size()-1);                                                                                                                                                                                                          
       prop = std::max(0.0, prop-(1.0/(windowSize)));
-      currentTail = 0;
     }
-    else{
-      currentTail = 0;
-    }
-    if(currentTail > maxTail){
-      maxTail = currentTail;
-    }
-    
-    if(prop >= targetProp){
+    if(prop >= targetProp and checkBounds(i-windowSize, clips, al.Name)){
       std::cout << "Detected Poly T tail for sequence " << seq << " with score of " << prop << std::endl;
-      b = true;
-      std::pair<bool, int> ret = std::make_pair(b, maxTail);
-      return ret;
-
+      return true;
     }
     window.pop_back();
   }
-  
   //std::cout<< "Failed to detected Poly a tail for sequence "<< seq << " with score of " << prop << std::endl;                                                                                                                               
   window.clear();
-  std::pair<bool, int> ret = std::make_pair(b, maxTail);
-  return ret;
+  return false;
+}
+
+uint32_t polyA::longestTail(BamTools::BamAlignment al){
+
+  std::string seq = al.QueryBases;  
+  uint32_t longestTail = 0;
+  uint32_t savedLongest = 0;
+  for(unsigned i = 0; i < seq.length(); ++i){
+    const char* c = &seq[i];
+    if(toupper(*c)=='T'){
+      longestTail = 1;
+      //for(unsigned j = i; j < seq.length(); ++j){
+      while (i < seq.length() and toupper(seq[i])=='T'){
+	++longestTail;
+	++i;
+      }
+      
+    } 
+    else if(toupper(*c)=='A'){
+      longestTail = 1;
+      //for(unsigned j = i; j < seq.length(); ++j){                                                                                                                                                                                           
+      while (i < seq.length() and toupper(seq[i])=='A'){
+	++longestTail;
+        ++i;
+      } 
+      
+    }
+    if(longestTail > savedLongest){
+      savedLongest = longestTail;
+      longestTail = 0;
+    }
+  }
+  
+  
+  return savedLongest;
+  
 }
