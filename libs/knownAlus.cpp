@@ -106,10 +106,10 @@ void KnownAlus::findReadsContainingPolyATails(std::vector<contig>  contigs, std:
     }
     
     b->longestTail = maxTail;
-      if (b->score_numHits > 0){
+    if (b->score_numHits > 0){
 	writeHitToBed(bed, b);
 	
-      }
+    }
   }
 }
 
@@ -194,6 +194,8 @@ KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std:
 
   std::string contigsWithAlus = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub_ + ".bam";
 
+  contigVec_ = new std::vector<contig>;
+
   KnownAlus::populateRefData(contigBamPath_);
   KnownAlus::findContigsContainingKnownAlus();
   //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
@@ -248,7 +250,7 @@ void KnownAlus::mapContigsToRef(const char * contigs){
 
 bool KnownAlus::checkIfNameInContigVec(BamTools::BamAlignment al){
   for(auto it = std::begin(*contigVec_); it != std::end(*contigVec_); ++it){
-    if(it->name.compare(al.Name) and al.HasTag("SA")){
+    if(it->name.compare(al.Name)){
       it->contigAlignments.push_back(al);
       return true;
     }

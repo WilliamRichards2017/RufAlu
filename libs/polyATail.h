@@ -2,12 +2,15 @@
 #define POLYA_H
 
 #include <string>
+#include "api/BamMultiReader.h"
+#include "api/BamWriter.h"
 
 class polyA{
   
  public:
-  static std::pair<bool, int> detectPolyATail(std::string);  
-  static std::pair<bool, int> detectPolyTTail(std::string);
+  static bool detectPolyATail(BamTools::BamAlignment);  
+  static bool detectPolyTTail(BamTools::BamAlignment);
+  static uint32_t longestTail(BamTools::BamAlignment);
  private:
 };
 

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <utility> // std::pair
 
+#include "contig.h"
 #include "intersect.h" //contigWindow struct
 #include "util.h"
 
@@ -28,14 +29,15 @@ struct bedPELine {
   int32_t longestTail;
 };
 
+
+//Forward decleration of required struct
+struct contig;
+
 class KnownAlus{
  public:
   KnownAlus(std::string, std::string, std::string, const char *, const char *, const char *, const char *);
   ~KnownAlus();
   
-  std::vector<fastqRead> * getContigsContainingKnownAlus();
-  
-
  private:
   std::string contigFilePath_;
   std::string contigBamPath_;
@@ -47,9 +49,7 @@ class KnownAlus{
 
   std::string stub_;
 
-  
-
-  std::vector<fastqRead> *contigsContainingKnownAlus_;
+  std::vector<contig> *contigVec_;
   const std::vector<BamTools::RefData> *refData_;
 
   void populateRefData(std::string);
@@ -58,7 +58,9 @@ class KnownAlus{
   void alignContigsContainingKnownAlus(const char *);
   void mapContigsToRef(const char *);
   void findContigsContainingPolyATails(const char *);
-  void findReadsContainingPolyATails(std::vector<contigWindow>, std::string);
+  void pullNamesWithHits(std::string);
+  void findReadsContainingPolyATails(std::vector<contig>, std::string);
+  bool checkIfNameInContigVec(BamTools::BamAlignment);
   std::string getChromosomeFromRefID(int32_t);
 
 };
