@@ -10,6 +10,7 @@
 #include <fstream>
 #include <unordered_map>
 
+#include "contig.h"
 #include "fastqParse.h"
 #include "knownAlus.h"
 #include "kseq.h"
@@ -42,7 +43,7 @@ std::string KnownAlus::getChromosomeFromRefID(int32_t id){
 }
 
 void writeBedPEHeader(std::ofstream &bed){
-  bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "Contig Name" << '\t' << "Alu Hit" << '\t' << "Num Hits" << '\t' << "longest_tail" << std::endl;
+  bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "contig_name" << '\t' << "alu_hit" << '\t' << "num_hits" << '\t' << "longest_tail" << std::endl;
 }
 
 
@@ -51,62 +52,64 @@ void KnownAlus::writeHitToBed(std::ofstream &bed, bedPELine * b){
   bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << b->longestTail << std::endl;
 }
 
-void KnownAlus::findReadsContainingPolyATails(std::vector<contigWindow>  contigs, std::string inputFile){
+void KnownAlus::findReadsContainingPolyATails(std::vector<contig>  contigs, std::string inputFile){
+
   std::ofstream bed;
-  std::cout <<"***********************************************************" << std::endl;
-  std::cout << "***********************************************************" << std::endl;
-  std::cout << "Base name is: " << util::baseName(inputFile) << std::endl;
-  std::cout <<"***********************************************************" << std::endl;
-  std::cout <<"***********************************************************" << std::endl;
   std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(inputFile) + ".bed";
   bed.open(bs);
-  writeBedPEHeader(bed);
-  //std::cout << "inside findReadsContainingPlolyATails()" << std::endl;
+  writeBedPEHeader(bed);                                 
   for(auto it = std::begin(contigs); it != std::end(contigs); ++it){
-
-    // zero initialization of dao
     bedPELine * b = new bedPELine{};
-
-    //std::cout << "Finding support for contig " << it->contig.Name << std::endl;
-    b->name_rufus_contig = it->contig.Name;
+    b->name_rufus_contig = it->name;
+    b->name_alu_hit = it->alusHit[0];
+    for(auto ait = std::begin(it->alusHit); ait != std::end(it->alusHit); ++ait){
+      std::cout << "contig hit alu: " << *ait << std::endl;
+    }
     uint32_t count = 0;
     uint32_t maxTail = 0;
-    for (auto rIt = std::begin((*it).window); rIt != std::end((*it).window); ++rIt){
-      bool a  = polyA::detectPolyATail(*rIt);
-      bool t  = polyA::detectPolyTTail(*rIt);
-      uint32_t longestTail = polyA::longestTail(*rIt);
+    
+    for(auto rIt = std::begin(it->overlapingReads); rIt != std::end(it->overlapingReads); ++it){
+      for(auto qIt = std::begin(rIt->window); qIt != std::end(rIt->window); ++qIt ) {
+      bool a = polyA::detectPolyATail(*qIt);
+      bool t = polyA::detectPolyTTail(*qIt);
+      uint32_t longestTail = polyA::longestTail(*qIt);
+      
       if(longestTail > maxTail){
 	maxTail=longestTail;
       }
-      //std::cout << "max poly tail for read is: " << maxTail << std::endl;
 
       if(a || t){
 	b->score_numHits++;
+
 	if(count == 0){
-	  b->chrom1 = rIt->RefID;
-	  b->chrom1Start = rIt->Position;
-	  b->chrom1End = rIt->GetEndPosition();
+	  b->chrom1 = qIt->RefID;
+	  b->chrom1Start = qIt->Position;
+	  b->chrom1End = qIt->GetEndPosition();
 	}
 
 	if(count == 1){
-          b->chrom2 = rIt->RefID;
-          b->chrom2Start = rIt->Position;
-          b->chrom2End = rIt->GetEndPosition();
-        }
+	  b->chrom2 = qIt->RefID;
+	  b->chrom2Start = qIt->Position;
+	  b->chrom2End = qIt->GetEndPosition();
+	}
+	
 	++count;
-
+	
 	std::cout << "found poly A/T Tail evidence supporting alu" << std::endl;
-	std::cout <<  rIt->QueryBases << std::endl;
+	std::cout <<  qIt->QueryBases << std::endl;
 	//std::string chrom = getChromosomeFromRefID(it->RefID);                                                                                                                      
 	//std::string chrom = "Null";
-	std::cout << "supporting read was found at region: " << rIt->Position << ", " << rIt->GetEndPosition() << " RefID: " << rIt->RefID << " " << "Name: " << rIt->Name << std::endl;
+	std::cout << "supporting read was found at region: " << qIt->Position << ", " << qIt->GetEndPosition() << " RefID: " << qIt->RefID << " " << "Name: " << qIt->Name << std::endl;
       }
-
+      
+      }
     }
+    
     b->longestTail = maxTail;
-    if (b->score_numHits > 0){
-      writeHitToBed(bed, b);
-    }
+      if (b->score_numHits > 0){
+	writeHitToBed(bed, b);
+	
+      }
   }
 }
 
@@ -148,14 +151,24 @@ void KnownAlus::findContigsContainingKnownAlus()
       for(unsigned i = 0; i < std::string(ks->seq.s).length(); ++i){
 	qual+= '!';
       }
-
-      fastqRead *f = new fastqRead(std::string(ks->name.s), ks->seq.s, qual);
-      contigsContainingKnownAlus_->push_back(*f);
       
+      //zero-initialize struct
+      // zero initialization of dao                                                                                                                                                    
+      bedPELine * b = new bedPELine{};
+      contig * c = new contig{};
+
+      c->name = std::string(ks->name.s);
+      c->seq = ks->seq.s;
+      c->qual = qual;
+      contigVec_->push_back(*c);
+
       //std::cout << "nreg is: " << n_reg << std::endl;
       for (j = 0; j < n_reg; ++j) { // traverse hits and print them out
 	//std::cout << "traversing hits" << std::endl;
         mm_reg1_t *r = &reg[j];
+
+	c->alusHit.push_back(mi->seq[r->rid].name);
+	      
         //assert(r->p); // with MM_F_CIGAR, this should not be NULL
 	printf("%s\t%d\t%d\t%d\t%c\t", ks->name.s, ks->seq.l, r->qs, r->qe, "+-"[r->rev]);
         printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\tcg:Z:", mi->seq[r->rid].name, mi->seq[r->rid].len, r->rs, r->re, r->mlen, r->blen, r->mapq);
@@ -178,39 +191,28 @@ void KnownAlus::findContigsContainingKnownAlus()
 
 
 KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std::string mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), contigBamPath_(contigBamPath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_("." + util::baseName(contigBamPath)){
-  contigsContainingKnownAlus_ = new std::vector<fastqRead>;
 
-  //const char * rootDir = util::getRootDirectory(std::string(aluFilePath));
-  //std::cout << "RUFUS root path is: " << rootDir << std::endl;
   std::string contigsWithAlus = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub_ + ".bam";
-
-  std::cout << "Contig bam path is: " << contigBamPath_ << std::endl;
 
   KnownAlus::populateRefData(contigBamPath_);
   KnownAlus::findContigsContainingKnownAlus();
-  KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
+  //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
+  KnownAlus::pullNamesWithHits(contigBamPath_);
   std::cout << "finished aligning contings to known alus, now intersecting bams" << std::endl;
 
-  std::string contigsWithAluHits = Intersect::getContigHits(contigBamPath_, stub_);
+  //std::string contigsWithAluHits = Intersect::getContigHits(contigBamPath_, stub_);
  
-  Intersect intersect{contigsWithAluHits, mutationPath_};
-  std::vector<contigWindow> reads = intersect.getIntersection();
-  
-  std::cout << "size of reads intersection: " << reads.size() << std::endl;
+  //Intersect intersect{contigsWithAluHits, mutationPath_};
 
-
-  //for(auto it = std::begin(reads); it != std::end(reads); ++it){
-  //util::printContigWindow(*it);
-  //}
+  Intersect intersect{*contigVec_, mutationPath_};
  
   std::cout << "finished intersection, now finding supporting reads with polyA tail" << std::endl;
-  findReadsContainingPolyATails(reads, std::string(mutationPath_));
+  findReadsContainingPolyATails(*contigVec_, std::string(mutationPath_));
 
 }
 
 KnownAlus::~KnownAlus(){
   //contigsContainingKnownAlus_->clear();
-  delete[] contigsContainingKnownAlus_;
   delete[] refData_;
   // delete contigFilePath_;
   delete aluFilePath_;
@@ -243,13 +245,37 @@ void KnownAlus::mapContigsToRef(const char * contigs){
   util::exec(("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub_ + ".bam").c_str());
   
 }
-std::vector<fastqRead> * KnownAlus::getContigsContainingKnownAlus(){
-  return contigsContainingKnownAlus_;
+
+bool KnownAlus::checkIfNameInContigVec(BamTools::BamAlignment al){
+  for(auto it = std::begin(*contigVec_); it != std::end(*contigVec_); ++it){
+    if(it->name.compare(al.Name) and al.HasTag("SA")){
+      it->contigAlignments.push_back(al);
+      return true;
+    }
+  }
+  return false;
+}
+
+void KnownAlus::pullNamesWithHits(std::string bamPath){
+
+  BamTools::BamReader reader;
+
+  if (!reader.Open(bamPath)){
+    std::cout << "Could not open input Bam file" << bamPath << std::endl;
+    exit (EXIT_FAILURE);
+  }
+
+  BamTools::BamAlignment al;
+  while (reader.GetNextAlignment(al)){
+    bool b = checkIfNameInContigVec(al);
+  }
+  
+
 }
 
 void KnownAlus::alignContigsContainingKnownAlus(const char * refPath){
 
-  std::string fastq = util::contigsToFastq(contigsContainingKnownAlus_, stub_ + "contigs.fastq"); 
+  std::string fastq = util::contigsToFastq(*contigVec_, stub_ + "contigs.fastq"); 
   KnownAlus::mapContigsToRef(fastq.c_str());
 
 }

@@ -1,11 +1,12 @@
 #include <stdexcept>
 #include <string>
 
-
 #include "util.h"
+#include "contig.h"
+#include "knownAlus.h"
 
 void util::printContigWindow(contigWindow c){
-  std::cout << "contig is: " << c.contig.Name << std::endl;
+  //std::cout << "contig is: " << c.contig.Name << std::endl;
   for (auto it = std::begin(c.window); it != std::end(c.window); ++it){
     std::cout << it->QueryBases << std::endl;
   }
@@ -155,12 +156,12 @@ std::vector<BamTools::BamAlignment> util::intersectBams(const char * a, const ch
   return intersection;
 }
   
-std::string util::contigsToFastq(std::vector<fastqRead> *contigs, std::string outFile){
+std::string util::contigsToFastq(std::vector<contig> contigs, std::string outFile){
 
   std::ofstream out;
   out.open(outFile);
 
-  for(auto it = std::begin(*contigs); it != std::end(*contigs); ++it){
+  for(auto it = std::begin(contigs); it != std::end(contigs); ++it){
 
     //out << (*it)->id << std::endl;                                                                                                                                                                                                         \
                                                                                                                                                                                                                                               

@@ -8,6 +8,7 @@
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
 
+#include "knownAlus.h"
 #include "intersect.h"
 
 struct coords {
@@ -17,11 +18,8 @@ struct coords {
   
 };
 
-struct fastqRead {
-  std::string name;
-  std::string seq;
-  std::string qual;
-fastqRead(std::string n, std::string s, std::string q) : name(n), seq(s), qual(q) {}
+struct contigWindow{
+  std::vector<BamTools::BamAlignment> window;
 };
 
 struct samRead {
@@ -39,6 +37,20 @@ struct samRead {
   std::string tags;
 };
 
+struct contig {
+  std::string name;
+  std::string seq;
+  std::string qual;
+  std::vector<std::string> alusHit;
+  std::vector<BamTools::BamAlignment> contigAlignments;
+  std::vector<BamTools::BamRegion> contigAlignmentRegions;
+  std::vector<contigWindow> overlapingReads;
+  std::vector<BamTools::BamAlignment> supportingReads;
+  uint32_t longestTail;
+};
+
+struct contigWindow;
+
 class util{
 
  public:
@@ -46,7 +58,7 @@ class util{
   static bool overlap(std::pair<int, int>, std::vector<std::pair<int, int> >);
   static std::vector<BamTools::BamAlignment> intersect(const char *, const char *);
   static std::vector<BamTools::BamAlignment> intersectBams(const char *, const char *);
-  static std::string contigsToFastq(std::vector<fastqRead>*, std::string);
+  static std::string contigsToFastq(std::vector<contig> , std::string);
   static std::string baseName(std::string);
   static void printContigWindow(contigWindow c);
 

@@ -5,27 +5,26 @@
 
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
+#include "util.h"
 
-struct contigWindow{
-  BamTools::BamAlignment contig;
-  std::vector<BamTools::BamAlignment> window;
 
-};
+//forward delcaration
+struct contig;
 
 class Intersect{
 
  public:
-  Intersect(std::string, std::string);
+  Intersect(std::vector<contig>, std::string);
   ~Intersect();
 
-  static std::string getContigHits(std::string, std::string);
-  std::vector<contigWindow>  getIntersection();
-
+    
  private:
-  std::string a_;
-  std::string b_;
-  std::vector<contigWindow>  intersection_;
-  void intersectBams();
+  
+
+  std::vector<contig> contigVec_;
+  //std::string a_;
+  std::string bamPath_;
+    void intersectBams();
   
 
 };
