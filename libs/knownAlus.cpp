@@ -319,7 +319,7 @@ bool KnownAlus::checkIfNameInContigVec(BamTools::BamAlignment al){
 }
 
 std::vector<contig> KnownAlus::pullNamesWithHits(std::vector<contig> contigVec, std::string bamPath){
-
+  std::cout << "inside pull name with hits" << std::endl;
   BamTools::BamReader reader;
 
   if (!reader.Open(bamPath)){
@@ -335,5 +335,5 @@ std::vector<contig> KnownAlus::pullNamesWithHits(std::vector<contig> contigVec, 
       }
     }
   }
-
+  return contigVec;
 }
