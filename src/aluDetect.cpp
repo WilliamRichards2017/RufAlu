@@ -44,7 +44,7 @@ int main(int argc, char *argv[] ){
 
   //DACReads *dacReads = new DACReads(bamPath);
 
-  KnownAlus *knownAlus = new KnownAlus(contigFilePath, contigBamPath, mutationPath, aluFilePath, aluIndexPath, refPath, refIndexPath);
+  KnownAlus knownAlus = {contigFilePath, contigBamPath, mutationPath, aluFilePath, aluIndexPath, refPath, refIndexPath};
 
   //odelete bamPath;
   //delete aluFilePath;

@@ -49,16 +49,15 @@ class KnownAlus{
 
   std::string stub_;
 
-  std::vector<contig> *contigVec_;
+  std::vector<contig> contigVec_;
   const std::vector<BamTools::RefData> *refData_;
 
   void populateRefData(std::string);
   void writeHitToBed(std::ofstream&, bedPELine *);
   void findContigsContainingKnownAlus();
-  void alignContigsContainingKnownAlus(const char *);
   void mapContigsToRef(const char *);
   void findContigsContainingPolyATails(const char *);
-  void pullNamesWithHits(std::string);
+  std::vector<contig> pullNamesWithHits(std::vector<contig>, std::string);
   void findReadsContainingPolyATails(std::vector<contig>, std::string);
   bool checkIfNameInContigVec(BamTools::BamAlignment);
   std::string getChromosomeFromRefID(int32_t);

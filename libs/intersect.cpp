@@ -98,6 +98,7 @@ void Intersect::intersectBams(){
     std::pair<BamTools::BamRegion, BamTools::BamAlignment> regionPair;
     for(auto aIt = std::begin(it->contigAlignments); aIt != std::end(it->contigAlignments); ++aIt){
       BamTools::BamRegion region = BamTools::BamRegion(aIt->RefID, aIt->Position, (aIt->RefID)-5, (aIt->GetEndPosition())+5);
+      std::cout << "pushing back contig alignment region" << std::endl;
       it->contigAlignmentRegions.push_back(region);
     }
 
@@ -119,6 +120,7 @@ void Intersect::intersectBams(){
       reader.SetRegion(*aIt);
       
       while(reader.GetNextAlignment(bl)){
+	//std::cout << "found overlaping read " << bl.Name << std::endl;
 	cWindow.window.push_back(bl);
       }
       it->overlapingReads.push_back(cWindow);
@@ -126,6 +128,9 @@ void Intersect::intersectBams(){
   }
 }
 
+std::vector<contig> Intersect::getContigVec() {
+  return contigVec_;
+}
 
 Intersect::Intersect(std::vector<contig> contigVec, std::string  bamPath) : contigVec_(contigVec), bamPath_(bamPath) {
   Intersect::intersectBams();

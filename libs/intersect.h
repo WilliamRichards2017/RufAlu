@@ -17,6 +17,8 @@ class Intersect{
   Intersect(std::vector<contig>, std::string);
   ~Intersect();
 
+  std::vector<contig> getContigVec();
+
     
  private:
   
