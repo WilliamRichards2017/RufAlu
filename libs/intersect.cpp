@@ -89,7 +89,7 @@ Intersect::~Intersect(){
 */
 
 void Intersect::intersectBams(){
-  std::cout << "Inside intersectBams " << std::endl;
+  //std::cout << "Inside intersectBams " << std::endl;
   std::vector<std::pair<BamTools::BamRegion, BamTools::BamAlignment> > coords;
 
 
@@ -98,7 +98,7 @@ void Intersect::intersectBams(){
     std::pair<BamTools::BamRegion, BamTools::BamAlignment> regionPair;
     for(auto aIt = std::begin(it->contigAlignments); aIt != std::end(it->contigAlignments); ++aIt){
       BamTools::BamRegion region = BamTools::BamRegion(aIt->RefID, (aIt->Position)-5, aIt->RefID, (aIt->GetEndPosition())+5);
-      std::cout << "pushing back contig alignment region" << std::endl;
+      //std::cout << "pushing back contig alignment region" << std::endl;
       it->contigAlignmentRegions.push_back(region);
     }
 

@@ -94,13 +94,13 @@
 
 
  void KnownAlus::writeHitToBed(std::ofstream &bed, bedPELine * b){
-   std::cout << "Inside writeTobed" << std::endl;
+   //std::cout << "Inside writeTobed" << std::endl;
    bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << b->longestTail << std::endl;
  }
 
  void KnownAlus::findReadsContainingPolyATails(std::vector<contig>  contigs, std::string inputFile){
-   std::cout << "inside findReadsCOntainingPolyATails()" << std::endl;
-   std::cout << "number of contigs: " << contigs.size();
+   //std::cout << "inside findReadsCOntainingPolyATails()" << std::endl;
+   //std::cout << "number of contigs: " << contigs.size();
    std::ofstream bed;
    std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(inputFile) + ".bed";
    bed.open(bs);
@@ -108,18 +108,18 @@
 
    for(auto it = std::begin(contigs); it != std::end(contigs); ++it){
      bedPELine * b = new bedPELine{};
-     std::cout << "number of overlaping reads in contig: " << it->overlapingReads.size();
-     std::cout << "number of alus hit: " << it->alusHit.size();
+     //std::cout << "number of overlaping reads in contig: " << it->overlapingReads.size();
+     //std::cout << "number of alus hit: " << it->alusHit.size();
      b->name_rufus_contig = it->name;
      b->name_alu_hit = it->alusHit[0];
      for(auto ait = std::begin(it->alusHit); ait != std::end(it->alusHit); ++ait){
-       std::cout << "contig hit alu: " << *ait << std::endl;
+       //std::cout << "contig hit alu: " << *ait << std::endl;
      }
      uint32_t count = 0;
      uint32_t maxTail = 0;
 
 
-     std::cout << "size of overlaping reads vec is: " << it->overlapingReads.size();
+     //std::cout << "size of overlaping reads vec is: " << it->overlapingReads.size();
      for(auto rIt = std::begin(it->overlapingReads); rIt != std::end(it->overlapingReads); ++rIt){
        //std::cout << "looping through overlaping reads vector" << std::endl;
        for(auto qIt = std::begin(rIt->window); qIt != std::end(rIt->window); ++qIt ) {
@@ -149,11 +149,11 @@
 
 	   ++count;
 
-	   std::cout << "found poly A/T Tail evidence supporting alu" << std::endl;
-	   std::cout <<  qIt->QueryBases << std::endl;
+	   //std::cout << "found poly A/T Tail evidence supporting alu" << std::endl;
+	   //std::cout <<  qIt->QueryBases << std::endl;
 	   //std::string chrom = getChromosomeFromRefID(it->RefID);                                                                                                                      
 	   //std::string chrom = "Null";
-	   std::cout << "supporting read was found at region: " << qIt->Position << ", " << qIt->GetEndPosition() << " RefID: " << qIt->RefID << " " << "Name: " << qIt->Name << std::endl;
+	   //std::cout << "supporting read was found at region: " << qIt->Position << ", " << qIt->GetEndPosition() << " RefID: " << qIt->RefID << " " << "Name: " << qIt->Name << std::endl;
 	 }
 
        }
@@ -174,7 +174,7 @@
    mm_mapopt_t mopt;
    int n_threads = 3;
 
-   std::cout << "reading in contig fasta file " << contigFilePath_ << std::endl;
+   //std::cout << "reading in contig fasta file " << contigFilePath_ << std::endl;
 
 
    mm_verbose = 3; // print to std out
@@ -222,11 +222,11 @@
 	 mm_reg1_t *r = &reg[j];
 
 	 c.alusHit.push_back(mi->seq[r->rid].name);
-	 std::cout << "checking if aluHit[j] is populated: " << c.alusHit[j] << std::endl;
+	 //std::cout << "checking if aluHit[j] is populated: " << c.alusHit[j] << std::endl;
 
 	 //assert(r->p); // with MM_F_CIGAR, this should not be NULL
-	 printf("%s\t%d\t%d\t%d\t%c\t", ks->name.s, ks->seq.l, r->qs, r->qe, "+-"[r->rev]);
-	 printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\tcg:Z:", mi->seq[r->rid].name, mi->seq[r->rid].len, r->rs, r->re, r->mlen, r->blen, r->mapq);
+	 //printf("%s\t%d\t%d\t%d\t%c\t", ks->name.s, ks->seq.l, r->qs, r->qe, "+-"[r->rev]);
+	 //printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\tcg:Z:", mi->seq[r->rid].name, mi->seq[r->rid].len, r->rs, r->re, r->mlen, r->blen, r->mapq);
 	 //std::cout << "checking if alu name is: " << mi->seq[r->rid].name << std::endl;
 	 for (i = 0; i < r->p->n_cigar; ++i) { // IMPORTANT: this gives the CIGAR in the aligned regions. NO soft/hard clippings!
 	   printf("%d%c", r->p->cigar[i]>>4, "MIDSHN"[r->p->cigar[i]&0xf]);
@@ -266,7 +266,7 @@ KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std:
   contigVec_ = intersect.getContigVec();
 
 
-  std::cout << "finished intersection, now finding supporting reads with polyA tail" << std::endl;
+  //std::cout << "finished intersection, now finding supporting reads with polyA tail" << std::endl;
   findReadsContainingPolyATails(contigVec_, mutationPath_);
 
   printContigVec(contigVec_);
