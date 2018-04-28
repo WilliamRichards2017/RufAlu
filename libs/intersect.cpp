@@ -97,7 +97,7 @@ void Intersect::intersectBams(){
   for(auto it = std::begin(contigVec_); it != std::end(contigVec_); ++it){
     std::pair<BamTools::BamRegion, BamTools::BamAlignment> regionPair;
     for(auto aIt = std::begin(it->contigAlignments); aIt != std::end(it->contigAlignments); ++aIt){
-      BamTools::BamRegion region = BamTools::BamRegion(aIt->RefID, aIt->Position, (aIt->RefID)-5, (aIt->GetEndPosition())+5);
+      BamTools::BamRegion region = BamTools::BamRegion(aIt->RefID, (aIt->Position)-5, aIt->RefID, (aIt->GetEndPosition())+5);
       std::cout << "pushing back contig alignment region" << std::endl;
       it->contigAlignmentRegions.push_back(region);
     }

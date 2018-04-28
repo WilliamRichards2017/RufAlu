@@ -54,6 +54,7 @@
      }
    }
 
+   std::cout << "**** supportingReads ****" << std::endl;
    for(auto it6 = std::begin(c.supportingReads); it6 != std::end(c.supportingReads); ++it6){
      std::cout << "    " <<  it6->Name << std::endl;
    }
@@ -119,10 +120,10 @@
 
 
      std::cout << "size of overlaping reads vec is: " << it->overlapingReads.size();
-     for(auto rIt = std::begin(it->overlapingReads); rIt != std::end(it->overlapingReads); ++it){
-       std::cout << "looping through overlaping reads vector" << std::endl;
+     for(auto rIt = std::begin(it->overlapingReads); rIt != std::end(it->overlapingReads); ++rIt){
+       //std::cout << "looping through overlaping reads vector" << std::endl;
        for(auto qIt = std::begin(rIt->window); qIt != std::end(rIt->window); ++qIt ) {
-	 std::cout << "checking for poly tail for read: " << qIt->Name << std::endl;
+	 //std::cout << "checking for poly tail for read: " << qIt->Name << std::endl;
 	 bool a = polyA::detectPolyATail(*qIt);
 	 bool t = polyA::detectPolyTTail(*qIt);
 	 uint32_t longestTail = polyA::longestTail(*qIt);
@@ -158,6 +159,7 @@
        }
 
        b->longestTail = maxTail;
+       it->longestTail = maxTail;
        if (b->score_numHits > 0){
 	 writeHitToBed(bed, b);
        }
@@ -255,29 +257,32 @@ KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std:
   
   KnownAlus::populateRefData(contigBamPath_);
   KnownAlus::findContigsContainingKnownAlus();
-
-
   
     //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
   contigVec_ = KnownAlus::pullNamesWithHits(contigVec_, contigBamPath_);
 
-  printContigVec(contigVec_);
 
   Intersect intersect{contigVec_, mutationPath_};
- 
+  contigVec_ = intersect.getContigVec();
+
+
   std::cout << "finished intersection, now finding supporting reads with polyA tail" << std::endl;
-  findReadsContainingPolyATails(intersect.getContigVec(), mutationPath_);
+  findReadsContainingPolyATails(contigVec_, mutationPath_);
+
+  printContigVec(contigVec_);
+
+
 
 }
 
 KnownAlus::~KnownAlus(){
   //contigsContainingKnownAlus_->clear();
-  delete[] refData_;
+  //delete[] refData_;
   // delete contigFilePath_;
-  delete aluFilePath_;
-  delete aluIndexPath_;
-  delete refPath_;
-  delete refIndexPath_;
+  //delete aluFilePath_;
+  //delete aluIndexPath_;
+  //delete refPath_;
+  //delete refIndexPath_;
   //delete mutationPath_;
 }
 
