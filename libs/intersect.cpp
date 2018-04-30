@@ -12,13 +12,13 @@
 Intersect::~Intersect(){
 }
 
-/*bool checkForClips(BamTools::BamAlignment al){
+bool checkForClips(BamTools::BamAlignment al){
 
   //std::cout << "read name is: " << bl.Name << std::endl;                                                                                                                                                                              
-  //std::vector<int> clipSizes;
-  //std::vector<int> readPositions;
-  //std::vector<int> genomePositions;
-  /*if (al.GetSoftClips(clipSizes, readPositions, genomePositions)){
+  std::vector<int> clipSizes;
+  std::vector<int> readPositions;
+  std::vector<int> genomePositions;
+  if (al.GetSoftClips(clipSizes, readPositions, genomePositions)){
     //std::cout << "found some soft clips BB " << std::endl;
     return true;
   }
@@ -30,12 +30,12 @@ Intersect::~Intersect(){
     }
     }
   if(al.HasTag("SA")){
-    std::cout << "found SA tag" << std::endl;
+    //std::cout << "found SA tag" << std::endl;
     return true;
   }
   return false;
 }
-*/
+
 
 /*std::string Intersect::getContigHits(std::string overlapPath, std::string stub){
   BamTools::BamReader overlapReader;
@@ -97,7 +97,7 @@ void Intersect::intersectBams(){
   for(auto it = std::begin(contigVec_); it != std::end(contigVec_); ++it){
     std::pair<BamTools::BamRegion, BamTools::BamAlignment> regionPair;
     for(auto aIt = std::begin(it->contigAlignments); aIt != std::end(it->contigAlignments); ++aIt){
-      BamTools::BamRegion region = BamTools::BamRegion(aIt->RefID, (aIt->Position)-5, aIt->RefID, (aIt->GetEndPosition())+5);
+      BamTools::BamRegion region = BamTools::BamRegion(aIt->RefID, (aIt->Position)-2, aIt->RefID, (aIt->GetEndPosition())+5);
       //std::cout << "pushing back contig alignment region" << std::endl;
       it->contigAlignmentRegions.push_back(region);
     }
@@ -121,7 +121,9 @@ void Intersect::intersectBams(){
       
       while(reader.GetNextAlignment(bl)){
 	//std::cout << "found overlaping read " << bl.Name << std::endl;
-	cWindow.window.push_back(bl);
+	if(checkForClips(bl) and bl.MapQuality > 0){
+	  cWindow.window.push_back(bl);
+	}
       }
       it->overlapingReads.push_back(cWindow);
     }

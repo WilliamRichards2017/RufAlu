@@ -26,7 +26,7 @@
 
 
  void printContig(contig c){
-
+   if(c.supportingReads.size() > 0) {
    std::cout << "##########__PRINTING_CONTIG__############";
    std::cout << "name: " << c.name << std::endl;
    std::cout << "seq: " << c.seq << std::endl;
@@ -60,7 +60,7 @@
    }
 
    std::cout << "longest tail: " << c.longestTail << std::endl;
-
+   }
  }
 
  void printContigVec(std::vector<contig> contigVec){
@@ -76,16 +76,31 @@
      std::cout << "Could not open input Bam file" << bamPath << std::endl;
      exit (EXIT_FAILURE);
    }
-   refData_ = &(reader.GetReferenceData());
+   refData_ = reader.GetReferenceData();
  }
 
 
  std::string KnownAlus::getChromosomeFromRefID(int32_t id){
+   std::string ret = "";
+
+   if(id == -1) {
+     ret = "unmapped";
+     return ret;
+   }
+
+   //if(id > 23 or id < 0){
+   //ret = "fuck";
+     //return ret;
+     //}
    std::cout << "id is " << id << std::endl;
    if(id == -1) {
-     return "unmapped";
+     ret = "unmapped";
+     return ret;
    }
-   return (*refData_)[id].RefName;
+   
+   std::cout << "tying to look up ref id: " << id << std::endl;
+   ret = refData_[id].RefName;
+   return ret;
  }
 
  void writeBedPEHeader(std::ofstream &bed){
@@ -136,13 +151,13 @@
 	   b->score_numHits++;
 
 	   if(count == 0){
-	     b->chrom1 = qIt->RefID;
+	     b->chrom1 = getChromosomeFromRefID(qIt->RefID);
 	     b->chrom1Start = qIt->Position;
 	     b->chrom1End = qIt->GetEndPosition();
 	   }
 
 	   if(count == 1){
-	     b->chrom2 = qIt->RefID;
+	     b->chrom2 = getChromosomeFromRefID(qIt->RefID);
 	     b->chrom2Start = qIt->Position;
 	     b->chrom2End = qIt->GetEndPosition();
 	   }
@@ -160,7 +175,7 @@
 
        b->longestTail = maxTail;
        it->longestTail = maxTail;
-       if (b->score_numHits > 0){
+       if (b->score_numHits > 1){
 	 writeHitToBed(bed, b);
        }
 
@@ -229,9 +244,9 @@
 	 //printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\tcg:Z:", mi->seq[r->rid].name, mi->seq[r->rid].len, r->rs, r->re, r->mlen, r->blen, r->mapq);
 	 //std::cout << "checking if alu name is: " << mi->seq[r->rid].name << std::endl;
 	 for (i = 0; i < r->p->n_cigar; ++i) { // IMPORTANT: this gives the CIGAR in the aligned regions. NO soft/hard clippings!
-	   printf("%d%c", r->p->cigar[i]>>4, "MIDSHN"[r->p->cigar[i]&0xf]);
+	   //printf("%d%c", r->p->cigar[i]>>4, "MIDSHN"[r->p->cigar[i]&0xf]);
 	 }
-	 putchar('\n');
+	 //putchar('\n');
 	 free(r->p);
        }
        if(c.alusHit.size() > 0){
@@ -253,9 +268,10 @@ KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std:
   std::string contigsWithAlus = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub_ + ".bam";
 
   contigVec_ = {};
+  refData_ = {};
   
   
-  KnownAlus::populateRefData(contigBamPath_);
+  KnownAlus::populateRefData(mutationPath_);
   KnownAlus::findContigsContainingKnownAlus();
   
     //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
@@ -284,30 +300,6 @@ KnownAlus::~KnownAlus(){
   //delete refPath_;
   //delete refIndexPath_;
   //delete mutationPath_;
-}
-
-void KnownAlus::mapContigsToRef(const char * contigs){
-
-  std::string basepath  = util::baseName(std::string(contigs));
-  std::cout << "Base path is: " << basepath << std::endl;
-
-  std::string cmd = "";
-  std::string sort = "";
-  util::exec("chmod +x /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools");
-  cmd+= "cd /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/externals/minimap2/src/minimap2_project ; ./minimap2 -ax sr ";
-  cmd+= refPath_;
-  cmd += " /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/";
-  cmd+= contigs;
-  cmd+= " > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus" + stub_ + ".sam";
-  //std::cout << "executing command " << cmd << std::endl;
-  util::exec(cmd.c_str());
-  //convert sam to bam
-  util::exec(("samtools view -Sb /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus" + stub_ +".sam > /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus" + stub_ + ".bam").c_str());
-  //Sort bam file by position
-  util::exec(("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools sort -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus" + stub_ + ".bam -out /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub_ + ".bam").c_str());
-  //Index sorted bamfile
-  util::exec(("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/externals/bamtools/src/bamtools_project/bin/bamtools index -in /uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub_ + ".bam").c_str());
-  
 }
 
 bool KnownAlus::checkIfNameInContigVec(BamTools::BamAlignment al){

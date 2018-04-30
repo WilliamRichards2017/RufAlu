@@ -48,6 +48,7 @@ bool checkBounds(int32_t pos, std::vector<uint32_t> posVec, std::string readName
       return true;
     }
   }
+  return false;
 }
 
 bool polyA::detectPolyATail(BamTools::BamAlignment al) {

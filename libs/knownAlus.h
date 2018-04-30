@@ -17,10 +17,10 @@
 #include "api/BamWriter.h"
 
 struct bedPELine {
-  int32_t chrom1;
+  std::string chrom1;
   int32_t chrom1Start;
   int32_t chrom1End;
-  int32_t chrom2;
+  std::string chrom2;
   int32_t chrom2Start;
   int32_t chrom2End;
   std::string name_rufus_contig;
@@ -50,7 +50,7 @@ class KnownAlus{
   std::string stub_;
 
   std::vector<contig> contigVec_;
-  const std::vector<BamTools::RefData> *refData_;
+  const std::vector<BamTools::RefData> refData_;
 
   void populateRefData(std::string);
   void writeHitToBed(std::ofstream&, bedPELine *);
