@@ -46,7 +46,7 @@ std::vector<std::pair<uint32_t, uint32_t> > getClipPositions(BamTools::BamAlignm
 
 bool checkBounds(std::pair<uint32_t,int32_t> pos, std::vector<std::pair<uint32_t, uint32_t> > posVec, std::string readName){
   for(auto it = std::begin(posVec); it != std::end(posVec); ++it){
-    if((pos.first > it->first) and pos.second < it->second){
+    if((pos.first + 10 > it->first) and pos.second < it->second + 10){
       //std::cout << "AYYY check bounds passed for read: " << readName << std::endl;
       //std::cout << "Start of tail detected at position: " << pos << "clipping starts at: " << *it << std::endl;
       return true;
