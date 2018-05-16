@@ -7,12 +7,40 @@
 #include "polyATail.h"
 
 
+//TODO: move to util
 void printWindow(std::list<const char*> window){
   while(! window.empty()){
     std::cout << *(window.front());
     window.pop_front();
   }
   std::cout << std::endl;
+}
+
+std::vector<uint32_t> polyA::getClipStarts(BamTools::BamAlignment al){
+  std::vector<BamTools::CigarOp> cigar = al.CigarData;
+  std::vector<uint32_t> clipStarts;
+
+  std::vector<int> clipSizes;
+  std::vector<int> readPositions;
+  std::vector<int> genomePositions;
+
+  if (al.GetSoftClips(clipSizes, readPositions, genomePositions)){
+    //for(auto it = std::begin(readPositions); it != std::end(readPositions); ++it){                                                                                                                   
+    for(unsigned i = 0; i < readPositions.size(); ++i) {
+      //std::cout << "Pushing back soft clip at pos " << readPositions[i] << std::endl;
+      clipStarts.push_back(readPositions[i]);
+    }
+  }
+
+  uint32_t pos = 0;
+  for(auto it = std::begin(cigar); it != std::end(cigar); ++it){
+    if (it->Type == 'H'){
+      clipStarts.push_back(pos);
+      //std::cout << "pushing back hard clip at pos " << pos << std::endl;
+    }
+    pos+= it->Length;
+  }
+  return clipStarts;
 }
 
 std::vector<std::pair<uint32_t, uint32_t> > getClipPositions(BamTools::BamAlignment al){
@@ -44,6 +72,8 @@ std::vector<std::pair<uint32_t, uint32_t> > getClipPositions(BamTools::BamAlignm
   return clipCoords;
 }
 
+
+
 bool checkBounds(std::pair<uint32_t,int32_t> pos, std::vector<std::pair<uint32_t, uint32_t> > posVec, std::string readName){
   for(auto it = std::begin(posVec); it != std::end(posVec); ++it){
     if((pos.first + 10 > it->first) and pos.second < it->second + 10){
@@ -54,6 +84,46 @@ bool checkBounds(std::pair<uint32_t,int32_t> pos, std::vector<std::pair<uint32_t
   }
   return false;
 }
+
+bool detectTailInWindow(BamTools::BamAlignment al, uint32_t pos, uint32_t tailSize, const char at){
+  std::cout << "Insize detectTailInWindow with tail size of " << tailSize << std::endl;
+  std::string seq = al.QueryBases;
+  uint32_t i = 0;
+  while(i < tailSize){
+    const char c = seq[i+pos];
+    if(c==at){
+      ++i;
+    }
+    else{
+      return false;
+    }
+  }
+  return true;
+}
+
+bool polyA::detectPolyTailClips(BamTools::BamAlignment al, uint32_t tailSize){
+  //std::cout << "Inside detect polyA clips" << std::endl;
+  std::vector<uint32_t> clips = polyA::getClipStarts(al);
+  //std::cout << "clips.size() is " << clips.size();
+  std::string seq = al.QueryBases;
+  const char ac = 'A';
+  const char tc = 'T';
+  for(auto it = std::begin(clips); it != std::end(clips); ++it){
+    //std::cout << "looping through clips bb " << std::endl;
+    if(! ((*it)+tailSize > al.Length)){
+      //std::cout << "passing bounds check" << std::endl;
+      bool a = detectTailInWindow(al, *it, tailSize, ac);
+      bool t = detectTailInWindow(al, *it, tailSize, tc);
+      if(a || t){
+	std::cout << "Found poly tail supporting evidence" << std::endl;
+	return true;
+      }
+    }
+  }
+  return false;
+}
+
+
 
 bool polyA::detectPolyATail(BamTools::BamAlignment al) {
   std::string seq = al.QueryBases;
@@ -117,7 +187,6 @@ bool polyA::detectPolyATail(BamTools::BamAlignment al) {
   window.clear();
   return false;
 }
-
 
 bool polyA::detectPolyTTail(BamTools::BamAlignment al) {
   std::string seq = al.QueryBases;

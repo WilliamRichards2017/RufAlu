@@ -104,16 +104,16 @@
  }
 
  void writeBedPEHeader(std::ofstream &bed){
-   bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "contig_name" << '\t' << "alu_hit" << '\t' << "num_hits" << '\t' << "longest_tail" << std::endl;
+   bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "contig_name" << '\t' << "alu_hit" << '\t' << "num_hits" << '\t' << "longest_tail" <<  '\t' << "both_strands" <<std::endl;
  }
 
 
  void KnownAlus::writeHitToBed(std::ofstream &bed, bedPELine * b){
    //std::cout << "Inside writeTobed" << std::endl;
-   bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << b->longestTail << std::endl;
+   bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << b->longestTail << '\t' << b->bothStrands << std::endl;
  }
 
- void KnownAlus::findReadsContainingPolyATails(std::vector<contig>  contigs, std::string inputFile){
+void KnownAlus::findReadsContainingPolyTails(std::vector<contig>  contigs, std::string inputFile, uint32_t tailSize){
    //std::cout << "inside findReadsCOntainingPolyATails()" << std::endl;
    //std::cout << "number of contigs: " << contigs.size();
    std::ofstream bed;
@@ -139,16 +139,24 @@
        //std::cout << "looping through overlaping reads vector" << std::endl;
        for(auto qIt = std::begin(rIt->window); qIt != std::end(rIt->window); ++qIt ) {
 	 //std::cout << "checking for poly tail for read: " << qIt->Name << std::endl;
-	 bool a = polyA::detectPolyATail(*qIt);
-	 bool t = polyA::detectPolyTTail(*qIt);
+	 //bool a = polyA::detectPolyATail(*qIt);
+	 //bool t = polyA::detectPolyTTail(*qIt);
+
+	 bool tail = polyA::detectPolyTailClips(*qIt, tailSize);
 	 uint32_t longestTail = polyA::longestTail(*qIt);
 
 	 if(longestTail > maxTail){
 	   maxTail=longestTail;
 	 }
 
-	 if(a || t){
+	 if(tail){
 	   b->score_numHits++;
+	   if(qIt->IsReverseStrand()){
+	     it->reverseStrand = true;
+	   }
+	   else if (!(qIt->IsReverseStrand())) {
+	     it->forwardStrand = true;
+	   }
 
 	   if(count == 0){
 	     b->chrom1 = getChromosomeFromRefID(qIt->RefID);
@@ -172,7 +180,9 @@
 	 }
 
        }
-
+       if(it->forwardStrand and it->reverseStrand){
+	 b->bothStrands = true;
+       }
        b->longestTail = maxTail;
        it->longestTail = maxTail;
        if (b->score_numHits > 1){
@@ -274,7 +284,6 @@ KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std:
   KnownAlus::populateRefData(mutationPath_);
   KnownAlus::findContigsContainingKnownAlus();
   
-    //KnownAlus::alignContigsContainingKnownAlus(refIndexPath_);
   contigVec_ = KnownAlus::pullNamesWithHits(contigVec_, contigBamPath_);
 
 
@@ -283,7 +292,7 @@ KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std:
 
 
   //std::cout << "finished intersection, now finding supporting reads with polyA tail" << std::endl;
-  findReadsContainingPolyATails(contigVec_, mutationPath_);
+  findReadsContainingPolyTails(contigVec_, mutationPath_, 10);
 
   printContigVec(contigVec_);
 

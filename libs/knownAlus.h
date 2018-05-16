@@ -27,6 +27,7 @@ struct bedPELine {
   std::string name_alu_hit;
   int32_t score_numHits;
   int32_t longestTail;
+  bool bothStrands = false;
 };
 
 
@@ -50,7 +51,7 @@ class KnownAlus{
   std::string stub_;
 
   std::vector<contig> contigVec_;
-  const std::vector<BamTools::RefData> refData_;
+  std::vector<BamTools::RefData> refData_;
 
   void populateRefData(std::string);
   void writeHitToBed(std::ofstream&, bedPELine *);
@@ -58,7 +59,7 @@ class KnownAlus{
   void mapContigsToRef(const char *);
   void findContigsContainingPolyATails(const char *);
   std::vector<contig> pullNamesWithHits(std::vector<contig>, std::string);
-  void findReadsContainingPolyATails(std::vector<contig>, std::string);
+  void findReadsContainingPolyTails(std::vector<contig>, std::string, uint32_t);
   bool checkIfNameInContigVec(BamTools::BamAlignment);
   std::string getChromosomeFromRefID(int32_t);
 
