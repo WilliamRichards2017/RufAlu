@@ -72,13 +72,12 @@ std::string KnownAlus::getChromosomeFromRefID(int32_t id){
   return ret;
 }
 
-void writeBedPEHeader(std::ofstream &bed){
+void KnownAlus::writeBedPEHeader(std::ofstream &bed){
   bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' 
       << "contig_name" << '\t' << "alu_hit" << '\t' << "num_hits" << '\t' << "longest_tail" <<  '\t' << "both_strands" <<std::endl;
 }
 
-void KnownAlus::writeContigVecToBed(std::ofstream &bed){
-  uint32_t sa = 0;
+void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     for(auto caIt = std::begin(cvIt->contigAlignments); acIt != std::end(caIt->contigAlignments); ++caIt){
       if(caIt->primaryAlignment) {
@@ -92,11 +91,6 @@ void KnownAlus::writeContigVecToBed(std::ofstream &bed){
       }
     }
   }
-}
-
-void KnownAlus::writeHitToBed(std::ofstream &bed, bedPELine * b){
-  bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End
-      << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << b->longestTail << '\t' << b->bothStrands << std::endl;
 }
 
 void KnownAlus::findReadsContainingPolyTails(std::string inputFile, uint32_t tailSize){
@@ -166,12 +160,10 @@ void KnownAlus::findReadsContainingPolyTails(std::string inputFile, uint32_t tai
 
        //zero-initialize struct
        // zero initialization of dao                                                                                                                                                    
-       bedPELine * b = new bedPELine{};
        contig  c = {};
 
        c.name = std::string(ks->name.s);
        c.seq = ks->seq.s;
-       c.qual = qual;
 
        //std::cout << "nreg is: " << n_reg << std::endl;
        for (j = 0; j < n_reg; ++j) { // traverse hits and print them out
@@ -205,7 +197,7 @@ void KnownAlus::findReadsContainingPolyTails(std::string inputFile, uint32_t tai
  }
 
 
-KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std::string mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) : contigFilePath_(contigFilePath), contigBamPath_(contigBamPath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_("." + util::baseName(contigBamPath)){
+ KnownAlus::KnownAlus(std::string bamPath, std::string contigFilePath, std::string contigBamPath, std::string mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) :  bamPath_(bamPath), contigFilePath_(contigFilePath), contigBamPath_(contigBamPath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_("." + util::baseName(contigBamPath)){
    
   std::string contigsWithAlus = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub_ + ".bam";
 
@@ -223,7 +215,7 @@ KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std:
   contigVec_ = intersect.getContigVec();
 
   findReadsContainingPolyTails(mutationPath_, 10);
-
+  
   printContigVec(contigVec_);
 
 
@@ -231,45 +223,33 @@ KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std:
 }
 
 KnownAlus::~KnownAlus(){
-  //contigsContainingKnownAlus_->clear();
-  //delete[] refData_;
-  // delete contigFilePath_;
-  //delete aluFilePath_;
-  //delete aluIndexPath_;
-  //delete refPath_;
-  //delete refIndexPath_;
-  //delete mutationPath_;
+  delete aluFilePath_;
+  delete aluIndexPath_;
+  delete refPath_;
+  delete refIndexPath_;
 }
 
-bool KnownAlus::checkIfNameInContigVec(BamTools::BamAlignment al){
-  for(unsigned u = 0; u < contigVec_.size(); ++u){
-
-    std::cout << "checking if " << al.Name << " == " << contigVec_[u].name << std::endl;
-    if(contigVec_[u].name.compare(al.Name)){
-      contigVec_[u].contigAlignments.push_back(al);
-      std::cout << "pushing back" << al.Name << " to contigVec[" << u << "]" << std::endl;
-      return true;
-    }
-  }
-  return false;
-}
-
-std::vector<contig> KnownAlus::pullNamesWithHits(std::vector<contig> contigVec, std::string bamPath){
-  std::cout << "inside pull name with hits" << std::endl;
-  BamTools::BamReader reader;
+void KnownAlus::pullNamesWithHits(std::string bamPath){
 
   if (!reader.Open(bamPath)){
-    std::cout << "Could not open input Bam file" << bamPath << std::endl;
+    std::cout << "Could not open input Bam file " << bamPath << std::endl;
     exit (EXIT_FAILURE);
   }
 
-  BamTools::BamAlignment al;
-  while (reader.GetNextAlignment(al)){
-    for(auto it = std::begin(contigVec); it != std::end(contigVec); ++it){
-      if(it->name.compare(al.Name)==0){
-	it->contigAlignments.push_back(al);
+  for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
+    BamTools::BamReader reader;
+
+    if (!reader.Open(bamPath)){
+      std::cout << "Could not open input Bam file " << bamPath << std::endl;
+      exit (EXIT_FAILURE);
+    }
+
+    BamTools::BamAlignment al;
+    while(reader.GetNextAlignment(al)){
+      if(cvIt->name.compare(al.Name)==0){
+	cvIt->contigAlignments.push_back(al);
       }
     }
   }
-  return contigVec;
 }
+  
