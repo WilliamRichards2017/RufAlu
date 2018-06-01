@@ -33,7 +33,6 @@ void printContig(contig c){
     for (auto it = std::begin(c.alusHit); it != std::end(c.alusHit); ++it){
       std::cout << "    " << *it << std::endl;
     }
-
   }
 }
 
@@ -60,14 +59,6 @@ std::string KnownAlus::getChromosomeFromRefID(int32_t id){
     ret = "unmapped";
     return ret;
   }
-  
-  std::cout << "id is " << id << std::endl;
-  if(id == -1) {
-    ret = "unmapped";
-    return ret;
-  }
-  
-  std::cout << "tying to look up ref id: " << id << std::endl;
   ret = refData_[id].RefName;
   return ret;
 }
@@ -149,49 +140,28 @@ void KnownAlus::findReadsContainingPolyTails(std::string inputFile, uint32_t tai
        mm_reg1_t *reg;
        int j, i, n_reg;
 
+       reg = mm_map(mi, ks->seq.l, ks->seq.s, &n_reg, tbuf, &mopt, 0); // get all hits for the query
 
-       reg = mm_map(mi, ks->seq.l, ks->seq.s, &n_reg, tbuf, &mopt, 0); // get all hits for the query                                                                                                                                          
-
-
-       std::string qual = "";
-       for(unsigned i = 0; i < std::string(ks->seq.s).length(); ++i){
-	 qual+= '!';
-       }
-
-       //zero-initialize struct
-       // zero initialization of dao                                                                                                                                                    
        contig  c = {};
-
        c.name = std::string(ks->name.s);
        c.seq = ks->seq.s;
 
-       //std::cout << "nreg is: " << n_reg << std::endl;
        for (j = 0; j < n_reg; ++j) { // traverse hits and print them out
-	 //std::cout << "traversing hits" << std::endl;
 	 mm_reg1_t *r = &reg[j];
-
 	 c.alusHit.push_back(mi->seq[r->rid].name);
-	 //std::cout << "checking if aluHit[j] is populated: " << c.alusHit[j] << std::endl;
-
-	 //assert(r->p); // with MM_F_CIGAR, this should not be NULL
-	 //printf("%s\t%d\t%d\t%d\t%c\t", ks->name.s, ks->seq.l, r->qs, r->qe, "+-"[r->rev]);
-	 //printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\tcg:Z:", mi->seq[r->rid].name, mi->seq[r->rid].len, r->rs, r->re, r->mlen, r->blen, r->mapq);
-	 //std::cout << "checking if alu name is: " << mi->seq[r->rid].name << std::endl;
-	 for (i = 0; i < r->p->n_cigar; ++i) { // IMPORTANT: this gives the CIGAR in the aligned regions. NO soft/hard clippings!
-	   //printf("%d%c", r->p->cigar[i]>>4, "MIDSHN"[r->p->cigar[i]&0xf]);
-	 }
-	 //putchar('\n');
 	 free(r->p);
        }
+
        if(c.alusHit.size() > 0){
 	 contigVec_.push_back(c);
        }
+
        free(reg);
      }
      mm_tbuf_destroy(tbuf);
      mm_idx_destroy(mi);
    }
-   mm_idx_reader_close(r); // close the index reader                                                                                                                                                                                           
+   mm_idx_reader_close(r); 
    kseq_destroy(ks); // close the query file                                                                                                                                                                                                   
    gzclose(f);
  }
@@ -204,17 +174,22 @@ void KnownAlus::findReadsContainingPolyTails(std::string inputFile, uint32_t tai
   contigVec_ = {};
   refData_ = {};
   
-  
   KnownAlus::populateRefData(mutationPath_);
   KnownAlus::findContigsContainingKnownAlus();
-  
   contigVec_ = KnownAlus::pullNamesWithHits(contigVec_, contigBamPath_);
-
-
   Intersect intersect{contigVec_, mutationPath_};
   contigVec_ = intersect.getContigVec();
 
   findReadsContainingPolyTails(mutationPath_, 10);
+
+  std::ofstream bed;
+  std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(inputFile) + ".bed";
+  bed.open(bs);
+
+  writeBedPEHeader(bed);
+  writeContigVecToBedPE(bed);
+
+  bed.close();
   
   printContigVec(contigVec_);
 

@@ -16,30 +16,17 @@
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
 
-struct bedPELine {
-  std::string chrom1;
-  int32_t chrom1Start;
-  int32_t chrom1End;
-  std::string chrom2;
-  int32_t chrom2Start;
-  int32_t chrom2End;
-  std::string name_rufus_contig;
-  std::string name_alu_hit;
-  int32_t score_numHits;
-  int32_t longestTail;
-  bool bothStrands = false;
-};
-
 
 //Forward decleration of required struct
 struct contig;
 
 class KnownAlus{
  public:
-  KnownAlus(std::string, std::string, std::string, const char *, const char *, const char *, const char *);
+  KnownAlus(std::string std::string, std::string, std::string, const char *, const char *, const char *, const char *);
   ~KnownAlus();
   
  private:
+  std::string bamPath_;
   std::string contigFilePath_;
   std::string contigBamPath_;
   std::string  mutationPath_;
@@ -53,15 +40,14 @@ class KnownAlus{
   std::vector<contig> contigVec_;
   std::vector<BamTools::RefData> refData_;
 
+  std::string getChromosomeFromRefID(int32_t);
   void populateRefData(std::string);
-  void writeHitToBed(std::ofstream&, bedPELine *);
   void findContigsContainingKnownAlus();
   void mapContigsToRef(const char *);
-  void findContigsContainingPolyATails(const char *);
-  std::vector<contig> pullNamesWithHits(std::vector<contig>, std::string);
+  void pullNamesWithHits(std::vector<contig>, std::string);
   void findReadsContainingPolyTails(std::string, uint32_t);
-  bool checkIfNameInContigVec(BamTools::BamAlignment);
-  std::string getChromosomeFromRefID(int32_t);
+  void writeBedPEHeader(std::ofstream &)
+  void writeContigVecToBedPE(std::ofstream &);
 
 };
 
