@@ -78,10 +78,18 @@ void writeBedPEHeader(std::ofstream &bed){
 }
 
 void KnownAlus::writeContigVecToBed(std::ofstream &bed){
+  uint32_t sa = 0;
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
-    for(auto acIt = std::begin(cvIt->alignedContigs); acIt != std::end(cvIt->alignedContigs); ++acIt){
-      bed <<
-
+    for(auto caIt = std::begin(cvIt->contigAlignments); acIt != std::end(caIt->contigAlignments); ++caIt){
+      if(caIt->primaryAlignment) {
+	bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
+	    << '\t' << '-' << '\t' << '-' << '\t' << '-' << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->supportingReads.size() << '\t' 
+	    << caIt->longestTail << '\t' << caIt->doubleStranded << std::endl;
+      } else {
+        bed << '-' << '\t' << '-' << '\t' << '-' << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position<< '\t'
+		<< caIt->alignedContig.GetEndPosition() << '\t' << '-' << '\t' << '-' << '\t' << '-' << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->supportingReads.size() << '\t'
+		<< caIt->longestTail << '\t' << caIt->doubleStranded << std::endl;
+      }
     }
   }
 }
@@ -214,8 +222,6 @@ KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std:
   Intersect intersect{contigVec_, mutationPath_};
   contigVec_ = intersect.getContigVec();
 
-
-  //std::cout << "finished intersection, now finding supporting reads with polyA tail" << std::endl;
   findReadsContainingPolyTails(mutationPath_, 10);
 
   printContigVec(contigVec_);
