@@ -37,16 +37,23 @@ struct samRead {
   std::string tags;
 };
 
+struct contigAlignment {
+  BamTools::BamAlignment alignedContig;
+  BamTools::BamRegion alignedRegion;
+  std::vector<BamTools::BamAlignment> overlapingReads;
+  std::vector<BamTools::BamAlignment> supportingReads;
+  bool forwardStand = false;
+  bool reverseStrand = false;
+  bool doubleStranded = false;
+  bool primaryAlignment = false;
+  uint32_t longestTail;
+};
+
 struct contig {
   std::string name;
   std::string seq;
-  std::string qual;
   std::vector<std::string> alusHit;
-  std::vector<BamTools::BamAlignment> contigAlignments;
-  std::vector<BamTools::BamRegion> contigAlignmentRegions;
-  std::vector<contigWindow> overlapingReads;
-  std::vector<BamTools::BamAlignment> supportingReads;
-  uint32_t longestTail;
+  std::vector<contigAlignment> contigAlignments;
 };
 
 struct contigWindow;

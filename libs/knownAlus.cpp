@@ -1,133 +1,102 @@
- #include <assert.h>
- #include <cstring>
- #include <stdio.h>
- #include <stdlib.h>
- #include <vector>
- #include <zlib.h>
- #include <stdlib.h>
- #include <stdexcept>
- #include <iostream>
- #include <fstream>
- #include <unordered_map>
+#include <assert.h>
+#include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
+#include <vector>
+#include <zlib.h>
+#include <stdlib.h>
+#include <stdexcept>
+#include <iostream>
+#include <fstream>
+#include <unordered_map>
 
- #include "contig.h"
- #include "fastqParse.h"
- #include "knownAlus.h"
- #include "kseq.h"
- #include "minimap.h"
- #include "polyATail.h"
- #include "intersect.h"
- #include "util.h"
+#include "contig.h"
+#include "fastqParse.h"
+#include "knownAlus.h"
+#include "kseq.h"
+#include "minimap.h"
+#include "polyATail.h"
+#include "intersect.h"
+#include "util.h"
 
- #include "api/BamMultiReader.h"
- #include "api/BamWriter.h"
+#include "api/BamMultiReader.h"
+#include "api/BamWriter.h"
 
- KSEQ_INIT(gzFile, gzread)
+KSEQ_INIT(gzFile, gzread)
 
+void printContig(contig c){
+  if(c.supportingReads.size() > 0) {
+    std::cout << "##########__PRINTING_CONTIG__############";
+    std::cout << "name: " << c.name << std::endl;
+    std::cout << "**** ALUS HIT ****" << std::endl;
+    
+    for (auto it = std::begin(c.alusHit); it != std::end(c.alusHit); ++it){
+      std::cout << "    " << *it << std::endl;
+    }
 
- void printContig(contig c){
-   if(c.supportingReads.size() > 0) {
-   std::cout << "##########__PRINTING_CONTIG__############";
-   std::cout << "name: " << c.name << std::endl;
-   std::cout << "seq: " << c.seq << std::endl;
-   std::cout << "qual: " << c.qual << std::endl;
-   std::cout << "**** ALUS HIT ****" << std::endl;
+  }
+}
 
-   for (auto it = std::begin(c.alusHit); it != std::end(c.alusHit); ++it){
-     std::cout << "    " << *it << std::endl;
-   }
+void printContigVec(std::vector<contig> contigVec){
+  for(auto it = std::begin(contigVec); it != std::end(contigVec); ++it){
+    printContig(*it);
+  }
+}
 
-   std::cout << "**** contigAlignment ****" << std::endl;
-   for (auto it2 = std::begin(c.contigAlignments); it2 != std::end(c.contigAlignments); ++it2){
-     std::cout << "    " << it2->Name << std::endl;
-   }
-
-   std::cout << "**** contigAlignmentRegions ****" << std::endl;
-   for(auto it3 = std::begin(c.contigAlignmentRegions); it3 != std::end(c.contigAlignmentRegions); ++it3){
-     std::cout << "    left position: " << it3->LeftPosition << "   right position: " << it3->RightPosition << std::endl;
-   }
-
-   std::cout << "**** overlapingReads ****" << std::endl;
-   for(auto it4 = std::begin(c.overlapingReads); it4 != std::end(c.overlapingReads); ++it4){
-     for(auto it5 = std::begin(it4->window); it5 != std::end(it4->window); ++it5){
-       std::cout << "   " <<  it5->Name << std::endl;
-     }
-   }
-
-   std::cout << "**** supportingReads ****" << std::endl;
-   for(auto it6 = std::begin(c.supportingReads); it6 != std::end(c.supportingReads); ++it6){
-     std::cout << "    " <<  it6->Name << std::endl;
-   }
-
-   std::cout << "longest tail: " << c.longestTail << std::endl;
-   }
- }
-
- void printContigVec(std::vector<contig> contigVec){
-   for(auto it = std::begin(contigVec); it != std::end(contigVec); ++it){
-     //TODO, use const_iterator to avoid temp
-     printContig(*it);
-   }
- }
-
- void KnownAlus::populateRefData(std::string bamPath){
-   BamTools::BamReader reader;
-   if (!reader.Open(bamPath)){
-     std::cout << "Could not open input Bam file" << bamPath << std::endl;
-     exit (EXIT_FAILURE);
-   }
-   refData_ = reader.GetReferenceData();
- }
+void KnownAlus::populateRefData(std::string bamPath){
+  BamTools::BamReader reader;
+  if (!reader.Open(bamPath)){
+    std::cout << "Could not open input Bam file" << bamPath << std::endl;
+    exit (EXIT_FAILURE);
+  }
+  refData_ = reader.GetReferenceData();
+}
 
 
- std::string KnownAlus::getChromosomeFromRefID(int32_t id){
-   std::string ret = "";
+std::string KnownAlus::getChromosomeFromRefID(int32_t id){
+  std::string ret = "";
+  
+  if(id == -1) {
+    ret = "unmapped";
+    return ret;
+  }
+  
+  std::cout << "id is " << id << std::endl;
+  if(id == -1) {
+    ret = "unmapped";
+    return ret;
+  }
+  
+  std::cout << "tying to look up ref id: " << id << std::endl;
+  ret = refData_[id].RefName;
+  return ret;
+}
 
-   if(id == -1) {
-     ret = "unmapped";
-     return ret;
-   }
-
-   //if(id > 23 or id < 0){
-   //ret = "fuck";
-     //return ret;
-     //}
-   std::cout << "id is " << id << std::endl;
-   if(id == -1) {
-     ret = "unmapped";
-     return ret;
-   }
-   
-   std::cout << "tying to look up ref id: " << id << std::endl;
-   ret = refData_[id].RefName;
-   return ret;
- }
-
- void writeBedPEHeader(std::ofstream &bed){
-   bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "contig_name" << '\t' << "alu_hit" << '\t' << "num_hits" << '\t' << "longest_tail" <<  '\t' << "both_strands" <<std::endl;
- }
+void writeBedPEHeader(std::ofstream &bed){
+  bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "contig_name" << '\t' << "alu_hit" << '\t' << "num_hits" << '\t' << "longest_tail" <<  '\t' << "both_strands" <<std::endl;
+}
 
 
- void KnownAlus::writeHitToBed(std::ofstream &bed, bedPELine * b){
-   //std::cout << "Inside writeTobed" << std::endl;
-   bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << b->longestTail << '\t' << b->bothStrands << std::endl;
- }
+void KnownAlus::writeHitToBed(std::ofstream &bed, bedPELine * b){
+  //std::cout << "Inside writeTobed" << std::endl;
+  bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << b->longestTail << '\t' << b->bothStrands << std::endl;
+}
 
-void KnownAlus::findReadsContainingPolyTails(std::vector<contig>  contigs, std::string inputFile, uint32_t tailSize){
-   //std::cout << "inside findReadsCOntainingPolyATails()" << std::endl;
-   //std::cout << "number of contigs: " << contigs.size();
-   std::ofstream bed;
-   std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(inputFile) + ".bed";
-   bed.open(bs);
-   writeBedPEHeader(bed);                                 
-
-   for(auto it = std::begin(contigs); it != std::end(contigs); ++it){
-     bedPELine * b = new bedPELine{};
-     //std::cout << "number of overlaping reads in contig: " << it->overlapingReads.size();
-     //std::cout << "number of alus hit: " << it->alusHit.size();
-     b->name_rufus_contig = it->name;
-     b->name_alu_hit = it->alusHit[0];
-     for(auto ait = std::begin(it->alusHit); ait != std::end(it->alusHit); ++ait){
+void KnownAlus::findReadsContainingPolyTails(std::string inputFile, uint32_t tailSize){
+  //std::cout << "inside findReadsCOntainingPolyATails()" << std::endl;
+  //std::cout << "number of contigs: " << contigs.size();
+  std::ofstream bed;
+  std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(inputFile) + ".bed";
+  bed.open(bs);
+  writeBedPEHeader(bed);                                 
+  
+  for(auto it = std::begin(contigVec_); it != std::end(contigVec_); ++it){
+    bedPELine * b = new bedPELine{};
+    //std::cout << "number of overlaping reads in contig: " << it->overlapingReads.size();
+    //std::cout << "number of alus hit: " << it->alusHit.size();
+    b->name_rufus_contig = it->name;
+    b->name_alu_hit = it->alusHit[0];
+    for(auto ait = std::begin(it->alusHit); ait != std::end(it->alusHit); ++ait){
        //std::cout << "contig hit alu: " << *ait << std::endl;
      }
      uint32_t count = 0;
@@ -292,7 +261,7 @@ KnownAlus::KnownAlus(std::string contigFilePath, std::string contigBamPath, std:
 
 
   //std::cout << "finished intersection, now finding supporting reads with polyA tail" << std::endl;
-  findReadsContainingPolyTails(contigVec_, mutationPath_, 10);
+  findReadsContainingPolyTails(mutationPath_, 10);
 
   printContigVec(contigVec_);
 
