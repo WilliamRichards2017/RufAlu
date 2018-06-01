@@ -168,10 +168,6 @@ std::string util::contigsToFastq(std::vector<contig> contigs, std::string outFil
     out << '@' << (*it).name << std::endl;
     out << (*it).seq << std::endl;
     out << '+' << std::endl;
-    out << (*it).qual << std::endl;
-    //std::cout << "name: " << (*it).name <<  std::endl;
-    //std::cout << "sequence: " << (*it).seq <<  std::endl;
-    //std::cout << "quality: " << (*it).qual <<  std::endl;
 
   }
 

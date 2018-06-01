@@ -73,13 +73,22 @@ std::string KnownAlus::getChromosomeFromRefID(int32_t id){
 }
 
 void writeBedPEHeader(std::ofstream &bed){
-  bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "contig_name" << '\t' << "alu_hit" << '\t' << "num_hits" << '\t' << "longest_tail" <<  '\t' << "both_strands" <<std::endl;
+  bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' 
+      << "contig_name" << '\t' << "alu_hit" << '\t' << "num_hits" << '\t' << "longest_tail" <<  '\t' << "both_strands" <<std::endl;
 }
 
+void KnownAlus::writeContigVecToBed(std::ofstream &bed){
+  for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
+    for(auto acIt = std::begin(cvIt->alignedContigs); acIt != std::end(cvIt->alignedContigs); ++acIt){
+      bed <<
+
+    }
+  }
+}
 
 void KnownAlus::writeHitToBed(std::ofstream &bed, bedPELine * b){
-  //std::cout << "Inside writeTobed" << std::endl;
-  bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << b->longestTail << '\t' << b->bothStrands << std::endl;
+  bed << b->chrom1 << '\t' << b->chrom1Start << '\t' << b->chrom1End << '\t' << b->chrom2 << '\t' << b->chrom2Start << '\t' << b->chrom2End
+      << '\t'<< b->name_rufus_contig << '\t' << b->name_alu_hit << '\t' << b->score_numHits << '\t' << b->longestTail << '\t' << b->bothStrands << std::endl;
 }
 
 void KnownAlus::findReadsContainingPolyTails(std::string inputFile, uint32_t tailSize){
@@ -90,74 +99,20 @@ void KnownAlus::findReadsContainingPolyTails(std::string inputFile, uint32_t tai
   bed.open(bs);
   writeBedPEHeader(bed);                                 
   
-  for(auto it = std::begin(contigVec_); it != std::end(contigVec_); ++it){
-    bedPELine * b = new bedPELine{};
-    //std::cout << "number of overlaping reads in contig: " << it->overlapingReads.size();
-    //std::cout << "number of alus hit: " << it->alusHit.size();
-    b->name_rufus_contig = it->name;
-    b->name_alu_hit = it->alusHit[0];
-    for(auto ait = std::begin(it->alusHit); ait != std::end(it->alusHit); ++ait){
-       //std::cout << "contig hit alu: " << *ait << std::endl;
-     }
-     uint32_t count = 0;
-     uint32_t maxTail = 0;
-
-
-     //std::cout << "size of overlaping reads vec is: " << it->overlapingReads.size();
-     for(auto rIt = std::begin(it->overlapingReads); rIt != std::end(it->overlapingReads); ++rIt){
-       //std::cout << "looping through overlaping reads vector" << std::endl;
-       for(auto qIt = std::begin(rIt->window); qIt != std::end(rIt->window); ++qIt ) {
-	 //std::cout << "checking for poly tail for read: " << qIt->Name << std::endl;
-	 //bool a = polyA::detectPolyATail(*qIt);
-	 //bool t = polyA::detectPolyTTail(*qIt);
-
-	 bool tail = polyA::detectPolyTailClips(*qIt, tailSize);
-	 uint32_t longestTail = polyA::longestTail(*qIt);
-
-	 if(longestTail > maxTail){
-	   maxTail=longestTail;
-	 }
-
-	 if(tail){
-	   b->score_numHits++;
-	   if(qIt->IsReverseStrand()){
-	     it->reverseStrand = true;
-	   }
-	   else if (!(qIt->IsReverseStrand())) {
-	     it->forwardStrand = true;
-	   }
-
-	   if(count == 0){
-	     b->chrom1 = getChromosomeFromRefID(qIt->RefID);
-	     b->chrom1Start = qIt->Position;
-	     b->chrom1End = qIt->GetEndPosition();
-	   }
-
-	   if(count == 1){
-	     b->chrom2 = getChromosomeFromRefID(qIt->RefID);
-	     b->chrom2Start = qIt->Position;
-	     b->chrom2End = qIt->GetEndPosition();
-	   }
-
-	   ++count;
-
-	   //std::cout << "found poly A/T Tail evidence supporting alu" << std::endl;
-	   //std::cout <<  qIt->QueryBases << std::endl;
-	   //std::string chrom = getChromosomeFromRefID(it->RefID);                                                                                                                      
-	   //std::string chrom = "Null";
-	   //std::cout << "supporting read was found at region: " << qIt->Position << ", " << qIt->GetEndPosition() << " RefID: " << qIt->RefID << " " << "Name: " << qIt->Name << std::endl;
-	 }
-
+  for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){    
+    for(auto acIt = std::begin(cvIt->alignedContigs); acIt != std::end(cvIt->alignedContigs); ++acIt){
+      for(auto orIt = std::begin(acIt->overlapingReads); orIt != std::end(acIt->overlapingReads); ++orIt) {
+      bool tail = polyA::detectPolyTailClips(*orIt, tailSize);
+      if(tail){
+	if(orIt->IsReverseStrand()){
+	  acIt->reverseStrand = true;
+	}
+	else {
+	  acIt->forwardStrand = true;
+	}
+       if(caIt->forwardStrand and caIt->reverseStrand){
+	 caIt->doubleStranded = true;
        }
-       if(it->forwardStrand and it->reverseStrand){
-	 b->bothStrands = true;
-       }
-       b->longestTail = maxTail;
-       it->longestTail = maxTail;
-       if (b->score_numHits > 1){
-	 writeHitToBed(bed, b);
-       }
-
      }
    }
  }

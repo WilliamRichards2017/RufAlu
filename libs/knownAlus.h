@@ -59,7 +59,7 @@ class KnownAlus{
   void mapContigsToRef(const char *);
   void findContigsContainingPolyATails(const char *);
   std::vector<contig> pullNamesWithHits(std::vector<contig>, std::string);
-  void findReadsContainingPolyTails(std::vector<contig>, std::string, uint32_t);
+  void findReadsContainingPolyTails(std::string, uint32_t);
   bool checkIfNameInContigVec(BamTools::BamAlignment);
   std::string getChromosomeFromRefID(int32_t);
 
