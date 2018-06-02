@@ -24,16 +24,9 @@
 
 KSEQ_INIT(gzFile, gzread)
 
+
 void printContig(contig c){
-  if(c.supportingReads.size() > 0) {
-    std::cout << "##########__PRINTING_CONTIG__############";
-    std::cout << "name: " << c.name << std::endl;
-    std::cout << "**** ALUS HIT ****" << std::endl;
-    
-    for (auto it = std::begin(c.alusHit); it != std::end(c.alusHit); ++it){
-      std::cout << "    " << *it << std::endl;
-    }
-  }
+
 }
 
 void printContigVec(std::vector<contig> contigVec){
@@ -70,7 +63,7 @@ void KnownAlus::writeBedPEHeader(std::ofstream &bed){
 
 void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
-    for(auto caIt = std::begin(cvIt->contigAlignments); acIt != std::end(caIt->contigAlignments); ++caIt){
+    for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
       if(caIt->primaryAlignment) {
 	bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
 	    << '\t' << '-' << '\t' << '-' << '\t' << '-' << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->supportingReads.size() << '\t' 
@@ -84,31 +77,35 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
   }
 }
 
-void KnownAlus::findReadsContainingPolyTails(std::string inputFile, uint32_t tailSize){
-  //std::cout << "inside findReadsCOntainingPolyATails()" << std::endl;
-  //std::cout << "number of contigs: " << contigs.size();
-  std::ofstream bed;
-  std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(inputFile) + ".bed";
-  bed.open(bs);
-  writeBedPEHeader(bed);                                 
-  
+void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){    
-    for(auto acIt = std::begin(cvIt->alignedContigs); acIt != std::end(cvIt->alignedContigs); ++acIt){
-      for(auto orIt = std::begin(acIt->overlapingReads); orIt != std::end(acIt->overlapingReads); ++orIt) {
-      bool tail = polyA::detectPolyTailClips(*orIt, tailSize);
-      if(tail){
-	if(orIt->IsReverseStrand()){
-	  acIt->reverseStrand = true;
+    for(auto caIt = std::begin(cvIt->contigAlignments); cvIt != std::end(cvIt->contigAlignments); ++caIt){
+      BamTools::BamReader reader;
+      if (!reader.Open(bamPath_)){
+	std::cout << "Could not open input Bam file" << bamPath << std::endl;
+	exit (EXIT_FAILURE);
+      }
+      reader.setRegion(caIt->alignedRegion);
+      
+      BamTools::BamAlignment al;
+      while(reader.GetNextAlignment(al)){
+	bool tail = polyA::detectPolyTailClips(al, tailSize);
+	if(tail){
+	  if(al->IsReverseStrand()){
+	    caIt->reverseStrand = true;
+	  }
+	  else {
+	    caIt->forwardStrand = true;
+	  }
 	}
-	else {
-	  acIt->forwardStrand = true;
-	}
-       if(caIt->forwardStrand and caIt->reverseStrand){
-	 caIt->doubleStranded = true;
-       }
-     }
-   }
- }
+      }
+      if(caIt->forwardStrand and caIt->reverseStrand){
+	caIt->doubleStranded = true;
+      }
+    }
+  }
+}
+
 
  void KnownAlus::findContigsContainingKnownAlus()
  {
@@ -142,10 +139,10 @@ void KnownAlus::findReadsContainingPolyTails(std::string inputFile, uint32_t tai
 
        reg = mm_map(mi, ks->seq.l, ks->seq.s, &n_reg, tbuf, &mopt, 0); // get all hits for the query
 
-       contig  c = {};
+       contig c = {};
        c.name = std::string(ks->name.s);
        c.seq = ks->seq.s;
-
+       
        for (j = 0; j < n_reg; ++j) { // traverse hits and print them out
 	 mm_reg1_t *r = &reg[j];
 	 c.alusHit.push_back(mi->seq[r->rid].name);
@@ -176,11 +173,11 @@ void KnownAlus::findReadsContainingPolyTails(std::string inputFile, uint32_t tai
   
   KnownAlus::populateRefData(mutationPath_);
   KnownAlus::findContigsContainingKnownAlus();
-  contigVec_ = KnownAlus::pullNamesWithHits(contigVec_, contigBamPath_);
+  KnownAlus::pullNamesWithHits(contigBamPath_);
   Intersect intersect{contigVec_, mutationPath_};
   contigVec_ = intersect.getContigVec();
 
-  findReadsContainingPolyTails(mutationPath_, 10);
+  findReadsContainingPolyTails(10);
 
   std::ofstream bed;
   std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(inputFile) + ".bed";

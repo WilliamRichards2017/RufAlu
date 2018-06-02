@@ -5,13 +5,6 @@
 #include "contig.h"
 #include "knownAlus.h"
 
-void util::printContigWindow(contigWindow c){
-  //std::cout << "contig is: " << c.contig.Name << std::endl;
-  for (auto it = std::begin(c.window); it != std::end(c.window); ++it){
-    std::cout << it->QueryBases << std::endl;
-  }
-}
-
 std::string util::baseName(std::string path){
   return path.substr(path.find_last_of("/\\")+1);
 }
@@ -34,16 +27,6 @@ void util::exec(char const* cmd) {
   pclose(pipe);
   return;
 }
-
-bool util::overlap(std::pair<int, int> a, std::vector<std::pair<int, int> > b){
-  for (auto it = std::begin(b); it != std::end(b); ++it){
-    if((a.first >= it->first && a.first <= it->second) || (a.second >= it->first && a.second <= it->second)){
-      return true;
-    }
-  }
-  return false;
-}
-
 
 const std::vector<std::string> util::Split(const std::string& line, const char delim)
 {
@@ -74,102 +57,4 @@ const char * util::getRootDirectory(std::string rufAluPath){
   }
   return rootDir.c_str();
 
-}
-
-std::vector<BamTools::BamAlignment> util::intersect(const char * a, const char * b){
-  
-  std::cout << "Inside intersect" << std::endl;
-
-  std::vector<BamTools::BamAlignment> intersection;
-  std::vector<BamTools::BamRegion> coords;
-
-  BamTools::BamReader reader;
-  reader.LocateIndex();
-  if(!reader.Open(a)){
-    std::cout << "Could not open the following input bamfile: " << a << std::endl;
-    return intersection;
-  }
-
-  BamTools::BamAlignment al;
-
-  while(reader.GetNextAlignment(al)){
-    BamTools::BamRegion region = BamTools::BamRegion(al.RefID, al.Position, al.RefID, al.GetEndPosition()); 
-    std::cout << "Pushing back coords  " << al.Position << ", " << al.GetEndPosition() << std::endl;
-    //if(region.LeftPosition != 0 || region.RightPosition != 0){
-    coords.push_back(region);
-    //}
-  }
-  
-  reader.Close();
-  
-  if(!reader.Open(b)){
-    std::cout << "could not open the following input bamfile: " << b << std::endl;
-  }
-
-  
-  for(auto it = std::begin(coords); it != std::end(coords); ++it){
-    //std::cout << "looping through regions" << std::endl;
-    std::cout << "setting region to be " << coords.back().LeftPosition << ", " << coords.back().LeftRefID << ", " << coords.back().RightPosition << ", " << coords.back().RightRefID << std::endl;
-    reader.SetRegion(coords.back());
-    //std::cout << "tryna pop" << std::endl;
-    coords.pop_back();
-    BamTools::BamAlignment bl;
-    while(reader.GetNextAlignment(bl)){
-      std::cout << "found overlapping read" << std::endl;
-      intersection.push_back(bl);
-    }
-  }
-  
-  return intersection;  
-}
-
-std::vector<BamTools::BamAlignment> util::intersectBams(const char * a, const char * b){
-  std::vector<BamTools::BamAlignment> intersection;
-
-  std::vector<std::pair<int, int> > aCoords;
-  BamTools::BamReader reader;
-  if (!reader.Open(a)){
-    std::cout << "Could not open the following input bamfile: " << a << std::endl;
-    return intersection;
-  }
-  BamTools::BamAlignment al;
-
-  while(reader.GetNextAlignment(al)){
-    std::pair<int,int> coords = std::make_pair(al.Position, al.GetEndPosition());
-    aCoords.push_back(coords);
-    //std::cout << "pushing back coords " << coords.first << ", " << coords.second << std::endl;
-  }
-
-  if (!reader.Open(b)){
-    std::cout << "Could not open the following input bamfile: " << b << std::endl;
-    return intersection;
-  }
-  BamTools::BamAlignment bl;
-  
-  while(reader.GetNextAlignment(bl)){
-    std::pair<int, int> coords = std::make_pair(bl.Position, bl.GetEndPosition());
-    if (util::overlap(coords, aCoords)){
-      intersection.push_back(bl);
-      //std::cout << "found overlap at coords " << coords.first << ", " << coords.second << std::endl;
-    }
-  }
-  return intersection;
-}
-  
-std::string util::contigsToFastq(std::vector<contig> contigs, std::string outFile){
-
-  std::ofstream out;
-  out.open(outFile);
-
-  for(auto it = std::begin(contigs); it != std::end(contigs); ++it){
-
-    //out << (*it)->id << std::endl;                                                                                                                                                                                                         \
-                                                                                                                                                                                                                                              
-    out << '@' << (*it).name << std::endl;
-    out << (*it).seq << std::endl;
-    out << '+' << std::endl;
-
-  }
-
-  return outFile;
 }
