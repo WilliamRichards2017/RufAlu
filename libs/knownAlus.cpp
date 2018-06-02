@@ -35,10 +35,10 @@ void printContigVec(std::vector<contig> contigVec){
   }
 }
 
-void KnownAlus::populateRefData(std::string bamPath){
+void KnownAlus::populateRefData(){
   BamTools::BamReader reader;
-  if (!reader.Open(bamPath)){
-    std::cout << "Could not open input Bam file" << bamPath << std::endl;
+  if (!reader.Open(rawBamPath_)){
+    std::cout << "Could not open raw reads Bam file" << rawBamPath_ << std::endl;
     exit (EXIT_FAILURE);
   }
   refData_ = reader.GetReferenceData();
@@ -79,19 +79,20 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
 
 void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){    
-    for(auto caIt = std::begin(cvIt->contigAlignments); cvIt != std::end(cvIt->contigAlignments); ++caIt){
+    for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
       BamTools::BamReader reader;
-      if (!reader.Open(bamPath_)){
-	std::cout << "Could not open input Bam file" << bamPath << std::endl;
+      if (!reader.Open(rawBamPath_)){
+	std::cout << "Could not open input Bam file" << rawBamPath_ << std::endl;
 	exit (EXIT_FAILURE);
       }
-      reader.setRegion(caIt->alignedRegion);
+      reader.SetRegion(caIt->alignedRegion);
       
       BamTools::BamAlignment al;
       while(reader.GetNextAlignment(al)){
 	bool tail = polyA::detectPolyTailClips(al, tailSize);
 	if(tail){
-	  if(al->IsReverseStrand()){
+	  caIt->supportingReads.push_back(al);
+	  if(al.IsReverseStrand()){
 	    caIt->reverseStrand = true;
 	  }
 	  else {
@@ -120,12 +121,12 @@ void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
    mm_set_opt(0, &iopt, &mopt); //initialize alignment parameters to default
    mopt.flag |= MM_F_CIGAR; // perform alignment                                                                                                                                                                                               
 
-   gzFile f = gzopen(contigFilePath_.c_str(), "r");
+   gzFile f = gzopen(contigFastqPath_.c_str(), "r");
    assert(f);
    kseq_t *ks = kseq_init(f);
 
    // open index reader
-   mm_idx_reader_t *r = mm_idx_reader_open(aluFilePath_, &iopt, 0);
+   mm_idx_reader_t *r = mm_idx_reader_open(aluFastaPath_.c_str(), &iopt, 0);
    mm_idx_t *mi;
    while ((mi = mm_idx_reader_read(r, n_threads)) != 0) { // traverse each part of the index
      mm_mapopt_update(&mopt, mi); // this sets the maximum minimizer occurrence
@@ -164,23 +165,21 @@ void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
  }
 
 
- KnownAlus::KnownAlus(std::string bamPath, std::string contigFilePath, std::string contigBamPath, std::string mutationPath, const char * aluFilePath, const char * aluIndexPath, const char * refPath, const char * refIndexPath) :  bamPath_(bamPath), contigFilePath_(contigFilePath), contigBamPath_(contigBamPath), mutationPath_(mutationPath), aluFilePath_(aluFilePath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_("." + util::baseName(contigBamPath)){
+KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::string contigBamPath, std::string aluFastaPath, std::string aluIndexPath, std::string refPath, std::string refIndexPath) :  rawBamPath_(rawBamPath), contigFastqPath_(contigFastqPath), contigBamPath_(contigBamPath), aluFastaPath_(aluFastaPath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(contigBamPath)){
    
-  std::string contigsWithAlus = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/data/contigs-with-alus.sorted" + stub_ + ".bam";
-
   contigVec_ = {};
   refData_ = {};
   
-  KnownAlus::populateRefData(mutationPath_);
+  KnownAlus::populateRefData();
   KnownAlus::findContigsContainingKnownAlus();
-  KnownAlus::pullNamesWithHits(contigBamPath_);
-  Intersect intersect{contigVec_, mutationPath_};
+  KnownAlus::pullContigAlignments();
+  Intersect intersect{contigVec_, rawBamPath_};
   contigVec_ = intersect.getContigVec();
 
   findReadsContainingPolyTails(10);
 
   std::ofstream bed;
-  std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(inputFile) + ".bed";
+  std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(stub_) + ".bed";
   bed.open(bs);
 
   writeBedPEHeader(bed);
@@ -195,31 +194,23 @@ void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
 }
 
 KnownAlus::~KnownAlus(){
-  delete aluFilePath_;
-  delete aluIndexPath_;
-  delete refPath_;
-  delete refIndexPath_;
 }
 
-void KnownAlus::pullNamesWithHits(std::string bamPath){
-
-  if (!reader.Open(bamPath)){
-    std::cout << "Could not open input Bam file " << bamPath << std::endl;
-    exit (EXIT_FAILURE);
-  }
+void KnownAlus::pullContigAlignments(){
 
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     BamTools::BamReader reader;
-
-    if (!reader.Open(bamPath)){
-      std::cout << "Could not open input Bam file " << bamPath << std::endl;
+    if (!reader.Open(contigBamPath_)){
+      std::cout << "Could not open input Bam file " << contigBamPath_ << std::endl;
       exit (EXIT_FAILURE);
     }
-
+    
     BamTools::BamAlignment al;
     while(reader.GetNextAlignment(al)){
       if(cvIt->name.compare(al.Name)==0){
-	cvIt->contigAlignments.push_back(al);
+	contigAlignment ca = {};
+	ca.alignedContig = al;
+      	cvIt->contigAlignments.push_back(ca);
       }
     }
   }

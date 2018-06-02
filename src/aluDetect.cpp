@@ -15,18 +15,14 @@ int main(int argc, char *argv[] ){
   if ( argc != 5 ){ 
     std::cout << "Please provide the proper number of arguments";
     exit (EXIT_FAILURE);
-
   }
 
   std::string bamPath = std::string(argv[1]);
   std::string contigFilePath = std::string(argv[2]);
   std::string contigBamPath = contigFilePath + ".bam";
-  std::string mutationPath = std::string(argv[3]);
-
-
-  const char * aluFilePath = argv[4];
+  const char * aluFilePath = argv[3];
   const char * aluIndexPath = (std::string(aluFilePath) + ".fai").c_str();
-  const char * refPath = argv[5];
+  const char * refPath = argv[4];
   const char * refIndexPath = (std::string(refPath) + ".fai").c_str();
 
   std::cout << "raw Bam path is " << bamPath << std::endl;
@@ -36,15 +32,7 @@ int main(int argc, char *argv[] ){
   std::cout << "Reference path is: " << refPath << std::endl;
   std::cout << "Reference index path is: " << refIndexPath << std::endl;
   
-  KnownAlus knownAlus = {bamPath, contigFilePath, contigBamPath, mutationPath, aluFilePath, aluIndexPath, refPath, refIndexPath};
-
-  //odelete bamPath;
-  //delete aluFilePath;
-  //delete aluIndexPath;
-  //delete refPath;
-  //delete refIndexPath;
-  
-
+  KnownAlus knownAlus = {bamPath, contigFilePath, contigBamPath, aluFilePath, aluIndexPath, refPath, refIndexPath};
   return 0;
 }
 

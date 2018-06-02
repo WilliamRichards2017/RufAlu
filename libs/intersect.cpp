@@ -2,12 +2,20 @@
 #include "util.h"
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
+
 #include <string>
 #include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 #include <stdexcept>
+
+#include "contig.h"
+#include "intersect.h"
+#include "util.h"
+#include "api/BamMultiReader.h"
+#include "api/BamWriter.h"
+
 
 Intersect::~Intersect(){
 }

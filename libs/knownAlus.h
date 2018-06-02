@@ -19,28 +19,26 @@
 
 class KnownAlus{
  public:
-  KnownAlus(std::string, std::string, std::string, std::string, const char *, const char *, const char *, const char *);
+  KnownAlus(std::string, std::string, std::string, std::string, std::string, std::string, std::string);
   ~KnownAlus();
   
  private:
-  std::string rawReadsPath_;
+  std::string rawBamPath_;
   std::string contigFastqPath_;
   std::string contigBamPath_;
-  std::string  mutationPath_;
-  const char * aluPath_;
-  const char * aluIndexPath_;
-  const char * refPath_;
-  const char * refIndexPath_;
+  std::string aluFastaPath_;
+  std::string aluIndexPath_;
+  std::string refPath_;
+  std::string refIndexPath_;
 
   std::string stub_;
   std::vector<contig> contigVec_;
   std::vector<BamTools::RefData> refData_;
   std::string getChromosomeFromRefID(int32_t);
 
-  void populateRefData(std::string);
+  void populateRefData();
   void findContigsContainingKnownAlus();
-  void mapContigsToRef(const char *);
-  void pullNamesWithHits(std::string);
+  void pullContigAlignments();
   void findReadsContainingPolyTails(uint32_t);
   void writeBedPEHeader(std::ofstream &);
   void writeContigVecToBedPE(std::ofstream &);
