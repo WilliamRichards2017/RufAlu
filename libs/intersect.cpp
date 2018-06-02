@@ -45,15 +45,14 @@ void Intersect::intersectBams(){
   
   BamTools::BamReader reader;
   if (!reader.Open(bamPath_)){
-    std::cout << "Could not open input Bam file" << bamPath << std::endl;
+    std::cout << "Could not open input Bam file" << bamPath_ << std::endl;
     exit (EXIT_FAILURE);
   }
 
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
-    for(auto caIt = std::begin(cvIt->contigAlignments); cvIt != std::end(cvIt->contigAlignments); ++caIt){
+    for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
       BamTools::BamAlignment al;
-      BamTools::BamRegion region = BamTools::BamRegion(caIt->RefID, caIt->Position, caIt->RefID, caIt->GetEndPosition());
-      caIt->alignedRegion = region;
+      caIt->alignedRegion = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
     }
   }
 }
