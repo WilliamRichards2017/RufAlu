@@ -5,11 +5,13 @@
 
 #include "polyATail.h"
 
-TEST(PolyATests, TruePolyA){
-  std::string contig = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATCAGGAGGCACAAAATATCGGTGCATCTCATTGTTGTGATGCCAAGTTTGATCACTTAAGGCAATATTGACTAGATTTCTCCATCATAA";
-  std::pair<bool, int> check = polyA::detectPolyATail(contig);
-  ASSERT_TRUE(check.first);
-
+TEST(PolyATests, p1348){
+    BamTools::BamReader reader;
+    std::string bam = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1348.bam.generator.Mutations.fastq.bam";
+    ASSERT_TRUE(reader.Open(bam));
+    ASSERT_TRUE(reader.LocateIndex());
+    reader.SetRegion()
+    polyA::detectPolyTailClips(BamTools::BamAlignment, uint32_t);
 }
 
 TEST(PolyATests, FalsePolyA){

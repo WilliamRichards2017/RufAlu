@@ -6,7 +6,6 @@
 
 #include "polyATail.h"
 
-
 //TODO: move to util
 void printWindow(std::list<const char*> window){
   while(! window.empty()){
@@ -34,8 +33,9 @@ std::vector<uint32_t> polyA::getClipStarts(BamTools::BamAlignment al){
 
   uint32_t pos = 0;
   for(auto it = std::begin(cigar); it != std::end(cigar); ++it){
-    if (it->Type == 'H'){
+    if (it->Type == 'H' || it->Type == 'S'){
       clipStarts.push_back(pos);
+      //std::cout << "pushing back clip of type " << it->Type << std::endl;
       //std::cout << "pushing back hard clip at pos " << pos << std::endl;
     }
     pos+= it->Length;

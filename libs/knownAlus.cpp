@@ -117,6 +117,7 @@ void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
 	}
 	//std::cout << "count of reads in region is: " << caIt->readsInRegion << std::endl;
 	bool tail = polyA::detectPolyTailClips(al, tailSize);
+	//polyA::printClipsAndSeq(al);
 	if(tail){
 	  //std::cout << "found tail in region" << std::endl;
 	  caIt->supportingReads.push_back(al);

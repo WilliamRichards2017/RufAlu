@@ -8,6 +8,7 @@
 class polyA{
   
  public:
+  static void printClipsAndSeq(BamTools::BamAlignment);
   static bool detectPolyATail(BamTools::BamAlignment);  
   static bool detectPolyTTail(BamTools::BamAlignment);
   static uint32_t longestTail(BamTools::BamAlignment);
