@@ -65,7 +65,7 @@ bool polyA::detectPolyTailClips(BamTools::BamAlignment al, uint32_t tailSize){
   const char ac = 'A';
   const char tc = 'T';
   for(auto it = std::begin(clips); it != std::end(clips); ++it){
-    //std::cout << "looping through clips bb " << std::endl;
+    //std::cout << "loboping through clips bb " << std::endl;
     if(*it+tailSize <= al.Length){
       //std::cout << "passing bounds check" << std::endl;
       bool a = detectTailInWindow(al, *it, tailSize, ac);

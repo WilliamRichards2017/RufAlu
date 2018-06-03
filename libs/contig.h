@@ -15,7 +15,7 @@ struct contigAlignment {
   bool forwardStrand = false;
   bool reverseStrand = false;
   bool doubleStranded = false;
-  bool primaryAlignment = false;
+  int readsInRegion = 0;
   uint32_t longestTail = 0;
 };
 

@@ -47,19 +47,25 @@ void Intersect::intersectBams(){
   BamTools::BamAlignment al;
   if (!reader.Open(bamPath_)){
     std::cout << "Could not open input Bam file" << bamPath_ << std::endl;
+    std::cout << "exiting run with non-zero status..." << std::endl;
     exit (EXIT_FAILURE);
   }
 
-  std::cout << "Does intersect reader have index? : " << reader.HasIndex() << std::endl;
-
+  if(!reader.LocateIndex()) {
+    std::cout << "reader for bam file " << bamPath_ << "cannot locate index" << std::endl;
+    std::cout << "exiting run with non-zero status..." << std::endl;
+    reader.Close();
+    exit (EXIT_FAILURE);
+  }
+  
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
       
-      const BamTools::BamRegion & region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position,
-							       caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
+      const BamTools::BamRegion & region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position-200, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition()+200);
       caIt->alignedRegion = region;
     }
   }
+  reader.Close();
 }
 
 std::vector<contig> Intersect::getContigVec() {

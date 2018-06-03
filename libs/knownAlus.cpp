@@ -59,26 +59,26 @@ std::string KnownAlus::getChromosomeFromRefID(int32_t id){
 
 void KnownAlus::writeBedPEHeader(std::ofstream &bed){
   bed << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' << "chrom" << '\t' << "chromStart" << '\t' << "chromEnd" << '\t' 
-      << "contig_name" << '\t' << "alu_hit" << '\t' << "num_hits" << '\t' << "longest_tail" <<  '\t' << "both_strands" <<std::endl;
+      << "contig_name" << '\t' << "alu_hit" << '\t' << "numReadsInRegion" << '\t' << "numPolyATails" <<  '\t' << "both_strands" <<std::endl;
 }
 
 void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
-    if(cvIt->contigAlignments.size() > 0){
-      for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
-	if(caIt->primaryAlignment) {
-	  bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
-	      << '\t' << '-' << '\t' << "-----" << '\t' << "-----" << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->supportingReads.size() << '\t' 
-	      << caIt->longestTail << '\t' << caIt->doubleStranded << std::endl;
-	} else {
-	  bed << '-' << '\t' << "-----" << '\t' << "-----" << '\t' << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position<< '\t'
-	      << caIt->alignedContig.GetEndPosition() << '\t' << '-' << '\t' << '-' << '\t' << '-' << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->supportingReads.size() << '\t'
-	      << caIt->longestTail << '\t' << caIt->doubleStranded << std::endl;
-	}
+    for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
+      //if(caIt->supportingReads.size() > 0 and caIt->doubleStranded) {
+      if(caIt->alignedContig.IsPrimaryAlignment()) {
+	bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
+	    << '\t' << '-' << '\t' << "-----" << '\t' << "-----" << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->readsInRegion << '\t' << caIt->supportingReads.size() << '\t' << '\t' << caIt->doubleStranded << std::endl;
+      } else {
+	bed << '-' << '\t' << "-----" << '\t' << "-----" << '\t' << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position<< '\t'
+	    << caIt->alignedContig.GetEndPosition() << '\t' << '-' << '\t' << '-' << '\t' << '-' << '\t'<< '\t' << cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->readsInRegion << '\t'
+	    << caIt->supportingReads.size() << '\t' << caIt->doubleStranded << std::endl;
       }
+      //}
     }
   }
 }
+
 
 void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
 
@@ -86,19 +86,39 @@ void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
   BamTools::BamAlignment al;
   if (!reader.Open(rawBamPath_)){
     std::cout << "Could not open input Bam file" << rawBamPath_ << std::endl;
+    std::cout << "Exiting run with non-sero status.." << std::endl;
     exit (EXIT_FAILURE);
   }
 
   reader.LocateIndex();
-  std::cout << "Reader has index? : " << reader.HasIndex() << std::endl;
+  if (!reader.HasIndex()){
+    std::cout << "Index for" << rawBamPath_ << "could not be opened" << std::endl;
+    std::cout << "Exiting run with non-sero status.." << std::endl;
+    reader.Close();
+    exit (EXIT_FAILURE);
+  }
 
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){    
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
-      reader.SetRegion(caIt->alignedRegion);
+      BamTools::BamRegion region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
+   
+
+      //std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
+   
+      if(!reader.SetRegion(region)) {
+	std::cout << "could not set region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
+	
+      }
+      
       while(reader.GetNextAlignment(al)){
+	caIt->readsInRegion += 1;
+	if(caIt->readsInRegion > 1000){
+	  break;
+	}
+	//std::cout << "count of reads in region is: " << caIt->readsInRegion << std::endl;
 	bool tail = polyA::detectPolyTailClips(al, tailSize);
 	if(tail){
-	  std::cout << "found supporting tail" << std::endl;
+	  //std::cout << "found tail in region" << std::endl;
 	  caIt->supportingReads.push_back(al);
 	  if(al.IsReverseStrand()){
 	    caIt->reverseStrand = true;
@@ -113,6 +133,7 @@ void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
       }
     }
   }
+  reader.Close();
 }
 
 
@@ -184,12 +205,9 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
   KnownAlus::findContigsContainingKnownAlus();
   std::cout << "pulling contig hit alignments..." << std::endl;
   KnownAlus::pullContigAlignments();
-  std::cout << "intersecting contigs with raw bam..." << std::endl;
-  Intersect intersect{contigVec_, rawBamPath_};
-  contigVec_ = intersect.getContigVec();
 
   std::cout << "finding reads containing polyA tails" << std::endl;
-  findReadsContainingPolyTails(10);
+  KnownAlus::findReadsContainingPolyTails(10);
 
   std::ofstream bed;
   std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(stub_) + ".bed";
@@ -207,15 +225,16 @@ KnownAlus::~KnownAlus(){
 }
 
 void KnownAlus::pullContigAlignments(){
+
   BamTools::BamReader reader;
   if (!reader.Open(contigBamPath_)){
     std::cout << "Could not open input Bam file " << contigBamPath_ << std::endl;
     exit (EXIT_FAILURE);
-  }    
-  BamTools::BamAlignment al;
+  }
 
+  BamTools::BamAlignment al;
+  
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
-    reader.Rewind();
     while(reader.GetNextAlignment(al)){
       if(cvIt->name.compare(al.Name)==0){
 	contigAlignment ca = {};
@@ -223,6 +242,7 @@ void KnownAlus::pullContigAlignments(){
       	cvIt->contigAlignments.push_back(ca);
       }
     }
+    reader.Rewind();
   }
   reader.Close();
 }
