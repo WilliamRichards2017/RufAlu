@@ -20,10 +20,10 @@ int main(int argc, char *argv[] ){
   std::string bamPath = std::string(argv[1]);
   std::string contigFilePath = std::string(argv[2]);
   std::string contigBamPath = contigFilePath + ".bam";
-  const char * aluFilePath = argv[3];
-  const char * aluIndexPath = (std::string(aluFilePath) + ".fai").c_str();
-  const char * refPath = argv[4];
-  const char * refIndexPath = (std::string(refPath) + ".fai").c_str();
+  std::string aluFilePath = argv[3];
+  std::string aluIndexPath = (std::string(aluFilePath) + ".fai").c_str();
+  std::string refPath = argv[4];
+  std::string refIndexPath = (std::string(refPath) + ".fai").c_str();
 
   std::cout << "raw Bam path is " << bamPath << std::endl;
   std::cout << "Contig fastq path is: " << contigFilePath << std::endl;
@@ -33,6 +33,8 @@ int main(int argc, char *argv[] ){
   std::cout << "Reference index path is: " << refIndexPath << std::endl;
   
   KnownAlus knownAlus = {bamPath, contigFilePath, contigBamPath, aluFilePath, aluIndexPath, refPath, refIndexPath};
+  
+  std::cout << "Exiting Run." << std::endl;
   return 0;
 }
 

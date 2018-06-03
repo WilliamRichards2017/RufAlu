@@ -43,7 +43,6 @@ std::vector<uint32_t> polyA::getClipStarts(BamTools::BamAlignment al){
   return clipStarts;
 }
 bool detectTailInWindow(BamTools::BamAlignment al, uint32_t pos, uint32_t tailSize, const char at){
-  std::cout << "Insize detectTailInWindow with tail size of " << tailSize << std::endl;
   std::string seq = al.QueryBases;
   uint32_t i = 0;
   while(i < tailSize){
@@ -72,7 +71,7 @@ bool polyA::detectPolyTailClips(BamTools::BamAlignment al, uint32_t tailSize){
       bool a = detectTailInWindow(al, *it, tailSize, ac);
       bool t = detectTailInWindow(al, *it, tailSize, tc);
       if(a || t){
-	std::cout << "Found poly tail supporting evidence" << std::endl;
+	//std::cout << "Found poly tail supporting evidence" << std::endl;
 	return true;
       }
     }

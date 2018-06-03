@@ -44,15 +44,20 @@ bool checkForClips(BamTools::BamAlignment al){
 void Intersect::intersectBams(){
   
   BamTools::BamReader reader;
+  BamTools::BamAlignment al;
   if (!reader.Open(bamPath_)){
     std::cout << "Could not open input Bam file" << bamPath_ << std::endl;
     exit (EXIT_FAILURE);
   }
 
+  std::cout << "Does intersect reader have index? : " << reader.HasIndex() << std::endl;
+
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
-      BamTools::BamAlignment al;
-      caIt->alignedRegion = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
+      
+      const BamTools::BamRegion & region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position,
+							       caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
+      caIt->alignedRegion = region;
     }
   }
 }
