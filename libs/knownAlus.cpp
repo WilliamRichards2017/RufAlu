@@ -66,15 +66,15 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
       //if(caIt->supportingReads.size() > 0 and caIt->doubleStranded) {
-      if(caIt->alignedContig.IsPrimaryAlignment()) {
-	bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
-	    << '\t' << '-' << '\t' << "-----" << '\t' << "-----" << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->readsInRegion << '\t' << caIt->supportingReads.size() << '\t' << '\t' << caIt->doubleStranded << std::endl;
-      } else {
-	bed << '-' << '\t' << "-----" << '\t' << "-----" << '\t' << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position<< '\t'
-	    << caIt->alignedContig.GetEndPosition() << '\t' << '-' << '\t' << '-' << '\t' << '-' << '\t'<< '\t' << cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->readsInRegion << '\t'
-	    << caIt->supportingReads.size() << '\t' << caIt->doubleStranded << std::endl;
-      }
-      //}
+	if(caIt->alignedContig.IsPrimaryAlignment()) {
+	  bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
+	      << '\t' << '-' << '\t' << "-----" << '\t' << "-----" << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->readsInRegion << '\t' << caIt->supportingReads.size() << '\t' << '\t' << caIt->doubleStranded << std::endl;
+	} else {
+	  bed << '-' << '\t' << "-----" << '\t' << "-----" << '\t' << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position<< '\t'
+	      << caIt->alignedContig.GetEndPosition() << '\t' << '-' << '\t' << '-' << '\t' << '-' << '\t'<< '\t' << cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->readsInRegion << '\t'
+	      << caIt->supportingReads.size() << '\t' << caIt->doubleStranded << std::endl;
+	}
+	//  }
     }
   }
 }
