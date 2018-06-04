@@ -112,7 +112,7 @@ void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
       
       while(reader.GetNextAlignment(al)){
 	caIt->readsInRegion += 1;
-	if(caIt->readsInRegion > 1000){
+	if(caIt->readsInRegion > 998){
 	  break;
 	}
 	//std::cout << "count of reads in region is: " << caIt->readsInRegion << std::endl;
@@ -195,27 +195,27 @@ void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
  }
 
 
-KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::string contigBamPath, std::string aluFastaPath, std::string aluIndexPath, std::string refPath, std::string refIndexPath) :  rawBamPath_(rawBamPath), contigFastqPath_(contigFastqPath), contigBamPath_(contigBamPath), aluFastaPath_(aluFastaPath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(contigBamPath)){
+KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::string contigBamPath, std::string aluFastaPath, std::string aluIndexPath, std::string refPath, std::string refIndexPath) :  rawBamPath_(rawBamPath), contigFastqPath_(contigFastqPath), contigBamPath_(contigBamPath), aluFastaPath_(aluFastaPath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(rawBamPath)){
    
   contigVec_ = {};
   refData_ = {};
 
-  std::cout << "populating reference data..." << std::endl;
+  std::cout << "[1/5]  Populating reference data for" << stub_ << std::endl;
   KnownAlus::populateRefData();
-  std::cout << "finding contigs containing known alus..." << std::endl;
+  std::cout << "[2/5]  Finding contigs containing known alus..." << std::endl;
   KnownAlus::findContigsContainingKnownAlus();
-  std::cout << "pulling contig hit alignments..." << std::endl;
+  std::cout << "[3/5]  Pulling contig hit alignments for " << stub_ <<  std::endl;
   KnownAlus::pullContigAlignments();
 
-  std::cout << "finding reads containing polyA tails" << std::endl;
+  std::cout << "[4/5]  Finding reads containing polyA tails for " << stub_ << std::endl;
   KnownAlus::findReadsContainingPolyTails(10);
 
   std::ofstream bed;
-  std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + util::baseName(stub_) + ".bed";
+  std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + stub_ + ".bed";
   bed.open(bs);
 
   writeBedPEHeader(bed);
-  std::cout << "writing out results to bed file..." << std::endl;
+  std::cout << "[5/5] Writing out results to bed file " << stub_  << std::endl;
   writeContigVecToBedPE(bed);
 
   bed.close();
