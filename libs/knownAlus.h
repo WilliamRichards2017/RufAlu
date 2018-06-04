@@ -39,7 +39,7 @@ class KnownAlus{
   void populateRefData();
   void findContigsContainingKnownAlus();
   void pullContigAlignments();
-  void findReadsContainingPolyTails(uint32_t);
+  void findReadsContainingPolyTails(int32_t);
   void writeBedPEHeader(std::ofstream &);
   void writeContigVecToBedPE(std::ofstream &);
 

@@ -8,14 +8,15 @@
 class polyA{
   
  public:
+  static std::vector<int32_t> getClipStarts(BamTools::BamAlignment);
+  static std::vector<std::pair<int32_t, int32_t> > getClipCoords(BamTools::BamAlignment al);
   static void printClipsAndSeq(BamTools::BamAlignment);
   static bool detectPolyATail(BamTools::BamAlignment);  
   static bool detectPolyTTail(BamTools::BamAlignment);
-  static uint32_t longestTail(BamTools::BamAlignment);
-  static bool detectPolyTailClips(BamTools::BamAlignment, uint32_t);
+  static bool detectPolyTailClips(BamTools::BamAlignment, int32_t);
   
  private:
-  static std::vector<uint32_t> getClipStarts(BamTools::BamAlignment);
+
 };
 
 #endif // POLYA_H

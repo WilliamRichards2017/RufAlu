@@ -80,7 +80,7 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
 }
 
 
-void KnownAlus::findReadsContainingPolyTails(uint32_t tailSize){
+void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
 
   BamTools::BamReader reader;
   BamTools::BamAlignment al;

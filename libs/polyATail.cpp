@@ -15,44 +15,42 @@ void printWindow(std::list<const char*> window){
   std::cout << std::endl;
 }
 
-std::vector<uint32_t> polyA::getClipStarts(BamTools::BamAlignment al){
+std::vector<std::pair<int32_t, int32_t> > polyA::getClipCoords(BamTools::BamAlignment al){
   std::vector<BamTools::CigarOp> cigar = al.CigarData;
-  std::vector<uint32_t> clipStarts;
-
-  std::vector<int> clipSizes;
-  std::vector<int> readPositions;
-  std::vector<int> genomePositions;
-
-  if (al.GetSoftClips(clipSizes, readPositions, genomePositions)){
-    //for(auto it = std::begin(readPositions); it != std::end(readPositions); ++it){                                                                                                                   
-    for(unsigned i = 0; i < readPositions.size(); ++i) {
-      //std::cout << "Pushing back soft clip at pos " << readPositions[i] << std::endl;
-      clipStarts.push_back(readPositions[i]);
-    }
-  }
-
-  uint32_t pos = 0;
+  
+  std::vector<std::pair<int32_t, int32_t> > clipCoords;
+  
+  int32_t pos = 0;
   for(auto it = std::begin(cigar); it != std::end(cigar); ++it){
     if (it->Type == 'H' || it->Type == 'S'){
-      clipStarts.push_back(pos);
-      //std::cout << "pushing back clip of type " << it->Type << std::endl;
-      //std::cout << "pushing back hard clip at pos " << pos << std::endl;
+      std::pair<int32_t, int32_t> coordPair = std::make_pair(pos, pos+it->Length);
+	clipCoords.push_back(coordPair);
     }
     pos+= it->Length;
-  }
-  return clipStarts;
+  }  
+  return clipCoords;
+
 }
 
 
 void printTailDebug(BamTools::BamAlignment  al, std::string tail){
+  std::vector<BamTools::CigarOp> cigar = al.CigarData;
   std::cout << "Name of Read: " << al.Name << std::endl;
   std::cout << "Query Bases: " << al.QueryBases << std::endl;
   std::cout << "Tail       : " << tail << std::endl;
+  std::cout << "Cig        : ";
+  for(auto cIt = std::begin(cigar); cIt != std::end(cigar); ++cIt){
+    for(uint32_t i = 0;  i < cIt->Length; ++i){
+      std::cout << cIt->Type;
+    }
+    
+  }
+  std::cout << std::endl;
   
-  std::vector<uint32_t> clips = polyA::getClipStarts(al);
-  std::cout << "Clipped positions are: ";
+  std::vector<std::pair<int32_t, int32_t> > clips = polyA::getClipCoords(al);
+  std::cout << "Clipped coords are: ";
   for(auto cIt = std::begin(clips); cIt != std::end(clips); ++cIt){
-    std::cout << *cIt << ", ";
+    std::cout << cIt->first  << ", " << cIt->second << std::endl;
   }
   std::cout << std::endl;  
 } 
@@ -69,75 +67,69 @@ std::string detectTailInWindowDebug(BamTools::BamAlignment al, uint32_t pos, uin
   return tail;
 }
 
-bool detectTailInWindow(BamTools::BamAlignment al, uint32_t pos, uint32_t tailSize, const char at){
+
+
+bool detectTailInWindow(BamTools::BamAlignment al, std::pair<int32_t, int32_t> coords, int32_t tailSize, const char at){
   std::string seq = al.QueryBases;
-  uint32_t i = 0;
-  while(i < tailSize){
-    const char c = seq[i+pos];
-    if(c==at){
-      ++i;
-    }
-    else{
+
+  int32_t first = coords.first;
+  int32_t second = coords.second;
+  
+  if(first == 0){
+    int32_t i = 0;
+    if(second-tailSize < 0){
       return false;
     }
+    while(i < tailSize){
+      const char c = seq[second-i];
+      if(c==at){
+	++i;
+      }
+      else{
+	return false;
+      }
+    }
+    return true;
   }
-  return true;
-}
+  else{
+    int32_t i = 0;
 
-bool polyA::detectPolyTailClips(BamTools::BamAlignment al, uint32_t tailSize){
+    if (first+tailSize > al.Length){
+      return false;
+    }
+    while(i < tailSize){
+      const char c = seq[first+i];
+      if(c==at){
+        ++i;
+      }
+      else{
+        return false;
+      }
+    } 
+    return true;
+  }
+  return false;
+ }
+      
+
+bool polyA::detectPolyTailClips(BamTools::BamAlignment al, int32_t tailSize){
   //std::cout << "Inside detect polyA clips" << std::endl;
-  std::vector<uint32_t> clips = polyA::getClipStarts(al);
+  std::vector<std::pair<int32_t, int32_t> > clipCoords = polyA::getClipCoords(al);
   //std::cout << "clips.size() is " << clips.size();
   std::string seq = al.QueryBases;
   const char ac = 'A';
   const char tc = 'T';
-  for(auto it = std::begin(clips); it != std::end(clips); ++it){
-    //std::cout << "loboping through clips bb " << std::endl;
-    if(*it+tailSize <= al.Length){
-      //std::cout << "passing bounds check" << std::endl;
-      bool a = detectTailInWindow(al, *it, tailSize, ac);
-      bool t = detectTailInWindow(al, *it, tailSize, tc);
-      std::string debugTail = "";
-      if(a || t){
-	  debugTail = detectTailInWindowDebug(al, *it, tailSize);
-	  printTailDebug(al, debugTail);
-	
-	//std::cout << "Found poly tail supporting evidence" << std::endl;
-	return true;
-      }
+  for(auto cIt = std::begin(clipCoords); cIt != std::end(clipCoords); ++cIt){
+    bool a = detectTailInWindow(al, *cIt, tailSize, ac);
+    bool t = detectTailInWindow(al, *cIt, tailSize, tc);
+    std::string debugTail = "";
+    if(a || t){
+      debugTail = detectTailInWindowDebug(al, cIt->first, tailSize);
+      printTailDebug(al, debugTail);
+      
+      //std::cout << "Found poly tail supporting evidence" << std::endl;
+      return true;
     }
   }
   return false;
-}
-
-uint32_t polyA::longestTail(BamTools::BamAlignment al){
-
-  std::string seq = al.QueryBases;  
-  uint32_t longestTail = 0;
-  uint32_t savedLongest = 0;
-  for(unsigned i = 0; i < seq.length(); ++i){
-    const char* c = &seq[i];
-    if(toupper(*c)=='T'){
-      longestTail = 1;
-      //for(unsigned j = i; j < seq.length(); ++j){
-      while (i < seq.length() and toupper(seq[i])=='T'){
-	++longestTail;
-	++i;
-      }
-    } 
-    else if(toupper(*c)=='A'){
-      longestTail = 1;
-      //for(unsigned j = i; j < seq.length(); ++j){                                                                                                                                                                                           
-      while (i < seq.length() and toupper(seq[i])=='A'){
-	++longestTail;
-        ++i;
-      } 
-      
-    }
-    if(longestTail > savedLongest){
-      savedLongest = longestTail;
-      longestTail = 0;
-    }
-  }
-  return savedLongest;
 }
