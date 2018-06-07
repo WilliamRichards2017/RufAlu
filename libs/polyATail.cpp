@@ -37,7 +37,7 @@ void printTailDebug(BamTools::BamAlignment  al, std::string tail){
   std::vector<BamTools::CigarOp> cigar = al.CigarData;
   std::cout << "Name of Read: " << al.Name << std::endl;
   std::cout << "Query Bases: " << al.QueryBases << std::endl;
-  std::cout << "Tail       : " << tail << std::endl;
+  //std::cout << "Tail       : " << tail << std::endl;
   std::cout << "Cig        : ";
   for(auto cIt = std::begin(cigar); cIt != std::end(cigar); ++cIt){
     for(uint32_t i = 0;  i < cIt->Length; ++i){
@@ -72,46 +72,45 @@ std::string detectTailInWindowDebug(BamTools::BamAlignment al, uint32_t pos, uin
 bool detectTailInWindow(BamTools::BamAlignment al, std::pair<int32_t, int32_t> coords, int32_t tailSize, const char at){
   std::string seq = al.QueryBases;
 
-  int32_t first = coords.first;
-  int32_t second = coords.second;
-  
-  if(first == 0){
+  if(coords.first == 0){
     int32_t i = 0;
-    if(second-tailSize < 0){
+    if(coords.second-tailSize < 0){
+      //std::cout << "coords.second - tailSize is: " << coords.second-tailSize << std::endl;
       return false;
-    }
-    while(i < tailSize){
-      const char c = seq[second-i];
-      if(c==at){
-	++i;
+      while(i < tailSize){
+	
+	const char c = seq[coords.second-i];
+	if(c==at){
+	  ++i;
+	}
+	else{
+	  return false;
+	}
       }
-      else{
+      return true;
+    }
+    else{
+      int32_t i = 0;
+      //std::cout << "Coods.first + tailSize is: " << coords.first+tailSize << std::endl;
+      if (coords.first+tailSize > al.Length-1){
 	return false;
       }
-    }
-    return true;
-  }
-  else{
-    int32_t i = 0;
-
-    if (first+tailSize > al.Length){
-      return false;
-    }
-    while(i < tailSize){
-      const char c = seq[first+i];
-      if(c==at){
-        ++i;
+      while(i < tailSize){
+	const char c = seq[coords.first+i];
+	if(c==at){
+	  ++i;
+	}
+	else{
+	  return false;
+	}
       }
-      else{
-        return false;
-      }
-    } 
+    }
     return true;
   }
   return false;
- }
-      
-
+}
+  
+  
 bool polyA::detectPolyTailClips(BamTools::BamAlignment al, int32_t tailSize){
   //std::cout << "Inside detect polyA clips" << std::endl;
   std::vector<std::pair<int32_t, int32_t> > clipCoords = polyA::getClipCoords(al);
@@ -122,12 +121,11 @@ bool polyA::detectPolyTailClips(BamTools::BamAlignment al, int32_t tailSize){
   for(auto cIt = std::begin(clipCoords); cIt != std::end(clipCoords); ++cIt){
     bool a = detectTailInWindow(al, *cIt, tailSize, ac);
     bool t = detectTailInWindow(al, *cIt, tailSize, tc);
-    std::string debugTail = "";
+    
     if(a || t){
+      /*std::string debugTail = "";
       debugTail = detectTailInWindowDebug(al, cIt->first, tailSize);
-      printTailDebug(al, debugTail);
-      
-      //std::cout << "Found poly tail supporting evidence" << std::endl;
+      printTailDebug(al, debugTail);*/
       return true;
     }
   }

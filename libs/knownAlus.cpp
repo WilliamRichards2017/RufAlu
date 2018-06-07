@@ -65,7 +65,7 @@ void KnownAlus::writeBedPEHeader(std::ofstream &bed){
 void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
-      if(caIt->doubleStranded) {
+      if(caIt->doubleStranded and caIt->readsInRegion != 999) {
 	if(caIt->alignedContig.IsPrimaryAlignment()) {
 	  bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
 	      << '\t' << '-' << '\t' << "-----" << '\t' << "-----" << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->readsInRegion << '\t' << caIt->supportingReads.size() << '\t' << '\t' << caIt->doubleStranded << std::endl;
@@ -103,7 +103,7 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
       BamTools::BamRegion region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
    
 
-      //std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
+      //     std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
    
       if(!reader.SetRegion(region)) {
 	std::cout << "could not set region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
@@ -174,10 +174,13 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
        c.name = std::string(ks->name.s);
        c.seq = ks->seq.s;
        
+       //std::cout << "Checking contig for alu Hits: " << ks->name.s << std::endl;
+       
        for (j = 0; j < n_reg; ++j) { // traverse hits and print them out
 	 mm_reg1_t *r = &reg[j];
 	 c.alusHit.push_back(mi->seq[r->rid].name);
 	 free(r->p);
+	 // std::cout << "found alu hit for contig: " << ks->name.s << std::endl;
        }
 
        if(c.alusHit.size() > 0){
@@ -237,7 +240,7 @@ void KnownAlus::pullContigAlignments(){
   
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     while(reader.GetNextAlignment(al)){
-      if(cvIt->name.compare(al.Name)==0){
+      if(cvIt->name.compare(al.Name)==0 and al.HasTag("SA")){
 	contigAlignment ca = {};
 	ca.alignedContig = al;
       	cvIt->contigAlignments.push_back(ca);
