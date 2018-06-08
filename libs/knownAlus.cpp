@@ -65,7 +65,7 @@ bool KnownAlus::bedFilter(contigAlignment & ca) {
   if(ca.doubleStranded and ca.readsInRegion < 200){
     return true;
   }
-  return true;
+  return false;
 }
 
 void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
@@ -74,6 +74,7 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
       if(KnownAlus::bedFilter(*caIt)) {
 	bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
 	    << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->readsInRegion << '\t' << caIt->alignedContig.IsPrimaryAlignment();
+	
 	if(caIt->leftBound){
 	  bed  << caIt->leftBoundTails.size() << '\t' << caIt->doubleStranded << std::endl;
 	}
@@ -81,7 +82,7 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
 	  bed << caIt->rightBoundTails.size() << '\t' << caIt->doubleStranded << std::endl;
 	}
 	else {
-	  bed << "swag" << '\t' << "not doublestrand" << std::endl;
+	  bed << caIt->rightBound << '\t' << caIt->leftBound << std::endl;
 	}
       }
     }
@@ -125,16 +126,13 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
 	}
 	//std::cout << "count of reads in region is: " << caIt->readsInRegion << std::endl;
 	polyA tail = {al, tailSize};
-	std::cout << "tail.isTail() : " << tail.isTail();
+	//std::cout << "tail.isTail() : " << tail.isTail();
 	//polyA::printClipsAndSeq(al);
 	if(tail.isTail()){
-	  std::cout << "found polyATail" << std::endl;
 	  if(tail.coords_.clipDir==rtl){
-	    std::cout << "tail is leftBound (rtl)" << std::endl;
 	    caIt->leftBoundTails.push_back(tail);
 	  }
 	  else if(tail.coords_.clipDir==ltr){
-	    std::cout << "tail is rightBound (ltr)" << std::endl;
 	    caIt->rightBoundTails.push_back(tail);
 	  }
 	}

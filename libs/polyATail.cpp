@@ -56,6 +56,8 @@ bool polyA::detectTailInWindow(std::pair<int32_t, int32_t>  coords,  const char 
   std::string seq = al_.QueryBases;
   
   if(coords.first == 0){
+    isTailLeftBound_ = true;
+
     int32_t i = 0;
     
     if(coords.second-tailSize_ < 0){
@@ -72,12 +74,9 @@ bool polyA::detectTailInWindow(std::pair<int32_t, int32_t>  coords,  const char 
 	return false;
       }
     }
-    isTailLeftBound_ = true;
-    std::cout << "found left bound tail" << std::endl;
     return true;
-  } else{
+  } else {
     int32_t i = 0;
-    //std::cout << "Coods.first + tailSize is: " << coords.first+tailSize << std::endl;
     if (coords.first+tailSize_ > al_.Length){
       return false;
     }
@@ -91,7 +90,6 @@ bool polyA::detectTailInWindow(std::pair<int32_t, int32_t>  coords,  const char 
       }
       
     }
-    std::cout << "found right bounds tail" << std::endl;
     return true;
   }
   return false;
@@ -138,8 +136,7 @@ bool polyA::detectPolyTail(){
     bool a = polyA::detectTailInWindow(*cIt,  ac);
     bool t = polyA::detectTailInWindow(*cIt,  tc);
     if(a || t){
-      std::cout << "detected polyA tail" << std::endl;
-      //polyA::setGlobalClipCoords(*cIt);
+      polyA::setGlobalClipCoords(*cIt);
       return true;
     }
   }
