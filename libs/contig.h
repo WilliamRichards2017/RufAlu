@@ -4,17 +4,21 @@
 #include <vector>
 #include <string>
 
-#include "util.h"
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
+
+#include "polyATail.h"
+#include "util.h"
+
 
 struct contigAlignment {
   BamTools::BamAlignment alignedContig;
   BamTools::BamRegion alignedRegion;
-  std::vector<BamTools::BamAlignment> supportingReads;
-  bool forwardStrand = false;
-  bool reverseStrand = false;
+  std::vector<polyA> leftBoundTails;
+  std::vector<polyA> rightBoundTails;
   bool doubleStranded = false;
+  bool leftBound = false;
+  bool rightBound = false;
   int readsInRegion = 0;
   uint32_t longestTail = 0;
 };

@@ -5,6 +5,23 @@
 #include "contig.h"
 #include "knownAlus.h"
 
+bool util::checkDoubleStranded(std::vector<polyA> t){
+  bool f = false;
+  bool r = false;
+  for(auto it = std::begin(t); it != std::end(t); ++it){
+    if(it->isTailReverseStrand()){
+      r = true;
+    }
+    else{
+      f = true;
+    }
+  }
+  if(f and r){
+    std::cout << "passed check for double stranded tails" << std::endl;
+  }
+  return (f and r);
+}
+
 std::string util::baseName(std::string path){
   return path.substr(path.find_last_of("/\\")+1);
 }

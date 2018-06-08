@@ -16,6 +16,7 @@
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
 
+struct contigAlignment;
 
 class KnownAlus{
  public:
@@ -40,6 +41,8 @@ class KnownAlus{
   void findContigsContainingKnownAlus();
   void pullContigAlignments();
   void findReadsContainingPolyTails(int32_t);
+
+  bool bedFilter(contigAlignment &);
   void writeBedPEHeader(std::ofstream &);
   void writeContigVecToBedPE(std::ofstream &);
 
