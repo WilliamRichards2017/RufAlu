@@ -5,21 +5,23 @@
 #include "contig.h"
 #include "knownAlus.h"
 
+const bool util::anyOverlap(std::vector<int32_t> const & a, std::vector<int32_t> const & b){
+  return std::find_first_of (a.begin(), a.end(),
+			     b.begin(), b.end()) != a.end();
+}
+
 bool util::checkDoubleStranded(std::vector<polyA> t){
-  bool f = false;
-  bool r = false;
+  std::vector<int32_t> reverseTailStarts = {};
+  std::vector<int32_t> forwardTailStarts = {};
   for(auto it = std::begin(t); it != std::end(t); ++it){
     if(it->isTailReverseStrand()){
-      r = true;
+      reverseTailStarts.push_back(it->coords_.clipStart);
     }
     else{
-      f = true;
+      forwardTailStarts.push_back(it->coords_.clipStart);
     }
   }
-  if(f and r){
-    std::cout << "passed check for double stranded tails" << std::endl;
-  }
-  return (f and r);
+  return util::anyOverlap(reverseTailStarts, forwardTailStarts);
 }
 
 std::string util::baseName(std::string path){

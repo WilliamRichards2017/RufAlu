@@ -32,7 +32,7 @@ class util{
 
 
  private:
-
+  static const bool anyOverlap(std::vector<int32_t> const &, std::vector<int32_t> const &);
 };
 
 #endif // UTIL_H

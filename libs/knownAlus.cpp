@@ -112,7 +112,7 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
       BamTools::BamRegion region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
    
-      std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
+      //std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
    
       if(!reader.SetRegion(region)) {
 	std::cout << "could not set region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
@@ -197,7 +197,7 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
        }
 
        if(c.alusHit.size() > 0){
-	 std::cout << "found contig containing knonw alu" << std::endl;
+	 //std::cout << "found contig containing knonw alu" << std::endl;
 	 contigVec_.push_back(c);
        }
 
@@ -255,7 +255,6 @@ void KnownAlus::pullContigAlignments(){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     while(reader.GetNextAlignment(al)){
       if(cvIt->name.compare(al.Name)==0 and al.HasTag("SA")){
-	std::cout << "pulled conitgAlignment " << std::endl;
 	contigAlignment ca = {};
 	ca.alignedContig = al;
       	cvIt->contigAlignments.push_back(ca);
