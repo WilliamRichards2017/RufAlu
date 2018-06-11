@@ -1,6 +1,5 @@
 #ifndef POLYA_H
 #define POLYA_H
-
 #include <string>
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
@@ -11,6 +10,7 @@ struct clipCoords{
   int32_t clipStart;
   int32_t clipEnd;
   direction clipDir;
+  int32_t index;
 };
 
 class polyA{
@@ -29,16 +29,14 @@ class polyA{
 
   BamTools::BamAlignment al_;
   bool isTail_ = false;
-  bool isTailLeftBound_ = false;
-  bool isTailReverseStrand_ = false;
   int32_t tailSize_;
   int32_t longestTail_ = 0;
   
   bool detectPolyTail();
-  bool detectTailInWindow(std::pair<int32_t, int32_t>, const char);
+  bool detectTailInWindow(clipCoords, const char);
   void printTailDebug();
-  std::vector<std::pair<int32_t, int32_t> > getLocalClipCoords();
-  void setGlobalClipCoords(std::pair<int32_t, int32_t>);
+  std::vector<clipCoords> getLocalClipCoords();
+  void setGlobalClipCoords(int32_t);
   void printClipsAndSeq(BamTools::BamAlignment);
 
 };

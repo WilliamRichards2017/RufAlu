@@ -62,7 +62,7 @@ void KnownAlus::writeBedPEHeader(std::ofstream &bed){
 }
 
 bool KnownAlus::bedFilter(contigAlignment & ca) {
-  if(ca.doubleStranded and ca.readsInRegion < 200){
+  if( ca.readsInRegion < 200){
     return true;
   }
   return false;
@@ -76,10 +76,10 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
 	    << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->readsInRegion << '\t' << caIt->alignedContig.IsPrimaryAlignment();
 	
 	if(caIt->leftBound){
-	  bed  << caIt->leftBoundTails.size() << '\t' << caIt->doubleStranded << std::endl;
+	  bed  << '\t' << caIt->leftBoundTails.size() << '\t' << caIt->doubleStranded << std::endl;
 	}
 	else if(caIt->rightBound){
-	  bed << caIt->rightBoundTails.size() << '\t' << caIt->doubleStranded << std::endl;
+	  bed << '\t' << caIt->rightBoundTails.size() << '\t' << caIt->doubleStranded << std::endl;
 	}
 	else {
 	  bed << caIt->rightBound << '\t' << caIt->leftBound << std::endl;
@@ -112,7 +112,7 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
       BamTools::BamRegion region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
    
-      //std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
+      std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
    
       if(!reader.SetRegion(region)) {
 	std::cout << "could not set region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
@@ -126,13 +126,12 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
 	}
 	//std::cout << "count of reads in region is: " << caIt->readsInRegion << std::endl;
 	polyA tail = {al, tailSize};
-	//std::cout << "tail.isTail() : " << tail.isTail();
-	//polyA::printClipsAndSeq(al);
 	if(tail.isTail()){
-	  if(tail.coords_.clipDir==rtl){
+	  std::cout << "found polyA tail" << std::endl;
+	  if(tail.isTailLeftBound()){
 	    caIt->leftBoundTails.push_back(tail);
 	  }
-	  else if(tail.coords_.clipDir==ltr){
+	  else {
 	    caIt->rightBoundTails.push_back(tail);
 	  }
 	}

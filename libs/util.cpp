@@ -15,12 +15,29 @@ bool util::checkDoubleStranded(std::vector<polyA> t){
   std::vector<int32_t> forwardTailStarts = {};
   for(auto it = std::begin(t); it != std::end(t); ++it){
     if(it->isTailReverseStrand()){
+      reverseTailStarts.push_back(it->coords_.clipEnd);
       reverseTailStarts.push_back(it->coords_.clipStart);
     }
     else{
+      forwardTailStarts.push_back(it->coords_.clipEnd);
       forwardTailStarts.push_back(it->coords_.clipStart);
+
     }
   }
+  
+  std::cout << "reverseTailStarts are: " << std::endl;
+  for(auto rIt = std::begin(reverseTailStarts); rIt != std::end(reverseTailStarts); ++rIt){
+    std::cout << *rIt << ", ";
+  }
+  std::cout << std::endl;
+
+  std::cout << "forwardTailStarts are: " << std::endl;
+  for(auto fIt = std::begin(forwardTailStarts); fIt != std::end(forwardTailStarts); ++fIt){
+    std::cout << *fIt << ", ";
+  }
+  std::cout << std::endl;
+  
+  
   return util::anyOverlap(reverseTailStarts, forwardTailStarts);
 }
 
