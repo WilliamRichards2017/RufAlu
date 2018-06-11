@@ -24,7 +24,8 @@ bool util::checkDoubleStranded(std::vector<polyA> t){
 
     }
   }
-  
+
+  /*
   std::cout << "reverseTailStarts are: " << std::endl;
   for(auto rIt = std::begin(reverseTailStarts); rIt != std::end(reverseTailStarts); ++rIt){
     std::cout << *rIt << ", ";
@@ -36,6 +37,7 @@ bool util::checkDoubleStranded(std::vector<polyA> t){
     std::cout << *fIt << ", ";
   }
   std::cout << std::endl;
+  */
   
   
   return util::anyOverlap(reverseTailStarts, forwardTailStarts);

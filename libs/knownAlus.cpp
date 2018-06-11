@@ -62,9 +62,24 @@ void KnownAlus::writeBedPEHeader(std::ofstream &bed){
 }
 
 bool KnownAlus::bedFilter(contigAlignment & ca) {
-  if( ca.readsInRegion < 200){
-    return true;
-  }
+  if(ca.readsInRegion < 200 and ca.doubleStranded and (!(ca.leftBound and ca.rightBound))){
+      if(ca.leftBound){
+	if (ca.rightBoundTails.size() > 1){
+	  return false;
+	}
+	else {
+	  return true;
+	}
+      }
+      else{
+	if(ca.leftBoundTails.size() > 1){
+	  return false;
+	}
+	else{
+	  return true;
+	}
+      }
+    }
   return false;
 }
 
@@ -82,7 +97,7 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
 	  bed << '\t' << caIt->rightBoundTails.size() << '\t' << caIt->doubleStranded << std::endl;
 	}
 	else {
-	  bed << caIt->rightBound << '\t' << caIt->leftBound << std::endl;
+	  bed << '\t' << "tail not left or right bound..." << std::endl;
 	}
       }
     }
@@ -127,7 +142,6 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
 	//std::cout << "count of reads in region is: " << caIt->readsInRegion << std::endl;
 	polyA tail = {al, tailSize};
 	if(tail.isTail()){
-	  std::cout << "found polyA tail" << std::endl;
 	  if(tail.isTailLeftBound()){
 	    caIt->leftBoundTails.push_back(tail);
 	  }
@@ -140,7 +154,7 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
 	caIt->doubleStranded = true;
 	caIt->leftBound = true;
       }
-      else if(util::checkDoubleStranded(caIt->rightBoundTails)){
+      if(util::checkDoubleStranded(caIt->rightBoundTails)){
 	caIt->doubleStranded = true;
 	caIt->rightBound = true;
       }

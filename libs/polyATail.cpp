@@ -57,12 +57,11 @@ bool polyA::isTailReverseStrand(){
 bool polyA::detectTailInWindow(clipCoords  c,  const char atChar){
   std::string seq = al_.QueryBases;
 
-  std::cout << std::endl;
-  std::cout << "detecting tail for seq: " << seq << std::endl;
-  std::cout << "with coords: " << c.clipStart << ", " << c.clipEnd << ", " << c.clipDir << std::endl;
+  //std::cout << "detecting tail for seq: " << seq << std::endl;
+  //std::cout << "with coords: " << c.clipStart << ", " << c.clipEnd << ", " << c.clipDir << std::endl;
   
   if(c.clipDir == rtl){
-    if(c.clipStart - tailSize_ < c.clipEnd){
+    if(c.clipStart - tailSize_ < 0){
       return false;
     }
     
@@ -76,11 +75,11 @@ bool polyA::detectTailInWindow(clipCoords  c,  const char atChar){
 	return false;
       }
     }
-    std::cout << "found polyTail " << std::endl;
+    //std::cout << "found polyTail " << std::endl;
     
     return true;
   } else {
-    if (c.clipStart + tailSize_ > c.clipEnd){
+    if (c.clipStart + tailSize_ >= seq.size()-1){
       return false;
     }
     int i = 0;
@@ -93,7 +92,7 @@ bool polyA::detectTailInWindow(clipCoords  c,  const char atChar){
 	return false;
       }
     }
-    std::cout << "found polyTail " << std::endl;
+    //std::cout << "found polyTail " << std::endl;
     return true;
   }
   return false;
@@ -151,7 +150,7 @@ void polyA::setGlobalClipCoords(int32_t index){
     coords_.clipEnd = coords_.clipStart + clipSizes[index];
   }
 
-  std::cout << "Setting global clip coords to be: " << coords_.clipDir << ", " << coords_.clipStart << ", " << coords_.clipEnd << std::endl;
+  //std::cout << "Setting global clip coords to be: " << coords_.clipDir << ", " << coords_.clipStart << ", " << coords_.clipEnd << std::endl;
 }
 
 bool polyA::detectPolyTail(){
