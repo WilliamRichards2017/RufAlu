@@ -79,6 +79,7 @@ void KnownAlus::writeBedPEHeader(std::ofstream &bed){
 
 bool KnownAlus::bedFilter(contigAlignment & ca) {
   if(ca.readsInRegion < 200 and ca.doubleStranded and (!(ca.leftBound and ca.rightBound))){
+    auto peaks = util::getPeaks(ca.alignedContig);
       if(ca.leftBound){
 	if (ca.rightBoundTails.size() > 1){
 	  return false;
@@ -289,7 +290,7 @@ void KnownAlus::pullContigAlignments(){
       if(cvIt->name.compare(al.Name)==0 and al.HasTag("SA")){
 	contigAlignment ca = {};
 	ca.alignedContig = al;
-	auto peakVector = util::getPeaks(al);
+	//auto peakVector = util::getPeaks(al);
       	cvIt->contigAlignments.push_back(ca);
       }
     }
