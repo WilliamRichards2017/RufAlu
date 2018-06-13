@@ -24,13 +24,29 @@
 
 KSEQ_INIT(gzFile, gzread)
 
-
-void printContig(contig c){
-
+bool debugPrintFilter(contigAlignment & ca){
+  if(ca.leftBound || ca.rightBound and ca.readsInRegion < 201){
+    return true;
+  }
+  return false;
 }
 
-void printContigVec(std::vector<contig> contigVec){
-  for(auto it = std::begin(contigVec); it != std::end(contigVec); ++it){
+void printContigAlignment(contigAlignment & ca){
+  if(debugPrintFilter(ca)){
+    std::cout << "Aligned Contig name: " << ca.alignedContig.Name << std::endl;
+    std::cout << "Quality string: " << ca.alignedContig.Qualities << std::endl;
+  }
+}
+
+void printContig(contig & c){
+  for(auto it = std::begin(c.contigAlignments); it != std::end(c.contigAlignments); ++it){
+    printContigAlignment(*it);
+  }
+  
+}
+
+void KnownAlus::printContigVec(){
+  for(auto it = std::begin(contigVec_); it != std::end(contigVec_); ++it){
     printContig(*it);
   }
 }
@@ -240,6 +256,9 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
   std::cout << "[4/5]  Finding reads containing polyA tails for " << stub_ << std::endl;
   KnownAlus::findReadsContainingPolyTails(10);
 
+
+  KnownAlus::printContigVec();
+
   std::ofstream bed;
   std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + stub_ + ".bed";
   bed.open(bs);
@@ -270,6 +289,7 @@ void KnownAlus::pullContigAlignments(){
       if(cvIt->name.compare(al.Name)==0 and al.HasTag("SA")){
 	contigAlignment ca = {};
 	ca.alignedContig = al;
+	auto peakVector = util::getPeaks(al);
       	cvIt->contigAlignments.push_back(ca);
       }
     }

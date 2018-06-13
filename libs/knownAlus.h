@@ -45,6 +45,8 @@ class KnownAlus{
   bool bedFilter(contigAlignment &);
   void writeBedPEHeader(std::ofstream &);
   void writeContigVecToBedPE(std::ofstream &);
+  
+  void printContigVec();
 
 };
 

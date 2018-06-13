@@ -5,6 +5,105 @@
 #include "contig.h"
 #include "knownAlus.h"
 
+std::vector<clipCoords> util::getLocalClipCoords(const BamTools::BamAlignment & al) {
+  std::vector<clipCoords> coordsVec = {};
+  std::vector<int> clipSizes;
+  std::vector<int> readPositions;
+  std::vector<int> genomePositions;
+
+
+
+  al.GetSoftClips(clipSizes, readPositions, genomePositions);
+
+  clipCoords c = {};
+
+  for(int32_t i = 0; i < readPositions.size(); ++i){
+
+    if(readPositions[i]-clipSizes[i]==0){
+      c.clipDir = rtl;
+      c.clipStart = readPositions[i]-1;
+      c.clipEnd = c.clipStart - clipSizes[i]+1;
+    }
+    else{
+      c.clipDir = ltr;
+      c.clipStart = readPositions[i];
+      c.clipEnd = readPositions[i] + clipSizes[i];
+    }
+    c.index = i;
+    coordsVec.push_back(c);
+
+    //std::cout << "detecting tail for seq: " << al_.QueryBases << std::endl;                                                                                                        
+    //std::cout << "with clip coords " << c.clipStart << ", " << c.clipEnd << ", " << c.clipDir << std::endl;                                                                        
+  }
+  return coordsVec;
+}
+
+std::pair<int32_t, int32_t> getWindowPeak(std::string digitWindow){
+  int peak = 0;
+  for(auto c: digitWindow){
+    if(atoi(&c) > peak){
+      peak = atoi(&c);
+    }
+    
+  }
+  return std::make_pair(0,0);
+}
+
+
+const std::vector<int32_t> util::getPeakVector(const BamTools::BamAlignment & al){
+  
+  std::vector<int32_t> peakVec;
+  std::cout << "peakVector : ";
+  for(auto c : al.Qualities){
+    peakVec.push_back(int(c)-33); // ascii conversion
+    std::cout << peakVec.back() << ", ";
+  }
+  std::cout << std::endl;
+  return peakVec;
+  
+}
+
+const std::vector<std::pair<int32_t, int32_t> > util::getPeaks(const BamTools::BamAlignment & al) {
+
+  
+  auto amp = util::getPeakVector(al);
+  int wideStart = -1;                 // The start of any current wide peak
+  
+  int grad = -1;                      // Sign of gradient (almost)
+  //    =  1 for increasing
+  //    =  0 for level AND PREVIOUSLY INCREASING (so potential wide peak)
+  //    = -1 for decreasing OR level, but previously decreasing
+  // A sharp peak is identified by grad=1 -> grad=-1
+  // A wide  peak is identified by grad=0 -> grad=-1
+
+  std::vector<std::pair<int32_t, int32_t> > peakCoords;
+
+  for (int i = 0; i < amp.size() - 1; i++) {
+    if(amp[i+1] < amp[i]){    
+      if(grad == 1){
+	std::cout << "Sharp peak of " << amp[i] << " at i = " << i << '\n';
+	peakCoords.push_back(std::make_pair(i,i));
+      }
+      else if(grad == 0){
+	peakCoords.push_back(std::make_pair(i,wideStart));
+	std::cout << "Wide peak of " << amp[i] << " from i = " << wideStart << " to " << i << '\n';
+      }
+      grad = -1;
+    }
+    else if(amp[i+1] == amp[i]){   // Check for start of a wide peak
+      if(grad == 1){
+	wideStart = i;
+	grad = 0;
+      }
+    }
+    else{
+      grad = 1;
+    }
+  }
+  return peakCoords;
+}
+
+
 const bool util::anyOverlap(std::vector<int32_t> const & a, std::vector<int32_t> const & b){
   return std::find_first_of (a.begin(), a.end(),
 			     b.begin(), b.end()) != a.end();
