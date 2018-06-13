@@ -80,6 +80,7 @@ void KnownAlus::writeBedPEHeader(std::ofstream &bed){
 bool KnownAlus::bedFilter(contigAlignment & ca) {
   if(ca.readsInRegion < 200 and ca.doubleStranded and (!(ca.leftBound and ca.rightBound))){
     auto peaks = util::getPeaks(ca.alignedContig);
+    
       if(ca.leftBound){
 	if (ca.rightBoundTails.size() > 1){
 	  return false;
@@ -288,14 +289,19 @@ void KnownAlus::pullContigAlignments(){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     while(reader.GetNextAlignment(al)){
       if(cvIt->name.compare(al.Name)==0 and al.HasTag("SA")){
-	contigAlignment ca = {};
-	ca.alignedContig = al;
-	//auto peakVector = util::getPeaks(al);
-      	cvIt->contigAlignments.push_back(ca);
+	std::cout << "Checking for peak and clip coord intersection for read: " << al.Name << std::endl;
+	if(util::intersectPeaksAndClips(util::getPeaks(al), util::getLocalClipCoords(al))){
+	  std::cout << "Found intersection between peak and clips" << std::endl;
+	  
+	  contigAlignment ca = {};
+	  ca.alignedContig = al;
+	  //auto peakVector = util::getPeaks(al);
+	  cvIt->contigAlignments.push_back(ca);
+	}
       }
     }
     reader.Rewind();
   }
   reader.Close();
 }
-  
+

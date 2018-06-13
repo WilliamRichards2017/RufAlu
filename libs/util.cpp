@@ -5,6 +5,26 @@
 #include "contig.h"
 #include "knownAlus.h"
 
+
+const bool util::isWithinRegion(const int32_t & i , const std::pair<int32_t, int32_t> & p) {
+  std::cout << "Checking if " << i << " is withing region: " << p.first << "," << p.second << std::endl; 
+  if(i >= p.first and i <= p.second){
+    return true;
+  }
+  return false;
+}
+
+const bool util::intersectPeaksAndClips(const std::vector<std::pair<int32_t, int32_t> > & peakVec, const std::vector<clipCoords> & clipVec){
+  for(auto c : clipVec){
+    for(auto p : peakVec){
+      if(util::isWithinRegion(c.clipStart, p)){
+	return true;
+      }
+    }
+  }
+  return false;
+}
+
 std::vector<clipCoords> util::getLocalClipCoords(const BamTools::BamAlignment & al) {
   std::vector<clipCoords> coordsVec = {};
   std::vector<int> clipSizes;
@@ -81,12 +101,12 @@ const std::vector<std::pair<int32_t, int32_t> > util::getPeaks(const BamTools::B
   for (int i = 0; i < amp.size() - 1; i++) {
     if(amp[i+1] < amp[i]){    
       if(grad == 1){
-	std::cout << "Sharp peak of " << amp[i] << " at i = " << i << '\n';
+	//std::cout << "Sharp peak of " << amp[i] << " at i = " << i << '\n';
 	peakCoords.push_back(std::make_pair(i,i));
       }
       else if(grad == 0){
-	peakCoords.push_back(std::make_pair(i,wideStart));
-	std::cout << "Wide peak of " << amp[i] << " from i = " << wideStart << " to " << i << '\n';
+	peakCoords.push_back(std::make_pair(wideStart,i));
+	//std::cout << "Wide peak of " << amp[i] << " from i = " << wideStart << " to " << i << '\n';
       }
       grad = -1;
     }
