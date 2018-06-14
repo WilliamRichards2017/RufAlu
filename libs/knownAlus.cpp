@@ -18,6 +18,7 @@
 #include "polyATail.h"
 #include "intersect.h"
 #include "util.h"
+#include "vcfWriter.h"
 
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
@@ -25,7 +26,7 @@
 KSEQ_INIT(gzFile, gzread)
 
 bool debugPrintFilter(contigAlignment & ca){
-  if(ca.leftBound || ca.rightBound and ca.readsInRegion < 201){
+  if(ca.leftBound || ca.rightBound and ca.readsInRegion < 400){
     return true;
   }
   return false;
@@ -78,9 +79,8 @@ void KnownAlus::writeBedPEHeader(std::ofstream &bed){
 }
 
 bool KnownAlus::bedFilter(contigAlignment & ca) {
-  if(ca.readsInRegion < 200 and ca.doubleStranded and (!(ca.leftBound and ca.rightBound))){
-    auto peaks = util::getPeaks(ca.alignedContig);
-    
+  if(ca.readsInRegion < 400 and std::max(ca.rightBoundTails.size(), ca.leftBoundTails.size()) > 1){
+    return true;
       if(ca.leftBound){
 	if (ca.rightBoundTails.size() > 1){
 	  return false;
@@ -105,7 +105,7 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
       if(KnownAlus::bedFilter(*caIt)) {
-	bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
+      	bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
 	    << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->readsInRegion << '\t' << caIt->alignedContig.IsPrimaryAlignment();
 	
 	if(caIt->leftBound){
@@ -115,7 +115,7 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
 	  bed << '\t' << caIt->rightBoundTails.size() << '\t' << caIt->doubleStranded << std::endl;
 	}
 	else {
-	  bed << '\t' << "tail not left or right bound..." << std::endl;
+	  bed << '\t' << "tail not left or right bound..." << '\t' << std::max(caIt->rightBoundTails.size(), caIt->leftBoundTails.size()) << std::endl;
 	}
       }
     }
@@ -143,6 +143,10 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
 
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){    
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
+      std::ofstream vcf;
+      std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + stub_ + ".vcf";
+      vcf.open(bs);
+      vcfWriter w = {*caIt, vcf, stub_};
       BamTools::BamRegion region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
    
       std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
@@ -292,10 +296,9 @@ void KnownAlus::pullContigAlignments(){
 	std::cout << "Checking for peak and clip coord intersection for read: " << al.Name << std::endl;
 	if(util::intersectPeaksAndClips(util::getPeaks(al), util::getLocalClipCoords(al))){
 	  std::cout << "Found intersection between peak and clips" << std::endl;
-	  
 	  contigAlignment ca = {};
 	  ca.alignedContig = al;
-	  //auto peakVector = util::getPeaks(al);
+	  ca.chrom = getChromosomeFromRefID(ca.alignedContig.RefID);
 	  cvIt->contigAlignments.push_back(ca);
 	}
       }

@@ -25,6 +25,25 @@ const bool util::intersectPeaksAndClips(const std::vector<std::pair<int32_t, int
   return false;
 }
 
+const std::vector<int32_t> util::getInsertionVec(const BamTools::BamAlignment & al){
+  const std::vector<BamTools::CigarOp> cig = al.CigarData;
+  std::vector<int32_t> insertionVec;
+  int32_t indel = 0;
+  for(auto c : cig){
+    if(c.Type =='S'){
+      insertionVec.push_back(indel);
+      indel = 0;
+    }
+    else if(c.Type == 'I'){
+      indel += c.Length;
+    }
+    else if(c.Type == 'D'){
+      indel = c.Length * -1;
+    }
+  }
+  return insertionVec;
+}
+
 std::vector<clipCoords> util::getLocalClipCoords(const BamTools::BamAlignment & al) {
   std::vector<clipCoords> coordsVec = {};
   std::vector<int> clipSizes;
@@ -37,17 +56,19 @@ std::vector<clipCoords> util::getLocalClipCoords(const BamTools::BamAlignment & 
 
   clipCoords c = {};
 
+  const std::vector<int32_t> insertionVec = util::getInsertionVec(al);
+
   for(int32_t i = 0; i < readPositions.size(); ++i){
 
     if(readPositions[i]-clipSizes[i]==0){
       c.clipDir = rtl;
-      c.clipStart = readPositions[i]-1;
+      c.clipStart = readPositions[i]-1+insertionVec[i];
       c.clipEnd = c.clipStart - clipSizes[i]+1;
     }
     else{
       c.clipDir = ltr;
-      c.clipStart = readPositions[i];
-      c.clipEnd = readPositions[i] + clipSizes[i];
+      c.clipStart = readPositions[i] + insertionVec[i];
+      c.clipEnd = c.clipStart + clipSizes[i];
     }
     c.index = i;
     coordsVec.push_back(c);

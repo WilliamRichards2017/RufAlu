@@ -12,6 +12,7 @@
 
 
 struct contigAlignment {
+  std::string chrom;
   BamTools::BamAlignment alignedContig;
   BamTools::BamRegion alignedRegion;
   std::vector<polyA> leftBoundTails;

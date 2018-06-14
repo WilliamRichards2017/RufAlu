@@ -125,8 +125,8 @@ std::vector<clipCoords> polyA::getLocalClipCoords() {
     c.index = i;
     coordsVec.push_back(c);
     
-    //std::cout << "detecting tail for seq: " << al_.QueryBases << std::endl;
-    //std::cout << "with clip coords " << c.clipStart << ", " << c.clipEnd << ", " << c.clipDir << std::endl;
+    std::cout << "detecting tail for seq: " << al_.QueryBases << std::endl;
+    std::cout << "with clip coords " << c.clipStart << ", " << c.clipEnd << ", " << c.clipDir << std::endl;
   }
   return coordsVec;
 }
