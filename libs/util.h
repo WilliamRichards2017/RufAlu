@@ -17,13 +17,6 @@ class polyA;
 
 struct clipCoords;
 
-struct digitWindow{
-  int32_t startPos = -1;
-  std::string digits = "";
-  int32_t peak = -1;
-  int32_t peakPos = -1;
-};
-
 class util{
 
  public:
@@ -37,6 +30,7 @@ class util{
   static const char * getRootDirectory(std::string);
   static const std::vector<std::pair<int32_t, int32_t> > getPeaks(const BamTools::BamAlignment &);
   static const bool intersectPeaksAndClips(const std::vector<std::pair<int32_t, int32_t> > &, const std::vector<clipCoords> &);
+  static const std::vector<int32_t> getInsertionVec(const BamTools::BamAlignment &);
 
 
  private:

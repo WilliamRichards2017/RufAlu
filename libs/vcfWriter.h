@@ -23,18 +23,25 @@ struct vcfLine{
 
 class vcfWriter{
  public:
-  vcfWriter(contigAlignment &, std::ofstream &, std::string);
+  vcfWriter(const contigAlignment &, std::ofstream &, const std::string &);
   ~vcfWriter();
 
-  void writeVCFHeader();
+  const bool vcfFilter();
+  void writeVCFLine();
+
+  static void writeVCFHeader(std::ofstream &, const std::string &);
+
+
   
  private:
   vcfLine vcfLine_ = {};
-  void populateVCFLine();
-  const contigAlignment & ca_;
   std::ofstream & vcfStream_;
-  std::string stub_;
   
+  const contigAlignment & ca_;
+  const std::string stub_;
+  
+  void populateVCFLine();  
+
 };
 
 #endif //__VCF_WRITER_H__

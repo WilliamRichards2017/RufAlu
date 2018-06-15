@@ -46,6 +46,8 @@ void printContig(contig & c){
   
 }
 
+
+
 void KnownAlus::printContigVec(){
   for(auto it = std::begin(contigVec_); it != std::end(contigVec_); ++it){
     printContig(*it);
@@ -55,7 +57,7 @@ void KnownAlus::printContigVec(){
 void KnownAlus::populateRefData(){
   BamTools::BamReader reader;
   if (!reader.Open(rawBamPath_)){
-    std::cout << "Could not open raw reads Bam file" << rawBamPath_ << std::endl;
+    std::cerr << "Could not open raw reads Bam file" << rawBamPath_ << std::endl;
     exit (EXIT_FAILURE);
   }
   refData_ = reader.GetReferenceData();
@@ -101,6 +103,27 @@ bool KnownAlus::bedFilter(contigAlignment & ca) {
   return false;
 }
 
+
+void KnownAlus::writeToVCF(std::string & vcfFile){
+
+  std::ofstream vcfStream;
+  vcfStream.open(vcfFile);
+  vcfWriter::writeVCFHeader(vcfStream, stub_);
+  KnownAlus::writeContigVecToVCF(vcfStream);
+  vcfStream.close();
+}
+
+void KnownAlus::writeContigVecToVCF(std::ofstream & vcf){
+  for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
+    for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
+      vcfWriter writer = {*caIt, vcf, stub_};
+      if(writer.vcfFilter()){
+	writer.writeVCFLine();
+      }
+    }
+  }
+}
+
 void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
@@ -143,10 +166,6 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
 
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){    
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
-      std::ofstream vcf;
-      std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + stub_ + ".vcf";
-      vcf.open(bs);
-      vcfWriter w = {*caIt, vcf, stub_};
       BamTools::BamRegion region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
    
       std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
@@ -246,6 +265,16 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
    gzclose(f);
  }
 
+void KnownAlus::writeToBed(std::string & bedFile){
+  std::ofstream bed;
+  bed.open(bedFile);
+  writeBedPEHeader(bed);
+
+  writeContigVecToBedPE(bed);
+
+  bed.close();
+}
+
 
 KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::string contigBamPath, std::string aluFastaPath, std::string aluIndexPath, std::string refPath, std::string refIndexPath) :  rawBamPath_(rawBamPath), contigFastqPath_(contigFastqPath), contigBamPath_(contigBamPath), aluFastaPath_(aluFastaPath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(rawBamPath)){
    
@@ -263,19 +292,19 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
   KnownAlus::findReadsContainingPolyTails(10);
 
 
-  KnownAlus::printContigVec();
+  //KnownAlus::printContigVec();
 
-  std::ofstream bed;
-  std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + stub_ + ".bed";
-  bed.open(bs);
 
-  writeBedPEHeader(bed);
-  std::cout << "[5/5] Writing out results to bed file " << stub_  << ".bed" << std::endl;
-  writeContigVecToBedPE(bed);
+  std::cout << "[5/5] Writing out results to vcf file " << stub_  << ".vcf" << std::endl;
+  std::string vcfString = prefix_ + stub_ + ".vcf";
+  KnownAlus::writeToVCF(vcfString);
 
-  bed.close();
+  //std::cout << "[5/5] Writing out results to bed file " << stub_  << ".bed" << std::endl;
+  //KnownAlus::writeToBed(prefix_ + stub_ + "bed");
 
 }
+
+
 
 KnownAlus::~KnownAlus(){
 }

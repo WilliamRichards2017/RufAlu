@@ -24,15 +24,16 @@ class KnownAlus{
   ~KnownAlus();
   
  private:
-  std::string rawBamPath_;
-  std::string contigFastqPath_;
-  std::string contigBamPath_;
-  std::string aluFastaPath_;
-  std::string aluIndexPath_;
-  std::string refPath_;
-  std::string refIndexPath_;
+  const std::string rawBamPath_;
+  const std::string contigFastqPath_;
+  const std::string contigBamPath_;
+  const std::string aluFastaPath_;
+  const std::string aluIndexPath_;
+  const std::string refPath_;
+  const std::string refIndexPath_;
+  const std::string stub_;
+  const std::string prefix_ = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/";
 
-  std::string stub_;
   std::vector<contig> contigVec_;
   std::vector<BamTools::RefData> refData_;
   std::string getChromosomeFromRefID(int32_t);
@@ -45,6 +46,11 @@ class KnownAlus{
   bool bedFilter(contigAlignment &);
   void writeBedPEHeader(std::ofstream &);
   void writeContigVecToBedPE(std::ofstream &);
+
+  void writeToVCF(std::string &);
+  void writeContigVecToVCF(std::ofstream &);
+  
+  void writeToBed(std::string &);
   
   void printContigVec();
 

@@ -1,6 +1,13 @@
+#include <stdexcept>
+#include <time.h>
+
 #include "contig.h"
 #include "vcfWriter.h"
 
+//TODO: Implement vcf filter
+const bool vcfWriter::vcfFilter(){
+  return true;
+}
 
 void vcfWriter::populateVCFLine(){
   vcfLine_.chrom = ca_.chrom;
@@ -16,50 +23,51 @@ void vcfWriter::populateVCFLine(){
   vcfLine_.contigName = ca_.alignedContig.Name;
   //TOOD: write function to parse cigar data into string"
   vcfLine_.cigarString = "CIGAR";
-  vcfLine_.qual = ca_.MapQuality;
+  vcfLine_.qual = ca_.alignedContig.MapQuality;
 }
 
-vcfWriter::vcfWriter(contig & ca, std::ofstream & vcfStream, std::string & stub) : ca_(ca), vcfStream_(vcfStream), stub_(stub) {
-  if(!vcfStream.is_open()){
-    std::string bs = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/" + stub_ + ".vcf";
-    vcfStream_.open(bs);
+vcfWriter::vcfWriter( const contigAlignment & ca, std::ofstream & vcfStream, const std::string & stub) : ca_(ca), vcfStream_(vcfStream), stub_(stub) {
+  if(!vcfStream_.is_open()){
+    std::cerr << "vcfStream is not open, exiting run with non-zero exit status " << std::endl;
+    exit (EXIT_FAILURE);
+    
   }
-  vcfWriter::writeVCFLine();
+  vcfWriter::populateVCFLine();
 }
 
 vcfWriter::~vcfWriter(){
 }
 
 void vcfWriter::writeVCFLine(){
-  std::cout << vcfLine_.chrom << '\t' << vcfLine_.id << '\t' << vcfLine_.ref << '\t' << vcfLine_.alt 
+  vcfStream_ << vcfLine_.chrom << '\t' << vcfLine_.id << '\t' << vcfLine_.ref << '\t' << vcfLine_.alt 
 	    << '\t' << vcfLine_.info << '\t' << vcfLine_.contigName << '\t' << vcfLine_.cigarString 
 	    << '\t' << vcfLine_.qual << std::endl;
 }
 
-void vcfWriter::writeVCFHeader(){
-  vcfStream_ << "##fileformat=VCFv4.1" << std::endl;
-  vcfStream_ << "##fileDate=" << std::time(0) << std::endl;
-  vcfStream_ << "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">" << std::endl;
-  vcfStream_ << "##FORMAT=<ID=AK,Number=1,Type=Integer,Description=\"Alternte Kmer Count\">" << std::endl;
-  vcfStream_ << "##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Total Kmer depth across the variant\">" << std::endl;
-  vcfStream_ << "##FORMAT=<ID=RO,Number=1,Type=Integer,Description=\"Mode of reference kmer counts\">" << std::endl;
-  vcfStream_ << "##FORMAT=<ID=AO,Number=1,Type=Integer,Description=\"Mode of alt kmer counts\">" << std::endl;
-  vcfStream_ << "##FORMAT=<ID=LP,Number=1,Type=Integer,Description=\"Number of lowcoverage parent bases\">" << std::endl;
-  vcfStream_ << "##FORMAT=<ID=PC,Number=1,Type=Integer,Description=\"Mode of parents coverage\">" << std::endl;
-  vcfStream_ << "##FORMAT=<ID=SB,Number=1,Type=Float,Description=\"StrandBias\">" << std::endl;
-  vcfStream_ << "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of SV detected\">" << std::endl;
-  vcfStream_ << "##INFO=<ID=SVLEN,Number=1,Type=Integer,Description=\"Length of SV detected\">" << std::endl; 
-  vcfStream_ << "##INFO=<ID=END,Number=1,Type=Integer,Description=\"END of SV detected\">" << std::endl; 
-  vcfStream_ << "##INFO=<ID=AO,Number=1,Type=Integer,Description=\"Alternate allele observations, with partial observations recorded fractionally\">" << std::endl;
-  vcfStream_ << "##INFO=<ID=HD,Number=.,Type=String,Description=\"Hash counts for each k-mer overlapping the vareint, -1 indicates no info\">"<< std::endl;
-  vcfStream_ << "##INFO=<ID=RN,Number=1,Type=String,Description=\"Name of contig that produced the call\">"<< std::endl;
-  vcfStream_ << "##INFO=<ID=MQ,Number=1,Type=Integer,Description=\"Mapping quality of the contig that created the call\">"<< std::endl;
-  vcfStream_ << "##INFO=<ID=cigar,Number=1,Type=String,Description=\"Cigar string for the contig that created the call\">"<< std::endl;
-  vcfStream_ << "##INFO=<ID=VT,Number=1,Type=String,Description=\"Varient Type\">"<< std::endl;
-  vcfStream_ << "##INFO=<ID=CVT,Number=1,Type=String,Description=\"Compressed Varient Type\">"<< std::endl;
-  vcfStream_ << "##ALT=<ID=INS:ME:ALU,Description=\"Insertion of ALU element\">" << std::endl;
-  vcfStream_ << "##ALT=<ID=INS:ME:L1,Description=\"Insertion of L1 element\">" << std::endl;
-  vcfStream_ << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t";
-  vcfStream_ << stub_ << endl;
+void vcfWriter::writeVCFHeader(std::ofstream & vcfStream, const std::string & stub){
+  vcfStream << "##fileformat=VCFv4.1" << std::endl;
+  vcfStream << "##fileDate=" << time(0) << std::endl;
+  vcfStream << "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">" << std::endl;
+  vcfStream << "##FORMAT=<ID=AK,Number=1,Type=Integer,Description=\"Alternte Kmer Count\">" << std::endl;
+  vcfStream << "##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Total Kmer depth across the variant\">" << std::endl;
+  vcfStream << "##FORMAT=<ID=RO,Number=1,Type=Integer,Description=\"Mode of reference kmer counts\">" << std::endl;
+  vcfStream << "##FORMAT=<ID=AO,Number=1,Type=Integer,Description=\"Mode of alt kmer counts\">" << std::endl;
+  vcfStream << "##FORMAT=<ID=LP,Number=1,Type=Integer,Description=\"Number of lowcoverage parent bases\">" << std::endl;
+  vcfStream << "##FORMAT=<ID=PC,Number=1,Type=Integer,Description=\"Mode of parents coverage\">" << std::endl;
+  vcfStream << "##FORMAT=<ID=SB,Number=1,Type=Float,Description=\"StrandBias\">" << std::endl;
+  vcfStream << "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of SV detected\">" << std::endl;
+  vcfStream << "##INFO=<ID=SVLEN,Number=1,Type=Integer,Description=\"Length of SV detected\">" << std::endl; 
+  vcfStream << "##INFO=<ID=END,Number=1,Type=Integer,Description=\"END of SV detected\">" << std::endl; 
+  vcfStream << "##INFO=<ID=AO,Number=1,Type=Integer,Description=\"Alternate allele observations, with partial observations recorded fractionally\">" << std::endl;
+  vcfStream << "##INFO=<ID=HD,Number=.,Type=String,Description=\"Hash counts for each k-mer overlapping the vareint, -1 indicates no info\">"<< std::endl;
+  vcfStream << "##INFO=<ID=RN,Number=1,Type=String,Description=\"Name of contig that produced the call\">"<< std::endl;
+  vcfStream << "##INFO=<ID=MQ,Number=1,Type=Integer,Description=\"Mapping quality of the contig that created the call\">"<< std::endl;
+  vcfStream << "##INFO=<ID=cigar,Number=1,Type=String,Description=\"Cigar string for the contig that created the call\">"<< std::endl;
+  vcfStream << "##INFO=<ID=VT,Number=1,Type=String,Description=\"Varient Type\">"<< std::endl;
+  vcfStream << "##INFO=<ID=CVT,Number=1,Type=String,Description=\"Compressed Varient Type\">"<< std::endl;
+  vcfStream << "##ALT=<ID=INS:ME:ALU,Description=\"Insertion of ALU element\">" << std::endl;
+  vcfStream << "##ALT=<ID=INS:ME:L1,Description=\"Insertion of L1 element\">" << std::endl;
+  vcfStream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t";
+  vcfStream << stub << std::endl;
   
 }
