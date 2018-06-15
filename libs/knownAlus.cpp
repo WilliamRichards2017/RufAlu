@@ -322,10 +322,13 @@ void KnownAlus::pullContigAlignments(){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     while(reader.GetNextAlignment(al)){
       if(cvIt->name.compare(al.Name)==0 and al.HasTag("SA")){
-	std::cout << "Checking for peak and clip coord intersection for read: " << al.Name << std::endl;
-	if(util::intersectPeaksAndClips(util::getPeaks(al), util::getLocalClipCoords(al))){
-	  std::cout << "Found intersection between peak and clips" << std::endl;
+	//std::cout << "Checking for peak and clip coord intersection for read: " << al.Name << std::endl;
+	int32_t clipPeak = util::intersectPeaksAndClips(util::getPeaks(al), util::getLocalClipCoords(al));
+	if(clipPeak != -1){
+	  //std::cout << "Found intersection between peak and clips" << std::endl;
 	  contigAlignment ca = {};
+	  ca.clipPeak = clipPeak;
+	  ca.aluHit = cvIt->alusHit[0];
 	  ca.alignedContig = al;
 	  ca.chrom = getChromosomeFromRefID(ca.alignedContig.RefID);
 	  cvIt->contigAlignments.push_back(ca);

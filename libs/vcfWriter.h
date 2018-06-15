@@ -16,7 +16,7 @@ struct vcfLine{
   std::string alt = ".";
   std::string info = ".";
   std::string contigName= ".";
-  std::string cigarString = ".";
+  std::string cigarString = "";
   int16_t qual= -1;
 
 };

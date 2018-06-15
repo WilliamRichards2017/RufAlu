@@ -1,5 +1,8 @@
+
 #include <stdexcept>
+#include <string>
 #include <time.h>
+
 
 #include "contig.h"
 #include "vcfWriter.h"
@@ -11,18 +14,20 @@ const bool vcfWriter::vcfFilter(){
 
 void vcfWriter::populateVCFLine(){
   vcfLine_.chrom = ca_.chrom;
-  vcfLine_.pos = ca_.alignedContig.Position;
+  vcfLine_.pos = ca_.clipPeak;
   //TODO: figure out how to report as denovo or inherited
-  vcfLine_.id = "Unknown";
+  vcfLine_.id = "denvo/inherited";
   //TODO: //write function to get nucleotide at alu head start pos
-  vcfLine_.ref = "Unknown";
+  vcfLine_.ref = "N";
 
-  //TODO: write function to get type of mobile element (parse out aluHit list)
-  vcfLine_.alt = "INS:ME:ALU/INS:ME:L1";
+  vcfLine_.alt = "INS:ME:"+ca_.aluHit;
   vcfLine_.info = ".";
   vcfLine_.contigName = ca_.alignedContig.Name;
   //TOOD: write function to parse cigar data into string"
-  vcfLine_.cigarString = "CIGAR";
+  for(auto it = std::begin(ca_.alignedContig.CigarData); it != std::end(ca_.alignedContig.CigarData); ++it){
+    vcfLine_.cigarString += it->Type;
+    vcfLine_.cigarString += std::to_string(it->Length);
+  }
   vcfLine_.qual = ca_.alignedContig.MapQuality;
 }
 
@@ -39,9 +44,9 @@ vcfWriter::~vcfWriter(){
 }
 
 void vcfWriter::writeVCFLine(){
-  vcfStream_ << vcfLine_.chrom << '\t' << vcfLine_.id << '\t' << vcfLine_.ref << '\t' << vcfLine_.alt 
-	    << '\t' << vcfLine_.info << '\t' << vcfLine_.contigName << '\t' << vcfLine_.cigarString 
-	    << '\t' << vcfLine_.qual << std::endl;
+  vcfStream_ << vcfLine_.chrom << '\t' << vcfLine_.pos << '\t'  << vcfLine_.id << '\t' << vcfLine_.ref << '\t' << vcfLine_.alt 
+	     << '\t' << vcfLine_.qual << '\t' <<vcfLine_.info << '\t' << vcfLine_.contigName << '\t' << vcfLine_.cigarString 
+	     << '\t' << std::endl;
 }
 
 void vcfWriter::writeVCFHeader(std::ofstream & vcfStream, const std::string & stub){

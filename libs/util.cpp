@@ -6,23 +6,23 @@
 #include "knownAlus.h"
 
 
-const bool util::isWithinRegion(const int32_t & i , const std::pair<int32_t, int32_t> & p) {
-  std::cout << "Checking if " << i << " is withing region: " << p.first << "," << p.second << std::endl; 
+const int32_t util::isWithinRegion(const int32_t & i , const std::pair<int32_t, int32_t> & p) {
+  //std::cout << "Checking if " << i << " is withing region: " << p.first << "," << p.second << std::endl; 
   if(i >= p.first and i <= p.second){
-    return true;
+    return i;
   }
-  return false;
+  return -1;
 }
 
-const bool util::intersectPeaksAndClips(const std::vector<std::pair<int32_t, int32_t> > & peakVec, const std::vector<clipCoords> & clipVec){
+const int32_t util::intersectPeaksAndClips(const std::vector<std::pair<int32_t, int32_t> > & peakVec, const std::vector<clipCoords> & clipVec){
   for(auto c : clipVec){
     for(auto p : peakVec){
-      if(util::isWithinRegion(c.clipStart, p)){
-	return true;
+      if(util::isWithinRegion(c.clipStart, p) != -1){
+	return util::isWithinRegion(c.clipStart, p);
       }
     }
   }
-  return false;
+  return -1;
 }
 
 const std::vector<int32_t> util::getInsertionVec(const BamTools::BamAlignment & al){

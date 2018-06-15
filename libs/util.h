@@ -29,12 +29,12 @@ class util{
   static const std::vector<std::string> Split(const std::string &, const char);
   static const char * getRootDirectory(std::string);
   static const std::vector<std::pair<int32_t, int32_t> > getPeaks(const BamTools::BamAlignment &);
-  static const bool intersectPeaksAndClips(const std::vector<std::pair<int32_t, int32_t> > &, const std::vector<clipCoords> &);
+  static const int32_t intersectPeaksAndClips(const std::vector<std::pair<int32_t, int32_t> > &, const std::vector<clipCoords> &);
   static const std::vector<int32_t> getInsertionVec(const BamTools::BamAlignment &);
 
 
  private:
-  static const bool isWithinRegion(const int32_t &, const std::pair<int32_t, int32_t> &);
+  static const int32_t isWithinRegion(const int32_t &, const std::pair<int32_t, int32_t> &);
   static const std::vector<int32_t> getPeakVector(const BamTools::BamAlignment &);
   static const bool anyOverlap(std::vector<int32_t> const &, std::vector<int32_t> const &);
 };
