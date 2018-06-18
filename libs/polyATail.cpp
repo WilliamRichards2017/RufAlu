@@ -131,9 +131,6 @@ bool polyA::isTailReverseStrand(){
 
 bool polyA::detectTailInWindow(const clipCoords &  c,  const char & atChar){
   std::string seq = al_.QueryBases;
-
-  //std::cout << "detecting tail for seq: " << seq << std::endl;
-  //std::cout << "with coords: " << c.clipStart << ", " << c.clipEnd << ", " << c.clipDir << std::endl;
   
   if(c.clipDir == rtl){
     if(c.clipStart - tailSize_ < 0){
@@ -227,26 +224,13 @@ void polyA::setGlobalClipCoords(int32_t index){
     coords_.clipStart = genomePositions[index];
     coords_.clipEnd = coords_.clipStart + clipSizes[index];
   }
-
+  
   //std::cout << "Setting global clip coords to be: " << coords_.clipDir << ", " << coords_.clipStart << ", " << coords_.clipEnd << std::endl;
 }
 
 bool polyA::detectPolyTail(){
-  //std::cout << "Inside detect polyA clips" << std::endl;
-  std::vector<clipCoords > localClipCoords = polyA::getLocalClipCoords();
-  //std::cout << "clips.size() is " << clips.size();
-  std::string seq = al_.QueryBases;
-  const char ac = 'A';
-  const char tc = 'T';
-  for(auto cIt = std::begin(localClipCoords); cIt != std::end(localClipCoords); ++cIt){
-    //std::cout << "clip coords are:" << cIt->first << ", " << cIt->second << std::endl;
-    //std::cout << "QueryBases is: " << seq << std::endl;
-    bool a = polyA::detectTailInWindow(*cIt,  ac);
-    bool t = polyA::detectTailInWindow(*cIt,  tc);
-    if(a || t){
-      polyA::setGlobalClipCoords(cIt->index);
-      return true;
-    }
+  if(longestTail_ >= tailSize_){
+    return true;
   }
   return false;
 }
@@ -256,8 +240,8 @@ const int32_t polyA::getLongestTail(){
 }
 
 polyA::polyA(BamTools::BamAlignment al, int32_t tailSize) : al_(al), tailSize_(tailSize){
-  isTail_ = detectPolyTail();
-  polyA::setLongestTail(polyA::getLocalClipCoords());
+    polyA::setLongestTail(polyA::getLocalClipCoords());
+    isTail_ = detectPolyTail();
 }
 
 polyA::~polyA(){

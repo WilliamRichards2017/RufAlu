@@ -50,7 +50,7 @@ TEST(PolyATests, trueLeftClipTails_p2788){
     else if(al.Name.compare("E00324:137:HNVKKCCXX:7:1203:9404:54102")==0){
       polyA tail = {al, 10};
       std::cerr << "Longest Tail for read : " << al.Name << " is:" << std::endl;
-      std::cerr << tail.getLongestTail();
+      std::cerr << tail.getLongestTail() << std::endl;
       std::cerr << "cigar is: ";
       util::printCigar(al.CigarData);
       ASSERT_TRUE( tail.getLongestTail() == 55);
@@ -72,7 +72,7 @@ TEST(PolyATests, longestTailLeftClip_p1348){
 	polyA tail = {al, 10};
 	
 	std::cerr << "Longest Tail for read : " << al.Name << " is:" << std::endl;
-	std::cerr << tail.getLongestTail();
+	std::cerr << tail.getLongestTail() << std::endl;
 	ASSERT_TRUE( tail.getLongestTail() == 59);
       }
     }
