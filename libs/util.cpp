@@ -6,8 +6,19 @@
 #include "contig.h"
 #include "knownAlus.h"
 
-const int32_t util::getLongestTail(const std::vector<polyA> l, const std::vector<polyA> r){
-  
+const int32_t util::getLongestTail(const std::vector<polyA> & l, const std::vector<polyA> & r){
+  int32_t maxTail = -1;
+  for(auto t : l){
+    if(t.getLongestTail() > maxTail){
+      maxTail = t.getLongestTail();
+    }
+  }
+  for(auto t : r){
+    if(t.getLongestTail() > maxTail){
+      maxTail = t.getLongestTail();
+    }
+  }
+  return maxTail;
 }
 
 const clipCoords util::isWithinRegion(clipCoords & cc , const std::pair<int32_t, int32_t> & p) {
@@ -41,10 +52,10 @@ const std::vector<int32_t> util::getInsertionVec(const BamTools::BamAlignment & 
       indel = 0;
     }
     else if(c.Type == 'I'){
-      indel += c.Length;
+      //indel += c.Length;
     }
     else if(c.Type == 'D'){
-      indel = c.Length * -1;
+      indel -= c.Length;
     }
   }
   return insertionVec;
@@ -68,8 +79,8 @@ std::vector<clipCoords> util::getLocalClipCoords(const BamTools::BamAlignment & 
 
     if(readPositions[i]-clipSizes[i]==0){
       c.clipDir = rtl;
-      c.clipStart = readPositions[i]-1+insertionVec[i];
-      c.clipEnd = c.clipStart - clipSizes[i]+1;
+      c.clipStart = readPositions[i] + insertionVec[i];
+      c.clipEnd = 0;
     }
     else{
       c.clipDir = ltr;
@@ -100,12 +111,12 @@ std::pair<int32_t, int32_t> getWindowPeak(std::string digitWindow){
 const std::vector<int32_t> util::getPeakVector(const BamTools::BamAlignment & al){
   
   std::vector<int32_t> peakVec;
-  std::cout << "peakVector : ";
+  //std::cout << "peakVector : ";
   for(auto c : al.Qualities){
     peakVec.push_back(int(c)-33); // ascii conversion
-    std::cout << peakVec.back() << ", ";
+    //std::cout << peakVec.back() << ", ";
   }
-  std::cout << std::endl;
+  //std::cout << std::endl;
   return peakVec;
   
 }
@@ -241,4 +252,11 @@ const char * util::getRootDirectory(std::string rufAluPath){
   }
   return rootDir.c_str();
 
+}
+
+void util::printCigar(const std::vector<BamTools::CigarOp> & cig){
+  for(auto c : cig){
+    std::cout << c.Type << c.Length;
+  }
+  std::cout << std::endl;
 }

@@ -25,12 +25,13 @@ class util{
   static std::string baseName(std::string);
   static bool checkDoubleStranded(std::vector<polyA>);
 
-  static const int32_t getLongestTail(const std::vector<polyA> &, std::vector<polyA> &);
+  static const int32_t getLongestTail(const std::vector<polyA> &, const std::vector<polyA> &);
   static const std::vector<std::string> Split(const std::string &, const char);
   static const char * getRootDirectory(std::string);
   static const std::vector<std::pair<int32_t, int32_t> > getPeaks(const BamTools::BamAlignment &);
   static const clipCoords intersectPeaksAndClips(const std::vector<std::pair<int32_t, int32_t> > &, const std::vector<clipCoords> &);
   static const std::vector<int32_t> getInsertionVec(const BamTools::BamAlignment &);
+  static void printCigar(const std::vector<BamTools::CigarOp> &);
 
 
  private:

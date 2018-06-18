@@ -27,14 +27,16 @@ class polyA{
   bool isTail();
   bool isTailLeftBound();
   bool isTailReverseStrand();
+  const int32_t getLongestTail();
  private:
 
   BamTools::BamAlignment al_;
   bool isTail_ = false;
   int32_t tailSize_;
   int32_t longestTail_ = 0;
-
-  const int32_t getLongestTail(const clipCoords & c);
+  int32_t detectRightTail(const clipCoords &, const char &);
+  int32_t detectLeftTail(const clipCoords &, const char &);
+  void setLongestTail(const std::vector<clipCoords> & c);
   bool detectPolyTail();
   bool detectTailInWindow(const clipCoords &, const char &);
   void printTailDebug();
