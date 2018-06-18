@@ -73,6 +73,7 @@ class vcfWriter{
   void populateVCFLine();  
 
   void writeFilter();
+  void writeInfo();
 
 };
 

@@ -6,6 +6,9 @@
 #include "contig.h"
 #include "knownAlus.h"
 
+const int32_t util::getLongestTail(const std::vector<polyA> l, const std::vector<polyA> r){
+  
+}
 
 const clipCoords util::isWithinRegion(clipCoords & cc , const std::pair<int32_t, int32_t> & p) {
   //std::cout << "Checking if " << i << " is withing region: " << p.first << "," << p.second << std::endl; 

@@ -128,7 +128,6 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
       if(KnownAlus::bedFilter(*caIt)) {
       	bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
 	    << '\t'<< cvIt->name << '\t' << cvIt->alusHit[0] << '\t' << caIt->readsInRegion << '\t' << caIt->alignedContig.IsPrimaryAlignment();
-	
 	if(caIt->leftBound){
 	  bed  << '\t' << caIt->leftBoundTails.size() << '\t' << caIt->doubleStranded << std::endl;
 	}
@@ -172,7 +171,6 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
 	std::cout << "could not set region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
 	
       }
-      
       while(reader.GetNextAlignment(al)){
 	caIt->readsInRegion += 1;
 	if(caIt->readsInRegion > 998){

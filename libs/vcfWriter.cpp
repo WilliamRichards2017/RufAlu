@@ -1,3 +1,4 @@
+
 #include <stdexcept>
 #include <string>
 #include <time.h>
@@ -29,7 +30,8 @@ void vcfWriter::populateVCFLine(){
   vcfLine_.INFO.MQ = ca_.alignedContig.MapQuality;
   vcfLine_.INFO.RN = ca_.alignedContig.Name;
   vcfLine_.INFO.NT =  std::max(ca_.leftBoundTails.size(), ca_.rightBoundTails.size());
-  vcfLine_.INFO.LT = ca_.longestTail;
+  //vcfLine_.INFO.LT = ca_.longestTail;
+  vcfLine_.INFO.LT = util::getLongestTail(ca_.leftBoundTails, ca_.rightBoundTails);
 
 
   for(auto it = std::begin(ca_.alignedContig.CigarData); it != std::end(ca_.alignedContig.CigarData); ++it){
@@ -68,13 +70,21 @@ void vcfWriter::writeFilter(){
   }
 }
 
+void vcfWriter::writeInfo(){
+  vcfStream_ << "NT=" << vcfLine_.INFO.NT << ";LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE 
+	     << ";SVLEN=" << vcfLine_.INFO.SVLEN << ";RN=" << vcfLine_.INFO.RN << ";cigar=" << vcfLine_.INFO.cigar << ';';
+}
+
 void vcfWriter::writeVCFLine(){
   vcfStream_ << vcfLine_.CHROM << '\t' << vcfLine_.POS << '\t'  << vcfLine_.ID << '\t' << vcfLine_.REF << '\t' << vcfLine_.ALT 
 	     << '\t' << vcfLine_.QUAL << '\t';
-
+  
   vcfWriter::writeFilter();
+  vcfWriter::writeInfo();
 
-  vcfStream_ << "NT=" << vcfLine_.INFO.NT << "LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE << ";SVLEN=" << vcfLine_.INFO.SVLEN << ";RN=" << vcfLine_.INFO.RN << "cigar=" << vcfLine_.INFO.cigar << ';' << std::endl;
+  vcfStream_ << std::endl;
+
+
 }
 
 void vcfWriter::writeVCFHeader(std::ofstream & vcfStream, const std::string & stub){

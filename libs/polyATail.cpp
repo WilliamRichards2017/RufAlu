@@ -14,29 +14,52 @@ void printWindow(std::list<const char*> window){
   std::cout << std::endl;
 }
 
-
-/*void printTailDebug(BamTools::BamAlignment al){
-  std::vector<BamTools::CigarOp> cigar = al.CigarData;
-  std::cout << "Name of Read: " << al.Name << std::endl;
-  std::cout << "Query Bases: " << al.QueryBases << std::endl;
-  //std::cout << "Tail       : " << tail << std::endl;
-  std::cout << "Cig        : ";
-  for(auto cIt = std::begin(cigar); cIt != std::end(cigar); ++cIt){
-    for(uint32_t i = 0;  i < cIt->Length; ++i){
-      std::cout << cIt->Type;
+const int32_t polyA::getLongestTail(const clipCoords & c){
+  std::string seq = al_.QueryBases;
+  int32_t leftATail = 0;
+  int32_t leftTTail = 0;
+  int32_t rightATail = 0;
+  int32_t rightTTail = 0;
+  if(c.clipDir == rtl){
+    std::string leftClip = seq.substr(0, c.clipStart);
+    for(auto it = std::end(leftClip); it != std::begin(leftClip); --it){
+      if(*it=='A'){
+	leftATail += 1;
+      }
+      else{
+	break;
+      }
     }
-    
+    for(auto it = std::end(leftClip); it != std::begin(leftClip); --it){
+      if(*it=='T'){
+	leftTTail += 1;
+      }
+      else{
+        break;
+      }
+    }
   }
-  std::cout << std::endl;
-  
-  std::vector<std::pair<int32_t, int32_t> > clips = polyA::getClipCoords();
-  std::cout << "Clipped coords are: ";
-  for(auto cIt = std::begin(clips); cIt != std::end(clips); ++cIt){
-    std::cout << cIt->first  << ", " << cIt->second << std::endl;
+  else if(c.clipDir == ltr){
+    std::string rightClip = seq.substr(c.clipStart, std::abs(c.clipEnd-c.clipStart));
+    for(auto c : rightClip){
+      if(c == 'A'){
+	rightATail += 1;
+      }
+      else {
+	break;
+      }
+    }
+    for(auto c : rightClip){
+      if(c=='T'){
+	rightTTail +=1;
+      }
+      else{
+	break;
+      }
+    }
   }
-  std::cout << std::endl;  
-  }
-*/ 
+  return std::max(leftATail, std::max(leftTTail, std::max(rightATail, rightTTail)));
+}
 
 
 bool polyA::isTail(){
@@ -51,9 +74,7 @@ bool polyA::isTailReverseStrand(){
   return al_.IsReverseStrand();
 }
 
-
-
-bool polyA::detectTailInWindow(clipCoords  c,  const char atChar){
+bool polyA::detectTailInWindow(const clipCoords &  c,  const char & atChar){
   std::string seq = al_.QueryBases;
 
   //std::cout << "detecting tail for seq: " << seq << std::endl;
@@ -174,6 +195,7 @@ bool polyA::detectPolyTail(){
 
 polyA::polyA(BamTools::BamAlignment al, int32_t tailSize) : al_(al), tailSize_(tailSize){
   isTail_ = detectPolyTail();
+  longestTail_ = getLongestTail;
 }
 
 polyA::~polyA(){

@@ -33,9 +33,10 @@ class polyA{
   bool isTail_ = false;
   int32_t tailSize_;
   int32_t longestTail_ = 0;
-  
+
+  const int32_t getLongestTail(const clipCoords & c);
   bool detectPolyTail();
-  bool detectTailInWindow(clipCoords, const char);
+  bool detectTailInWindow(const clipCoords &, const char &);
   void printTailDebug();
   std::vector<clipCoords> getLocalClipCoords();
   void setGlobalClipCoords(int32_t);
