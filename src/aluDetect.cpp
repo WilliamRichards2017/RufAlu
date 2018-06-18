@@ -1,13 +1,9 @@
-#include "fastqParse.h"
 #include <string>
 #include <list>
 #include <stdio.h>
 #include <iostream>
 #include <stdexcept>
 
-
-#include "libs/polyATail.h"
-#include "libs/discordantAndChimericReads.h"
 #include "libs/knownAlus.h"
 
 int main(int argc, char *argv[] ){

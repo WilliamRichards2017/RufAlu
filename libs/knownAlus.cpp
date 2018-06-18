@@ -11,12 +11,10 @@
 #include <unordered_map>
 
 #include "contig.h"
-#include "fastqParse.h"
 #include "knownAlus.h"
 #include "kseq.h"
 #include "minimap.h"
 #include "polyATail.h"
-#include "intersect.h"
 #include "util.h"
 #include "vcfWriter.h"
 
@@ -323,11 +321,11 @@ void KnownAlus::pullContigAlignments(){
     while(reader.GetNextAlignment(al)){
       if(cvIt->name.compare(al.Name)==0 and al.HasTag("SA")){
 	//std::cout << "Checking for peak and clip coord intersection for read: " << al.Name << std::endl;
-	int32_t clipPeak = util::intersectPeaksAndClips(util::getPeaks(al), util::getLocalClipCoords(al));
-	if(clipPeak != -1){
+	clipCoords clipPeak = util::intersectPeaksAndClips(util::getPeaks(al), util::getLocalClipCoords(al));
+	if(clipPeak.clipStart != -1){
 	  //std::cout << "Found intersection between peak and clips" << std::endl;
 	  contigAlignment ca = {};
-	  ca.clipPeak = clipPeak;
+	  ca.clipCoords_ = clipPeak;
 	  ca.aluHit = cvIt->alusHit[0];
 	  ca.alignedContig = al;
 	  ca.chrom = getChromosomeFromRefID(ca.alignedContig.RefID);

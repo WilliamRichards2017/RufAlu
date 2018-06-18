@@ -1,6 +1,8 @@
 #ifndef POLYA_H
 #define POLYA_H
+
 #include <string>
+
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
 

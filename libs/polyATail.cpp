@@ -1,4 +1,3 @@
-#include "fastqParse.h"
 #include <string.h>
 #include <ctype.h>
 #include <list>

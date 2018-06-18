@@ -10,9 +10,12 @@
 #include "polyATail.h"
 #include "util.h"
 
+struct clipCoords;
 
 struct contigAlignment {
+  std::string aluHit;
   std::string chrom;
+  clipCoords clipCoords_;
   BamTools::BamAlignment alignedContig;
   BamTools::BamRegion alignedRegion;
   std::vector<polyA> leftBoundTails;
@@ -20,8 +23,8 @@ struct contigAlignment {
   bool doubleStranded = false;
   bool leftBound = false;
   bool rightBound = false;
-  int readsInRegion = 0;
-  uint32_t longestTail = 0;
+  int32_t readsInRegion = 0;
+  int32_t longestTail = 0;
 };
 
 struct contig {

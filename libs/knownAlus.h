@@ -1,21 +1,22 @@
 #ifndef KNOWNALUS_H
 #define KNOWNALUS_H
 
-#include "fastqParse.h"
-#include "kseq.h"
-#include "minimap.h"
+
 #include <vector>
 #include <string>
 #include <iostream>
 #include <utility> // std::pair
 
 #include "contig.h"
-#include "intersect.h"
 #include "util.h"
 
 #include "api/BamMultiReader.h"
 #include "api/BamWriter.h"
+#include "kseq.h"
+#include "minimap.h"
 
+
+struct contig;
 struct contigAlignment;
 
 class KnownAlus{
