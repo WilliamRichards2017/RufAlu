@@ -1,6 +1,5 @@
 #ifndef __VCF_WRITER_H__
 #define __VCF_WRITER_H__
-
 #include "contig.h"
 
 #include <iostream>
@@ -14,6 +13,9 @@ struct filterField{
   int32_t polyA; //FILTER=<ID=SB,Description="atleast 3 polyA tails that start at the same point"> 
 };
 struct infoField {
+  int32_t NR  =  -1; // INFO=<ID=NR,Number=1,Type=Integer,Description="Number of total reads in target region">
+  int32_t NT  =  -1; // INFO=<ID=NT,Number=1,Type=Integer,Description="Number of polyA tails in target region">
+  int32_t LT  =  -1; // INFO=<ID=LT,Number=1,Type=Integer,Description="Longest polyA tail in target region"> 
   std::string SVTYPE; // INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of SV detected">
   int32_t SVLEN = -1; // INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Length of SV detected"> 
   int32_t END = -1; // INFO=<ID=END,Number=1,Type=Integer,Description="END of SV detected">
@@ -22,9 +24,6 @@ struct infoField {
   std::string RN; // INFO=<ID=RN,Number=1,Type=String,Description="Name of contig that produced the call">
   int16_t MQ = -1; // INFO=<ID=MQ,Number=1,Type=Integer,Description="Mapping quality of the contig that created the call">
   std::string cigar; 
-  int32_t NT  =  -1; // INFO=<ID=NT,Number=1,Type=Integer,Description="Number of polyA tails in target region">
-  int32_t LT  =  -1; // INFO=<ID=NT,Number=1,Type=Integer,Description="Longest polyA tail in target region">                                                                                              
- 
 };
 
 struct formatField {

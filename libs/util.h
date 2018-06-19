@@ -32,11 +32,12 @@ class util{
   static const clipCoords intersectPeaksAndClips(const std::vector<std::pair<int32_t, int32_t> > &, const std::vector<clipCoords> &);
   static const std::vector<int32_t> getInsertionVec(const BamTools::BamAlignment &);
   static void printCigar(const std::vector<BamTools::CigarOp> &);
+  static const std::vector<int32_t> getPeakVector(const BamTools::BamAlignment &);
+
 
 
  private:
   static const clipCoords isWithinRegion(clipCoords &, const std::pair<int32_t, int32_t> &);
-  static const std::vector<int32_t> getPeakVector(const BamTools::BamAlignment &);
   static const bool anyOverlap(std::vector<int32_t> const &, std::vector<int32_t> const &);
 };
 

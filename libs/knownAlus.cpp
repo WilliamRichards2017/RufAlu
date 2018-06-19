@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <assert.h>
 #include <cstring>
 #include <stdio.h>
@@ -123,7 +124,7 @@ void KnownAlus::writeContigVecToVCF(std::ofstream & vcf){
 }
 
 void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
-  for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
+  /*for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
       if(KnownAlus::bedFilter(*caIt)) {
       	bed << getChromosomeFromRefID(caIt->alignedContig.RefID) << '\t'<< caIt->alignedContig.Position << '\t' << caIt->alignedContig.GetEndPosition() 
@@ -139,7 +140,7 @@ void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
 	}
       }
     }
-  }
+    }*/
 }
 
 
@@ -188,13 +189,18 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
 	}
       }
       if(util::checkDoubleStranded(caIt->leftBoundTails)){
-	caIt->doubleStranded = true;
-	caIt->leftBound = true;
+	caIt->leftBoundDS = true;
       }
       if(util::checkDoubleStranded(caIt->rightBoundTails)){
-	caIt->doubleStranded = true;
+	caIt->rightBoundDS = true;
+      }
+      if(caIt->leftBoundTails.size() > 1){
+	caIt->leftBound = true;
+      }
+      if(caIt->rightBoundTails.size() > 1){
 	caIt->rightBound = true;
       }
+      
     }
   }
   reader.Close();
@@ -285,7 +291,7 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
   KnownAlus::pullContigAlignments();
 
   std::cout << "[4/5]  Finding reads containing polyA tails for " << stub_ << std::endl;
-  KnownAlus::findReadsContainingPolyTails(10);
+  KnownAlus::findReadsContainingPolyTails(8);
 
 
   //KnownAlus::printContigVec();
@@ -327,6 +333,9 @@ void KnownAlus::pullContigAlignments(){
 	  ca.aluHit = cvIt->alusHit[0];
 	  ca.alignedContig = al;
 	  ca.chrom = getChromosomeFromRefID(ca.alignedContig.RefID);
+	  std::vector<int32_t> peakVector = util::getPeakVector(al);
+	  auto it =  std::max_element(peakVector.begin(), peakVector.end());
+	  ca.maxHash = peakVector[std::distance(peakVector.begin(), it)];
 	  cvIt->contigAlignments.push_back(ca);
 	}
       }

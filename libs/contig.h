@@ -20,11 +20,13 @@ struct contigAlignment {
   BamTools::BamRegion alignedRegion;
   std::vector<polyA> leftBoundTails;
   std::vector<polyA> rightBoundTails;
-  bool doubleStranded = false;
+  bool leftBoundDS = false;
+  bool rightBoundDS = false;
   bool leftBound = false;
   bool rightBound = false;
   int32_t readsInRegion = 0;
   int32_t longestTail = 0;
+  int32_t maxHash = 0;
 };
 
 struct contig {
