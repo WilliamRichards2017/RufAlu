@@ -6,6 +6,31 @@
 #include "contig.h"
 #include "knownAlus.h"
 
+const std::vector<std::string> util::getClipSeqs(const BamTools::BamAlignment & al){
+  std::vector<std::string> clipSeqs;
+
+  std::vector<int> clipSizes;
+  std::vector<int> readPositions;
+  std::vector<int> genomePositions;
+  al.GetSoftClips(clipSizes, readPositions, genomePositions);
+  for(int i = 0; i < readPositions.size(); ++i){
+    //std::cout << "Clipped seq for read is: " << al.QueryBases.substr(readPositions[i], clipSizes[i]) << std::endl;
+    clipSeqs.push_back(al.QueryBases.substr(readPositions[i], clipSizes[i]));
+  }
+  return clipSeqs;
+}
+
+const std::pair<std::string, int32_t> util::getHighestQualityAluHit(const std::vector<std::pair<std::string, int32_t> > & aluHits){
+  std::pair<std::string, int32_t> maxQualHit = std::make_pair("", -1);
+  for(auto a : aluHits){
+    if(a.second > maxQualHit.second){
+      maxQualHit = a;
+    }
+  }
+  std::cout << "highest quality hit for " << maxQualHit.first << " is " << maxQualHit.second << std::endl;
+  return maxQualHit;
+}
+
 const int32_t util::getLongestTail(const std::vector<polyA> & l, const std::vector<polyA> & r){
   int32_t maxTail = -1;
   for(auto t : l){

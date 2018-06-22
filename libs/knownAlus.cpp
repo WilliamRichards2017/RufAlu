@@ -11,6 +11,7 @@
 #include <fstream>
 #include <unordered_map>
 
+#include "aluHead.h"
 #include "contig.h"
 #include "knownAlus.h"
 #include "kseq.h"
@@ -25,16 +26,23 @@
 KSEQ_INIT(gzFile, gzread)
 
 bool debugPrintFilter(contigAlignment & ca){
-  if(ca.leftBound || ca.rightBound and ca.readsInRegion < 400){
+  if(ca.tailLeftBound || ca.tailRightBound and ca.readsInRegion < 400){
     return true;
   }
   return false;
 }
 
 void printContigAlignment(contigAlignment & ca){
-  if(debugPrintFilter(ca)){
-    std::cout << "Aligned Contig name: " << ca.alignedContig.Name << std::endl;
-    std::cout << "Quality string: " << ca.alignedContig.Qualities << std::endl;
+
+  if(ca.alignedContig.Name.compare("NODE_1348.bam.generator.V2_368_L191_D11:8:3::MH0") == 0){
+    std::cout << std::endl;
+    std::cout << "printing contig alignment: " << ca.alignedContig.Name;
+    std::cout << "ca.leftBoundHeads.size(): " << ca.leftBoundHeads.size();
+    for(auto head : ca.leftBoundHeads){
+      std::cout << "head name is: " << head.al_.Name << std::endl;
+      std::cout << "head seq is: " << head.al_.QueryBases << std::endl;
+    }
+    std::cout << std::endl;
   }
 }
 
@@ -82,7 +90,7 @@ void KnownAlus::writeBedPEHeader(std::ofstream &bed){
 bool KnownAlus::bedFilter(contigAlignment & ca) {
   if(ca.readsInRegion < 400 and std::max(ca.rightBoundTails.size(), ca.leftBoundTails.size()) > 1){
     return true;
-      if(ca.leftBound){
+      if(ca.tailLeftBound){
 	if (ca.rightBoundTails.size() > 1){
 	  return false;
 	}
@@ -113,9 +121,10 @@ void KnownAlus::writeToVCF(std::string & vcfFile){
 }
 
 void KnownAlus::writeContigVecToVCF(std::ofstream & vcf){
-  for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
-    for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
-      vcfWriter writer = {*caIt, vcf, stub_};
+  //for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
+  for(auto c : contigVec_){
+    for(auto ca : c.contigAlignments){
+      vcfWriter writer = {ca, vcf, stub_};
       if(writer.vcfFilter()){
 	writer.writeVCFLine();
       }
@@ -189,21 +198,58 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
 	}
       }
       if(util::checkDoubleStranded(caIt->leftBoundTails)){
-	caIt->leftBoundDS = true;
+	caIt->tailLeftBoundDS = true;
       }
       if(util::checkDoubleStranded(caIt->rightBoundTails)){
-	caIt->rightBoundDS = true;
+	caIt->tailRightBoundDS = true;
       }
       if(caIt->leftBoundTails.size() > 1){
-	caIt->leftBound = true;
+	caIt->tailLeftBound = true;
       }
       if(caIt->rightBoundTails.size() > 1){
-	caIt->rightBound = true;
+	caIt->tailRightBound = true;
       }
       
     }
   }
   reader.Close();
+}
+
+void KnownAlus::findReadsContainingHeads(){
+  BamTools::BamReader reader;
+  BamTools::BamAlignment al;
+  if (!reader.Open(rawBamPath_)){
+    std::cout << "Could not open input Bam file" << rawBamPath_ << std::endl;
+    std::cout << "Existing run with non-sero status.." << std::endl;
+    exit (EXIT_FAILURE);
+  }
+
+  reader.LocateIndex();
+  if (!reader.HasIndex()){
+    std::cout << "Index for" << rawBamPath_ << "could not be opened" << std::endl;
+    std::cout << "Exiting run with non-sero status.." << std::endl;
+    reader.Close();
+    exit (EXIT_FAILURE);
+  }
+
+  for(auto cIt = std::begin(contigVec_); cIt != std::end(contigVec_); ++cIt){
+    for(auto caIt = std::begin(cIt->contigAlignments); caIt != std::end(cIt->contigAlignments); ++caIt){
+      
+      BamTools::BamRegion region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
+      if(!reader.SetRegion(region)) {
+	std::cout << "could not set region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " 
+		  << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
+      }
+      BamTools::BamAlignment al;
+      while(reader.GetNextAlignment(al)){
+	aluHead head = {(util::getClipSeqs(caIt->alignedContig))[0], al, aluFastaPath_, 10};
+	if(head.isHead()){
+	  std::cout << "found alu Head " << caIt->aluHit.first << std::endl;
+	  caIt->leftBoundHeads.push_back(head);
+	}
+      }
+    }
+  }
 }
 
 
@@ -229,7 +275,7 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
    mm_idx_t *mi;
    while ((mi = mm_idx_reader_read(r, n_threads)) != 0) { // traverse each part of the index
      mm_mapopt_update(&mopt, mi); // this sets the maximum minimizer occurrence
-     mm_tbuf_t *tbuf = mm_tbuf_init(); // thread buffer; for multi-threading, allocate one tbuf for each thread                                                                                                                               
+     mm_tbuf_t *tbuf = mm_tbuf_init(); // thread buffer; for multi-threading, allocate one tbuf for each thread                                                                                                                              
 
      while (kseq_read(ks) >= 0) { // each kseq_read() call reads one query sequence                                                                                                                                                           
        //std::cout << "looping through kseq_reads" << std::endl; 
@@ -247,7 +293,7 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
        
        for (j = 0; j < n_reg; ++j) { // traverse hits and print them out
 	 mm_reg1_t *r = &reg[j];
-	 c.alusHit.push_back(mi->seq[r->rid].name);
+	 c.alusHit.push_back(std::make_pair(mi->seq[r->rid].name, int(r->mapq)));
 	 free(r->p);
 	 // std::cout << "found alu hit for contig: " << ks->name.s << std::endl;
        }
@@ -291,10 +337,11 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
   KnownAlus::pullContigAlignments();
 
   std::cout << "[4/5]  Finding reads containing polyA tails for " << stub_ << std::endl;
-  KnownAlus::findReadsContainingPolyTails(8);
+  KnownAlus::findReadsContainingPolyTails(9);
+  KnownAlus::findReadsContainingHeads();
 
 
-  //KnownAlus::printContigVec();
+  KnownAlus::printContigVec();
 
 
   std::cout << "[5/5] Writing out results to vcf file " << stub_  << ".vcf" << std::endl;
@@ -330,7 +377,8 @@ void KnownAlus::pullContigAlignments(){
 	  //std::cout << "Found intersection between peak and clips" << std::endl;
 	  contigAlignment ca = {};
 	  ca.clipCoords_ = clipPeak;
-	  ca.aluHit = cvIt->alusHit[0];
+	  //ca.aluHit = cvIt->alusHit[0].first;
+	  ca.aluHit = util::getHighestQualityAluHit(cvIt->alusHit);
 	  ca.alignedContig = al;
 	  ca.chrom = getChromosomeFromRefID(ca.alignedContig.RefID);
 	  std::vector<int32_t> peakVector = util::getPeakVector(al);

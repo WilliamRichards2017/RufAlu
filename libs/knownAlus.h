@@ -43,6 +43,7 @@ class KnownAlus{
   void findContigsContainingKnownAlus();
   void pullContigAlignments();
   void findReadsContainingPolyTails(int32_t);
+  void findReadsContainingHeads();
 
   bool bedFilter(contigAlignment &);
   void writeBedPEHeader(std::ofstream &);
