@@ -12,10 +12,12 @@ const std::vector<std::string> util::getClipSeqs(const BamTools::BamAlignment & 
   std::vector<int> clipSizes;
   std::vector<int> readPositions;
   std::vector<int> genomePositions;
+  const std::vector<int32_t> insertionVec = util::getInsertionVec(al);
+
   al.GetSoftClips(clipSizes, readPositions, genomePositions);
   for(int i = 0; i < readPositions.size(); ++i){
     //std::cout << "Clipped seq for read is: " << al.QueryBases.substr(readPositions[i], clipSizes[i]) << std::endl;
-    clipSeqs.push_back(al.QueryBases.substr(readPositions[i], clipSizes[i]));
+    clipSeqs.push_back(al.QueryBases.substr(readPositions[i]+insertionVec[i], clipSizes[i]));
   }
   return clipSeqs;
 }
