@@ -33,14 +33,18 @@ bool debugPrintFilter(contigAlignment & ca){
 }
 
 void printContigAlignment(contigAlignment & ca){
-
-  if(ca.alignedContig.Name.compare("NODE_1348.bam.generator.V2_368_L191_D11:8:3::MH0") == 0){
+  if(ca.alignedContig.Name.compare("NODE_8800.bam.generator.V2_372_L151_D6:6:0::MH0") == 0){
     std::cout << std::endl;
     std::cout << "printing contig alignment: " << ca.alignedContig.Name;
     std::cout << "ca.leftBoundHeads.size(): " << ca.leftBoundHeads.size();
     for(auto head : ca.leftBoundHeads){
       std::cout << "head name is: " << head.al_.Name << std::endl;
       std::cout << "head seq is: " << head.al_.QueryBases << std::endl;
+    }
+    for(auto tail : ca.leftBoundTails){
+      std::cout << "tail name is: " << tail.al_.Name << std::endl;
+      std::cout << "tail seq is: " << tail.al_.QueryBases << std::endl;
+      
     }
     std::cout << std::endl;
   }
@@ -53,6 +57,9 @@ void printContig(contig & c){
   
 }
 
+void printContigByName(std::string contigName){
+  
+}
 
 
 void KnownAlus::printContigVec(){
@@ -175,7 +182,7 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
       BamTools::BamRegion region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
    
-      std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
+      //std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
    
       if(!reader.SetRegion(region)) {
 	std::cout << "could not set region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
@@ -183,7 +190,7 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
       }
       while(reader.GetNextAlignment(al)){
 	caIt->readsInRegion += 1;
-	if(caIt->readsInRegion > 998){
+	if(caIt->readsInRegion > 200){
 	  break;
 	}
 	//std::cout << "count of reads in region is: " << caIt->readsInRegion << std::endl;
@@ -234,27 +241,29 @@ void KnownAlus::findReadsContainingHeads(){
 
   for(auto cIt = std::begin(contigVec_); cIt != std::end(contigVec_); ++cIt){
     for(auto caIt = std::begin(cIt->contigAlignments); caIt != std::end(cIt->contigAlignments); ++caIt){
-      
-      BamTools::BamRegion region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
-      if(!reader.SetRegion(region)) {
-	std::cout << "could not set region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " 
-		  << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
-      }
-      BamTools::BamAlignment al;
-      while(reader.GetNextAlignment(al)){
-	aluHead head = {(util::getClipSeqs(caIt->alignedContig))[0], al, aluFastaPath_, 10};
-	if(head.isHead()){
-	  std::cout << "found alu Head " << caIt->aluHit.first << std::endl;
-	  caIt->leftBoundHeads.push_back(head);
+      if(caIt->readsInRegion < 201){
+	
+	BamTools::BamRegion region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
+	if(!reader.SetRegion(region)) {
+	  std::cout << "could not set region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " 
+		    << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
+	}
+	BamTools::BamAlignment al;
+	while(reader.GetNextAlignment(al)){
+	  aluHead head = {(util::getClipSeqs(caIt->alignedContig))[0], al, aluFastaPath_, 10};
+	  if(head.isHead()){
+	    caIt->leftBoundHeads.push_back(head);
+	  }
 	}
       }
     }
   }
+  reader.Close();
 }
 
 
- void KnownAlus::findContigsContainingKnownAlus()
- {
+void KnownAlus::findContigsContainingKnownAlus()
+{
    mm_idxopt_t iopt;
    mm_mapopt_t mopt;
    int n_threads = 3;
@@ -295,11 +304,11 @@ void KnownAlus::findReadsContainingHeads(){
 	 mm_reg1_t *r = &reg[j];
 	 c.alusHit.push_back(std::make_pair(mi->seq[r->rid].name, int(r->mapq)));
 	 free(r->p);
-	 // std::cout << "found alu hit for contig: " << ks->name.s << std::endl;
+	 //std::cout << "found alu hit for contig: " << ks->name.s << std::endl;
        }
-
+       
        if(c.alusHit.size() > 0){
-	 //std::cout << "found contig containing knonw alu" << std::endl;
+	 // std::cout << "found contig containing knonw alu: " <<  c.name << std::endl;
 	 contigVec_.push_back(c);
        }
 
@@ -329,22 +338,22 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
   contigVec_ = {};
   refData_ = {};
 
-  std::cout << "[1/5]  Populating reference data for " << stub_ << std::endl;
+  std::cerr << "[1/6]  Populating reference data for " << stub_ << std::endl;
   KnownAlus::populateRefData();
-  std::cout << "[2/5]  Finding contigs containing known alus for " << stub_ << std::endl;
+
+  std::cerr << "[2/6]  Finding contigs containing known alus for " << stub_ << std::endl;
   KnownAlus::findContigsContainingKnownAlus();
-  std::cout << "[3/5]  Pulling contig hit alignments for " << stub_ <<  std::endl;
+
+  std::cerr << "[3/6]  Pulling contig hit alignments for " << stub_ <<  std::endl;
   KnownAlus::pullContigAlignments();
 
-  std::cout << "[4/5]  Finding reads containing polyA tails for " << stub_ << std::endl;
+  std::cerr << "[4/6]  Finding reads containing polyA tails for " << stub_ << std::endl;
   KnownAlus::findReadsContainingPolyTails(9);
+
+  std::cerr << "[5/6]  Finding reads containing alu heads tails for " << stub_ << std::endl;
   KnownAlus::findReadsContainingHeads();
 
-
-  KnownAlus::printContigVec();
-
-
-  std::cout << "[5/5] Writing out results to vcf file " << stub_  << ".vcf" << std::endl;
+  std::cerr << "[6/6] Writing out results to vcf file " << stub_  << ".vcf" << std::endl;
   std::string vcfString = prefix_ + stub_ + ".vcf";
   KnownAlus::writeToVCF(vcfString);
 
@@ -372,9 +381,11 @@ void KnownAlus::pullContigAlignments(){
     while(reader.GetNextAlignment(al)){
       if(cvIt->name.compare(al.Name)==0 and al.HasTag("SA")){
 	//std::cout << "Checking for peak and clip coord intersection for read: " << al.Name << std::endl;
+	//util::printCigar(al.CigarData);
+	//std::cout << al.Qualities << std::endl;
 	clipCoords clipPeak = util::intersectPeaksAndClips(util::getPeaks(al), util::getLocalClipCoords(al));
 	if(clipPeak.clipStart != -1){
-	  //std::cout << "Found intersection between peak and clips" << std::endl;
+	  //std::cout << "Found intersection between peak and clips for " << cvIt->name << std::endl;
 	  contigAlignment ca = {};
 	  ca.clipCoords_ = clipPeak;
 	  //ca.aluHit = cvIt->alusHit[0].first;
@@ -392,4 +403,3 @@ void KnownAlus::pullContigAlignments(){
   }
   reader.Close();
 }
-

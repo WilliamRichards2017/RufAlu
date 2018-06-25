@@ -26,7 +26,7 @@ int32_t polyA::detectLeftTail(const clipCoords & cc, const char & c){
   
   int32_t leftTail = 0;
   std::string leftClip = al_.QueryBases.substr(0, cc.clipStart);
-
+  
   
 
   std::reverse(leftClip.begin(), leftClip.end());
@@ -122,7 +122,7 @@ bool polyA::isTail(){
 }
 
 bool polyA::isTailLeftBound(){
-  return (coords_.clipDir == rtl);
+  return util::isReadLeftBound(al_.CigarData);
 }
 
 bool polyA::isTailReverseStrand(){
@@ -171,7 +171,7 @@ bool polyA::detectTailInWindow(const clipCoords &  c,  const char & atChar){
 }
 
 std::vector<clipCoords> polyA::getLocalClipCoords() {
-  std::vector<clipCoords> coordsVec = {};
+  std::vector<clipCoords> coordsVec;
   std::vector<int> clipSizes;
   std::vector<int> readPositions;
   std::vector<int> genomePositions;
@@ -186,22 +186,16 @@ std::vector<clipCoords> polyA::getLocalClipCoords() {
 
  
   for(int32_t i = 0; i < readPositions.size(); ++i){
-        
-    if(readPositions[i]-clipSizes[i]==0){
+    if(util::isReadLeftBound(al_.CigarData)){
       c.clipDir = rtl;
-      c.clipStart = readPositions[i] + insertionVec[i];
-      c.clipEnd = 0;
     }
     else{
       c.clipDir = ltr;
-      c.clipStart = readPositions[i] + insertionVec[i];
-      c.clipEnd = c.clipStart + clipSizes[i];
     }
+    c.clipStart = readPositions[i] + insertionVec[i];
+    c.clipEnd = 0;
     c.index = i;
     coordsVec.push_back(c);
-    
-    //std::cout << "detecting tail for seq: " << al_.QueryBases << std::endl;
-    //std::cout << "with clip coords " << c.clipStart << ", " << c.clipEnd << ", " << c.clipDir << std::endl;
   }
   return coordsVec;
 }
@@ -213,8 +207,10 @@ void polyA::setGlobalClipCoords(int32_t index){
   std::vector<int> readPositions;
   std::vector<int> genomePositions;
   al_.GetSoftClips(clipSizes, readPositions, genomePositions);
+
+  const std::vector<int32_t> insertionVec = util::getInsertionVec(al_);
   
-  if(readPositions[index] - clipSizes[index] == 0){
+  if(readPositions[index] - clipSizes[index] + insertionVec[index] == 0){
     coords_.clipDir = rtl;
     coords_.clipStart = genomePositions[index] + clipSizes[index];
     coords_.clipEnd = genomePositions[index];

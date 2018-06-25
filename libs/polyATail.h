@@ -21,6 +21,7 @@ class polyA{
   polyA(BamTools::BamAlignment, int32_t);
   ~polyA();
 
+  BamTools::BamAlignment al_;
   clipCoords coords_ = {0,0,rtl};
 
   
@@ -30,7 +31,6 @@ class polyA{
   const int32_t getLongestTail();
  private:
 
-  BamTools::BamAlignment al_;
   bool isTail_ = false;
   int32_t tailSize_;
   int32_t longestTail_ = 0;

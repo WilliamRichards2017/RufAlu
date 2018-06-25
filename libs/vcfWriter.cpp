@@ -9,6 +9,14 @@
 //TODO: Implement vcf filter
 const bool vcfWriter::vcfFilter(){
   return true;
+  if(vcfLine_.INFO.NR > 200) {
+    return false;
+  }
+  
+  if(vcfLine_.INFO.NH < 2 || vcfLine_.INFO.NT < 2){
+    return false; 
+  }
+  return true;
 }
 
 void vcfWriter::populateVCFLine(){
@@ -31,11 +39,19 @@ void vcfWriter::populateVCFLine(){
   vcfLine_.INFO.MQ = ca_.alignedContig.MapQuality;
   vcfLine_.INFO.RN = ca_.alignedContig.Name;
   if(ca_.tailLeftBound){
+    vcfLine_.INFO.TB = "tailLeftBound";
     vcfLine_.INFO.NT = ca_.leftBoundTails.size();
   }
-  else if (ca_.tailRightBound){
+  if (ca_.tailRightBound){
+    vcfLine_.INFO.TB = "tailRightBound";
     vcfLine_.INFO.NT = ca_.leftBoundTails.size();
   }
+  
+  else if (ca_.tailLeftBound and ca_.tailRightBound){
+    vcfLine_.INFO.TB = "tailDoubleBound";
+
+  }
+  
   vcfLine_.INFO.NH = ca_.leftBoundHeads.size(); 
   vcfLine_.INFO.NR = ca_.readsInRegion;
   vcfLine_.INFO.LT = util::getLongestTail(ca_.leftBoundTails, ca_.rightBoundTails);
@@ -78,20 +94,21 @@ void vcfWriter::writeFilter(){
 }
 
 void vcfWriter::writeInfo(){
-  vcfStream_ << "NR=" << vcfLine_.INFO.NR << ";NT=" << vcfLine_.INFO.NT << ";NH=" << vcfLine_.INFO.NH << ";LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE 
+  vcfStream_ << "NR=" << vcfLine_.INFO.NR << ";NT" << vcfLine_.INFO.NT << ";TB=" << vcfLine_.INFO.TB << ";NH=" << vcfLine_.INFO.NH << ";LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE 
 	     << ";SVLEN=" << vcfLine_.INFO.SVLEN << ";END=" << vcfLine_.INFO.END << ";HD=" << vcfLine_.INFO.HD << ";RN=" << vcfLine_.INFO.RN << ";cigar=" << vcfLine_.INFO.cigar << ';';
 }
 
 void vcfWriter::writeVCFLine(){
+
+  if(vcfWriter::vcfFilter()){
   vcfStream_ << vcfLine_.CHROM << '\t' << vcfLine_.POS << '\t'  << vcfLine_.ID << '\t' << vcfLine_.REF << '\t' << vcfLine_.ALT 
 	     << '\t' << vcfLine_.QUAL << '\t';
   
   vcfWriter::writeFilter();
   vcfWriter::writeInfo();
-
+  
   vcfStream_ << std::endl;
-
-
+  }
 }
 
 void vcfWriter::writeVCFHeader(std::ofstream & vcfStream, const std::string & stub){
@@ -116,6 +133,7 @@ void vcfWriter::writeVCFHeader(std::ofstream & vcfStream, const std::string & st
   vcfStream << "##INFO=<ID=VT,Number=1,Type=String,Description=\"Varient Type\">" << std::endl;
   vcfStream << "##INFO=<ID=CVT,Number=1,Type=String,Description=\"Compressed Varient Type\">" << std::endl;
   vcfStream << "##INFO=<ID=NT,Number=1,Type=Integer,Description=\"Number of polyA tails in target region\">" << std::endl; 
+  vcfStream << "##INFO=<ID=TB,Number=1,Type=Integer,Description=\"Is tail left bound, right bound, or double bound\">" << std::endl;
   vcfStream << "##INFO=<ID=NH,Number=1,Type=Integer,Description=\"Number of alu heads in target region\">" << std::endl;
   vcfStream << "##INFO=<ID=NR,Number=1,Type=Integer,Description=\"Number of total reads in target region\">" << std::endl;
   vcfStream << "##INFO=<ID=LT,Number=1,Type=Integer,Description=\"Longest polyA tail in target region\">" << std::endl;

@@ -6,6 +6,17 @@
 #include "contig.h"
 #include "knownAlus.h"
 
+const bool util::isReadLeftBound(const std::vector<BamTools::CigarOp> & cigOps){
+  std::cout << "checking if following clip is left or right bound" << std::endl;
+  util::printCigar(cigOps);
+  if(cigOps[0].Type == 'S'){
+    std::cout << "returing leftBound" << std::endl;
+    return true;
+  }
+  std::cout << "returning rightBound" << std::endl;
+  return false;
+}
+
 const std::vector<std::string> util::getClipSeqs(const BamTools::BamAlignment & al){
   std::vector<std::string> clipSeqs;
 
@@ -29,7 +40,7 @@ const std::pair<std::string, int32_t> util::getHighestQualityAluHit(const std::v
       maxQualHit = a;
     }
   }
-  std::cout << "highest quality hit for " << maxQualHit.first << " is " << maxQualHit.second << std::endl;
+  //std::cout << "highest quality hit for " << maxQualHit.first << " is " << maxQualHit.second << std::endl;
   return maxQualHit;
 }
 
@@ -49,11 +60,11 @@ const int32_t util::getLongestTail(const std::vector<polyA> & l, const std::vect
 }
 
 const clipCoords util::isWithinRegion(clipCoords & cc , const std::pair<int32_t, int32_t> & p) {
-  //std::cout << "Checking if " << i << " is withing region: " << p.first << "," << p.second << std::endl; 
-  if(cc.clipStart >= p.first and cc.clipStart <= p.second){
+  //std::cout << "Checking if " << cc.clipStart << " is withing region: " << p.first << "," << p.second << std::endl; 
+  if(cc.clipStart >= p.first - 2 and cc.clipStart <= p.second + 2){
     return cc;
   }
-  clipCoords nullC = {};
+  clipCoords nullC = {-1, -1, ltr, 0};
   return nullC;
 }
 
@@ -265,6 +276,7 @@ const char * util::getRootDirectory(std::string rufAluPath){
 }
 
 void util::printCigar(const std::vector<BamTools::CigarOp> & cig){
+  std::cout << std::endl;
   for(auto c : cig){
     std::cout << c.Type << c.Length;
   }

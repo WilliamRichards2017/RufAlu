@@ -14,9 +14,7 @@ const std::vector<std::pair<std::string, int32_t> > aluHead::getAluHits(){
 
 const bool aluHead::doClipsMapToAlu(const std::vector<std::string> & readClips){
   for(auto rc : readClips){
-    std::cout << "comparing " << aluClippedSeq_.substr(0, minHeadSize_) << " and " << rc.substr(0, minHeadSize_) << std::endl;
     if(rc.substr(0, minHeadSize_).compare(aluClippedSeq_.substr(0, minHeadSize_)) == 0){
-      std::cout << "comparision is equal" << std::endl;
       return true;
     }
   }

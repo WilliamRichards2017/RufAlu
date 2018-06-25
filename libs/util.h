@@ -34,6 +34,7 @@ class util{
   static void printCigar(const std::vector<BamTools::CigarOp> &);
   static const std::vector<int32_t> getPeakVector(const BamTools::BamAlignment &);
   static const std::pair<std::string, int32_t> getHighestQualityAluHit(const std::vector<std::pair<std::string, int32_t > > &);
+  static const bool isReadLeftBound(const std::vector<BamTools::CigarOp> &);
 
 
 
