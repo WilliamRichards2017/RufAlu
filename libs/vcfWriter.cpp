@@ -44,7 +44,7 @@ void vcfWriter::populateVCFLine(){
   }
   if (ca_.tailRightBound){
     vcfLine_.INFO.TB = "tailRightBound";
-    vcfLine_.INFO.NT = ca_.leftBoundTails.size();
+    vcfLine_.INFO.NT = ca_.rightBoundTails.size();
   }
   
   else if (ca_.tailLeftBound and ca_.tailRightBound){

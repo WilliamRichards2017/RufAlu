@@ -23,6 +23,8 @@ class polyA{
 
   BamTools::BamAlignment al_;
   clipCoords coords_ = {0,0,rtl};
+  std::vector<clipCoords> getLocalClipCoords();
+  
 
   
   bool isTail();
@@ -40,7 +42,6 @@ class polyA{
   bool detectPolyTail();
   bool detectTailInWindow(const clipCoords &, const char &);
   void printTailDebug();
-  std::vector<clipCoords> getLocalClipCoords();
   void setGlobalClipCoords(int32_t);
   void printClipsAndSeq(BamTools::BamAlignment);
 

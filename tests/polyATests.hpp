@@ -78,6 +78,7 @@ TEST(PolyATests, longestTailLeftClip_p1348){
     }
 }
 
+
 TEST(PolyATests, longestTailRightClip_p8210){
   BamTools::BamReader reader;
   std::string bam = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/8210.bam";
@@ -90,9 +91,24 @@ TEST(PolyATests, longestTailRightClip_p8210){
     if(al.Name.compare("ST-E00267:203:HNYHTCCXX:2:1105:10967:49039")==0){
       polyA tail = {al, 10};
       
-      std::cerr << "Longest Tail for read : " << al.Name << " is:" << std::endl;
-      std::cerr << tail.getLongestTail();
-      ASSERT_TRUE( tail.getLongestTail() == 10);                                                                                                                                 
+      std::cerr << "Longest Tail for read : " << al.Name << " is:"; 
+      std::cerr << tail.getLongestTail() << std::endl;
+      ASSERT_TRUE( tail.getLongestTail() == 10);
+      std::cerr << "Read seq is: " << al.QueryBases << std::endl;
+      
+      std::vector<clipCoords> localClips = tail.getLocalClipCoords();
+      clipCoords globalClip = tail.coords_;
+      
+      std::cerr << "Local clip coords are: ";
+      for(auto l : localClips){
+	std::cerr << l.clipStart << ", " << l.clipEnd << std::endl;
+      }
+
+      std::cerr << "Global clip coords are: ";
+      std::cerr << globalClip.clipStart << ", " << globalClip.clipEnd << std::endl;
+      
+      ASSERT_TRUE(!tail.isTailLeftBound());
+      
     }
   }
   ASSERT_TRUE(reader.Close());

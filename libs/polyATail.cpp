@@ -62,7 +62,7 @@ int32_t polyA::detectRightTail(const clipCoords & cc, const char & c){
   //std::cout << "query bases size is: " << al_.QueryBases.size() << std::endl;
   
   //std::cout << "Query bases are: " << al_.QueryBases << std::endl;
-  std::string rightClip = al_.QueryBases.substr(cc.clipStart, cc.clipEnd-cc.clipStart);
+  std::string rightClip = al_.QueryBases.substr(cc.clipStart, cc.clipEnd-cc.clipStart+1);
   //std::cout << "rightClip is: " << rightClip << std::endl;
 
   for(auto i : rightClip) {
@@ -193,7 +193,7 @@ std::vector<clipCoords> polyA::getLocalClipCoords() {
       c.clipDir = ltr;
     }
     c.clipStart = readPositions[i] + insertionVec[i];
-    c.clipEnd = 0;
+    c.clipEnd = c.clipStart + clipSizes[i]-1;
     c.index = i;
     coordsVec.push_back(c);
   }
@@ -209,17 +209,17 @@ void polyA::setGlobalClipCoords(int32_t index){
   al_.GetSoftClips(clipSizes, readPositions, genomePositions);
 
   const std::vector<int32_t> insertionVec = util::getInsertionVec(al_);
-  
-  if(readPositions[index] - clipSizes[index] + insertionVec[index] == 0){
+
+
+  if(util::isReadLeftBound(al_.CigarData)){
     coords_.clipDir = rtl;
-    coords_.clipStart = genomePositions[index] + clipSizes[index];
-    coords_.clipEnd = genomePositions[index];
   }
   else{
     coords_.clipDir = ltr;
-    coords_.clipStart = genomePositions[index];
-    coords_.clipEnd = coords_.clipStart + clipSizes[index];
   }
+  
+  coords_.clipStart = genomePositions[index] + insertionVec[index];
+  coords_.clipEnd = coords_.clipStart + clipSizes[index] - 1;
   
   //std::cout << "Setting global clip coords to be: " << coords_.clipDir << ", " << coords_.clipStart << ", " << coords_.clipEnd << std::endl;
 }
