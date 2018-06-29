@@ -22,8 +22,16 @@ const bool vcfWriter::vcfFilter(){
 void vcfWriter::populateVCFLine(){
   vcfLine_.CHROM = ca_.chrom;
   vcfLine_.POS = ca_.clipCoords_.clipStart+ca_.alignedContig.Position;
-  //TODO: figure out how to report as denovo or inherited
-  vcfLine_.ID = "denvo/inherited";
+
+  if(ca_.isDenovo){
+    vcfLine_.ID = "denovo";
+  }
+  else{
+    vcfLine_.ID = "inherited";
+  }
+
+  std::cout << "denovoVec size() is: " << ca_.denovoVec_.size() << std::endl;
+
   //TODO: //write function to get nucleotide at alu head start pos
   vcfLine_.REF = "N";
   vcfLine_.ALT = "INS:ME:"+ca_.aluHit.first;  
@@ -64,7 +72,7 @@ void vcfWriter::populateVCFLine(){
 
 }
 
-vcfWriter::vcfWriter( const contigAlignment & ca, std::ofstream & vcfStream, const std::string & stub) : ca_(ca), vcfStream_(vcfStream), stub_(stub) {
+vcfWriter::vcfWriter(const contigAlignment & ca, std::ofstream & vcfStream, const std::string & stub) : ca_(ca), vcfStream_(vcfStream), stub_(stub) {
   if(!vcfStream_.is_open()){
     std::cerr << "vcfStream is not open, exiting run with non-zero exit status " << std::endl;
     exit (EXIT_FAILURE);

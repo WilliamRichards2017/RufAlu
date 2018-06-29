@@ -8,12 +8,16 @@
 #include "api/BamWriter.h"
 
 #include "aluHead.h"
+#include "denovo.h"
+#include "knownAlus.h"
 #include "polyATail.h"
 #include "util.h"
 
 struct clipCoords;
+class denovoEvidence;
 
 struct contigAlignment {
+  std::string bamPath;
   std::pair<std::string, int32_t> aluHit;
   std::string chrom;
   clipCoords clipCoords_;
@@ -27,9 +31,11 @@ struct contigAlignment {
   bool tailRightBoundDS = false;
   bool tailLeftBound = false;
   bool tailRightBound = false;
+  bool isDenovo = false; 
   int32_t readsInRegion = 0;
   int32_t longestTail = 0;
   int32_t maxHash = 0;
+  std::vector<denovoEvidence> denovoVec_;
 };
 
 struct contig {

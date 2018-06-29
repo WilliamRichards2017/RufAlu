@@ -1,6 +1,8 @@
 #ifndef __VCF_WRITER_H__
 #define __VCF_WRITER_H__
+
 #include "contig.h"
+#include "denovo.h"
 
 #include <iostream>
 #include <time.h>
@@ -26,6 +28,7 @@ struct infoField {
   std::string RN; // INFO=<ID=RN,Number=1,Type=String,Description="Name of contig that produced the call">
   int16_t MQ = -1; // INFO=<ID=MQ,Number=1,Type=Integer,Description="Mapping quality of the contig that created the call">
   std::string cigar; 
+  
 };
 
 struct formatField {
@@ -68,7 +71,7 @@ class vcfWriter{
   vcfLine vcfLine_ = {};
   std::ofstream & vcfStream_;
   
-  const contigAlignment & ca_;
+  contigAlignment ca_;
   const std::string stub_;
   
   void populateVCFLine();  

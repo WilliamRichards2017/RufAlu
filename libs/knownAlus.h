@@ -14,6 +14,7 @@
 #include "api/BamWriter.h"
 #include "kseq.h"
 #include "minimap.h"
+#include "denovo.h"
 
 
 struct contig;
@@ -21,7 +22,7 @@ struct contigAlignment;
 
 class KnownAlus{
  public:
-  KnownAlus(std::string, std::string, std::string, std::string, std::string, std::string, std::string);
+  KnownAlus(std::string, std::string, std::string, std::string, std::string, std::string, std::string, std::vector<std::string>);
   ~KnownAlus();
   
  private:
@@ -36,6 +37,8 @@ class KnownAlus{
   const std::string prefix_ = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/";
 
   std::vector<contig> contigVec_;
+  std::vector<std::string> parentBams_;
+  std::vector<contigAlignment> parentContigAlignments_;
   std::vector<BamTools::RefData> refData_;
   std::string getChromosomeFromRefID(int32_t);
 
@@ -44,6 +47,8 @@ class KnownAlus{
   void pullContigAlignments();
   void findReadsContainingPolyTails(int32_t);
   void findReadsContainingHeads();
+  void findDenovoEvidence();
+
 
   bool bedFilter(contigAlignment &);
   void writeBedPEHeader(std::ofstream &);
@@ -51,9 +56,15 @@ class KnownAlus{
 
   void writeToVCF(std::string &);
   void writeContigVecToVCF(std::ofstream &);
+
+  std::vector<contigAlignment> findParentContigAlignments(const BamTools::BamAlignment &, const BamTools::BamRegion &, const std::vector<std::string> &);
+  std::vector<contigAlignment> populateParentContigAlignments(std::vector<contigAlignment>);
+
+  void flagAllDenovos(const std::vector<std::string> &);
+  
+  const bool isDenovo(const std::vector<contigAlignment> &);
   
   void writeToBed(std::string &);
-  
   void printContigVec();
 
 };

@@ -8,7 +8,7 @@
 
 int main(int argc, char *argv[] ){
   
-  if ( argc != 5 ){ 
+  if ( argc < 5 ){ 
     std::cout << "Please provide the proper number of arguments";
     exit (EXIT_FAILURE);
   }
@@ -21,6 +21,21 @@ int main(int argc, char *argv[] ){
   std::string refPath = argv[4];
   std::string refIndexPath = (std::string(refPath) + ".fai").c_str();
 
+  std::vector<std::string> parentBams;
+
+  std::cout << "argc is: " << argc << std::endl;
+
+  std::cout << "argv[5] is : " << argv[5] << std::endl;
+  std::cout << "argv[6] is : " << argv[6] << std::endl;
+
+  for(int i = 5; i < argc; ++i){
+    parentBams.push_back(std::string(argv[i]));
+  }
+
+  for(auto p : parentBams){
+    std::cout << "parent bam is: " << p << std::endl;
+  }
+
   std::cout << "raw Bam path is " << bamPath << std::endl;
   std::cout << "Contig fastq path is: " << contigFilePath << std::endl;
   std::cout << "Contig bam path is: "<< contigBamPath << std::endl;
@@ -28,7 +43,7 @@ int main(int argc, char *argv[] ){
   std::cout << "Reference path is: " << refPath << std::endl;
   std::cout << "Reference index path is: " << refIndexPath << std::endl;
   
-  KnownAlus knownAlus = {bamPath, contigFilePath, contigBamPath, aluFilePath, aluIndexPath, refPath, refIndexPath};
+  KnownAlus knownAlus = {bamPath, contigFilePath, contigBamPath, aluFilePath, aluIndexPath, refPath, refIndexPath, parentBams};
   
   std::cout << "Exiting Run." << std::endl;
   return 0;

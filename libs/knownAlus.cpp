@@ -14,6 +14,7 @@
 #include "aluHead.h"
 #include "contig.h"
 #include "knownAlus.h"
+#include "denovo.h"
 #include "kseq.h"
 #include "minimap.h"
 #include "polyATail.h"
@@ -26,7 +27,8 @@
 KSEQ_INIT(gzFile, gzread)
 
 bool debugPrintFilter(contigAlignment & ca){
-  if(ca.tailLeftBound || ca.tailRightBound and ca.readsInRegion < 400){
+  return true;
+  if(ca.alignedRegion.LeftPosition != -1 and ca.alignedRegion.RightPosition != -1){
     return true;
   }
   return false;
@@ -54,10 +56,6 @@ void printContig(contig & c){
   for(auto it = std::begin(c.contigAlignments); it != std::end(c.contigAlignments); ++it){
     printContigAlignment(*it);
   }
-  
-}
-
-void printContigByName(std::string contigName){
   
 }
 
@@ -132,6 +130,9 @@ void KnownAlus::writeContigVecToVCF(std::ofstream & vcf){
   for(auto c : contigVec_){
     for(auto ca : c.contigAlignments){
       vcfWriter writer = {ca, vcf, stub_};
+      if(ca.denovoVec_.size() > 0){
+	std::cout << "CA is denovo in KnownAlus " << std::endl;
+      }
       if(writer.vcfFilter()){
 	writer.writeVCFLine();
       }
@@ -181,7 +182,6 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
   for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){    
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
       BamTools::BamRegion region = BamTools::BamRegion(caIt->alignedContig.RefID, caIt->alignedContig.Position, caIt->alignedContig.RefID, caIt->alignedContig.GetEndPosition());
-   
       //std::cout << "setting region for coords : " << caIt->alignedContig.RefID << ", " <<  caIt->alignedContig.Position << ", " << caIt->alignedContig.RefID << ", " << caIt->alignedContig.GetEndPosition() << std::endl;
    
       if(!reader.SetRegion(region)) {
@@ -222,6 +222,21 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
   reader.Close();
 }
 
+
+void KnownAlus::findDenovoEvidence(){
+  
+  for(auto & c : contigVec_){
+    for(auto & ca : c.contigAlignments){
+      denovoEvidence de = {util::getClipSeqs(ca.alignedContig)[0], ca.alignedRegion,  parentBams_};
+
+      ca.denovoVec_.push_back(de);
+      std::cout << "is de denovo ? : " << de.isDenovo() << std::endl;
+      ca.isDenovo = de.isDenovo();
+      
+    }
+  }
+}
+
 void KnownAlus::findReadsContainingHeads(){
   BamTools::BamReader reader;
   BamTools::BamAlignment al;
@@ -250,7 +265,7 @@ void KnownAlus::findReadsContainingHeads(){
 	}
 	BamTools::BamAlignment al;
 	while(reader.GetNextAlignment(al)){
-	  aluHead head = {(util::getClipSeqs(caIt->alignedContig))[0], al, aluFastaPath_, 10};
+	  aluHead head = {util::getClipSeqs(caIt->alignedContig)[0], al, 10};
 	  if(head.isHead()){
 	    caIt->leftBoundHeads.push_back(head);
 	  }
@@ -333,7 +348,109 @@ void KnownAlus::writeToBed(std::string & bedFile){
 }
 
 
-KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::string contigBamPath, std::string aluFastaPath, std::string aluIndexPath, std::string refPath, std::string refIndexPath) :  rawBamPath_(rawBamPath), contigFastqPath_(contigFastqPath), contigBamPath_(contigBamPath), aluFastaPath_(aluFastaPath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(rawBamPath)){
+std::vector<contigAlignment>  KnownAlus::findParentContigAlignments(const BamTools::BamAlignment & al, const BamTools::BamRegion & region, const std::vector<std::string> & parentBamPaths){
+  
+  std::vector<contigAlignment> parentContigAlignments;
+  for(auto bp : parentBamPaths){
+    contigAlignment c;
+    c.bamPath = bp;
+    c.alignedRegion = region;
+    c.alignedContig = al;
+    parentContigAlignments.push_back(c);
+  }
+  return parentContigAlignments;
+}
+
+
+std::vector<contigAlignment> KnownAlus::populateParentContigAlignments(std::vector<contigAlignment>  parentContigAlignments){
+  for (auto pCA : parentContigAlignments){
+
+    std::cout << "populating parent contig" << std::endl;
+
+    BamTools::BamReader reader;
+
+    if (!reader.Open(pCA.bamPath)){
+      std::cerr << "Could not open input Bam file" << pCA.bamPath << std::endl;
+      std::cerr << "Existing run with non-sero status.." << std::endl;
+      exit (EXIT_FAILURE);
+    }
+
+    reader.LocateIndex();
+    if (!reader.HasIndex()){
+      std::cerr << "Index for" << pCA.bamPath << "could not be opened" << std::endl;
+      std::cerr << "Exiting run with non-sero status.." << std::endl;
+      reader.Close();
+      exit (EXIT_FAILURE);
+    }
+
+    if(!reader.SetRegion(pCA.alignedRegion)){
+      std::cerr << "Could not set region for coords: " << pCA.alignedRegion.LeftRefID << ", " << pCA.alignedRegion.LeftPosition << ", " << pCA.alignedRegion.RightRefID << ", " << pCA.alignedRegion.RightPosition << std::endl;
+      std::cerr << "Exiting run with non-sero status.." << std::endl;
+      reader.Close();
+      exit (EXIT_FAILURE);
+    }
+
+
+    std::cout << "setting region coords to be: " << pCA.alignedRegion.LeftRefID << ", " << pCA.alignedRegion.LeftPosition << ", " << pCA.alignedRegion.RightRefID << ", " << pCA.alignedRegion.RightPosition << std::endl;
+
+    BamTools::BamAlignment al;
+    while(reader.GetNextAlignment(al)){
+      std::cout << "checking alignment for heads and tails" << std::endl;
+      aluHead head = {(util::getClipSeqs(pCA.alignedContig))[0], al,10};
+      if(head.isHead()){
+	std::cout << "found head in parent" << std::endl;
+	pCA.leftBoundHeads.push_back(head);
+      }
+      polyA tail = {al, 10};
+      if(tail.isTail()){
+	if(tail.isTailLeftBound()){
+	std::cout << "found tail in parent" << std::endl;
+	  pCA.leftBoundTails.push_back(tail);
+	}
+	else {
+	std::cout << "found tail in parent" << std::endl;
+	  pCA.rightBoundTails.push_back(tail);
+	}
+      }
+    }
+    parentContigAlignments.push_back(pCA);
+  reader.Close();
+  }
+  return parentContigAlignments;
+}
+
+
+void KnownAlus::flagAllDenovos(const std::vector<std::string> & parentBams){
+  for(auto c :contigVec_){
+    for(auto & ca : c.contigAlignments){
+      if(debugPrintFilter(ca)){
+	
+	
+	std::cout << "checking if alu hit  is denovo" << std::endl;
+	std::vector<contigAlignment> caVec = findParentContigAlignments(ca.alignedContig, ca.alignedRegion, parentBams);
+	caVec = KnownAlus::populateParentContigAlignments(caVec);
+	ca.isDenovo = KnownAlus::isDenovo(caVec);
+      }
+    }
+  }
+}
+
+
+
+const bool KnownAlus::isDenovo(const std::vector<contigAlignment> & parentContigAlignments){
+  for(auto pCA : parentContigAlignments){
+    std::cout << "sizes are " << pCA.leftBoundHeads.size() << ", " << pCA.leftBoundTails.size() << ", " << pCA.rightBoundTails.size();
+    if(pCA.leftBoundHeads.size() > 0 || pCA.leftBoundTails.size() > 0 || pCA.rightBoundTails.size() > 0){
+      std::cout << "returning non-denovo" << std::endl;
+      return false;
+    }
+  }
+  std::cout << "returning inherited" << std::endl;
+  return true;
+}
+
+
+KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::string contigBamPath, std::string aluFastaPath, std::string aluIndexPath, std::string refPath, std::string refIndexPath, std::vector<std::string> parentBams) :  rawBamPath_(rawBamPath), contigFastqPath_(contigFastqPath), contigBamPath_(contigBamPath), aluFastaPath_(aluFastaPath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(rawBamPath)), parentBams_(parentBams){
    
   contigVec_ = {};
   refData_ = {};
@@ -353,12 +470,18 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
   std::cerr << "[5/6]  Finding reads containing alu heads tails for " << stub_ << std::endl;
   KnownAlus::findReadsContainingHeads();
 
-  std::cerr << "[6/6] Writing out results to vcf file " << stub_  << ".vcf" << std::endl;
-  std::string vcfString = prefix_ + stub_ + ".vcf";
-  KnownAlus::writeToVCF(vcfString);
+
+
+  std::cerr << "[5.5/5.5] Flaging for Denovos lmao" << std::endl; 
+  KnownAlus::findDenovoEvidence();
+
+ 
 
   //std::cout << "[5/5] Writing out results to bed file " << stub_  << ".bed" << std::endl;
   //KnownAlus::writeToBed(prefix_ + stub_ + "bed");
+  std::cerr << "[6/6] Writing out results to vcf file " << stub_  << ".vcf" << std::endl;
+  std::string vcfString = prefix_ + stub_ + ".vcf";
+  KnownAlus::writeToVCF(vcfString);
 
 }
 
@@ -386,12 +509,15 @@ void KnownAlus::pullContigAlignments(){
 	clipCoords clipPeak = util::intersectPeaksAndClips(util::getPeaks(al), util::getLocalClipCoords(al));
 	if(clipPeak.clipStart != -1){
 	  //std::cout << "Found intersection between peak and clips for " << cvIt->name << std::endl;
-	  contigAlignment ca = {};
+	  contigAlignment ca;
 	  ca.clipCoords_ = clipPeak;
 	  //ca.aluHit = cvIt->alusHit[0].first;
 	  ca.aluHit = util::getHighestQualityAluHit(cvIt->alusHit);
 	  ca.alignedContig = al;
 	  ca.chrom = getChromosomeFromRefID(ca.alignedContig.RefID);
+	  
+	  ca.alignedRegion = {ca.alignedContig.RefID, ca.alignedContig.Position, ca.alignedContig.RefID, ca.alignedContig.GetEndPosition()};
+	  
 	  std::vector<int32_t> peakVector = util::getPeakVector(al);
 	  auto it =  std::max_element(peakVector.begin(), peakVector.end());
 	  ca.maxHash = peakVector[std::distance(peakVector.begin(), it)];

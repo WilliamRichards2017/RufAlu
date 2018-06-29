@@ -7,13 +7,9 @@
 #include "knownAlus.h"
 
 const bool util::isReadLeftBound(const std::vector<BamTools::CigarOp> & cigOps){
-  std::cout << "checking if following clip is left or right bound" << std::endl;
-  util::printCigar(cigOps);
   if(cigOps[0].Type == 'S'){
-    std::cout << "returing leftBound" << std::endl;
     return true;
   }
-  std::cout << "returning rightBound" << std::endl;
   return false;
 }
 

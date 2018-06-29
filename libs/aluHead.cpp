@@ -30,7 +30,7 @@ const bool aluHead::isHead(){
   return isHead_;
 }
 
-aluHead::aluHead(const std::string & aluClippedSeq, const BamTools::BamAlignment al, const std::string & aluFilePath, const int32_t & minHeadSize) : aluClippedSeq_(aluClippedSeq), al_(al), aluFilePath_(aluFilePath), minHeadSize_(minHeadSize){
+aluHead::aluHead(const std::string & aluClippedSeq, const BamTools::BamAlignment al,  const int32_t & minHeadSize) : aluClippedSeq_(aluClippedSeq), al_(al),  minHeadSize_(minHeadSize){
   isHead_ = aluHead::mapReadToAluHit();
 }
 
