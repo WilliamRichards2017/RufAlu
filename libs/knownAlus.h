@@ -22,7 +22,7 @@ struct contigAlignment;
 
 class KnownAlus{
  public:
-  KnownAlus(std::string, std::string, std::string, std::string, std::string, std::string, std::string, std::vector<std::string>);
+  KnownAlus(std::string, std::string, std::string, std::string, std::string, std::string, std::string, std::string, std::vector<std::string>);
   ~KnownAlus();
   
  private:
@@ -34,7 +34,7 @@ class KnownAlus{
   const std::string refPath_;
   const std::string refIndexPath_;
   const std::string stub_;
-  const std::string prefix_ = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/out/";
+  const std::string vcfOutPath_;
 
   std::vector<contig> contigVec_;
   std::vector<std::string> parentBams_;

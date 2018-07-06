@@ -119,7 +119,7 @@ bool KnownAlus::bedFilter(contigAlignment & ca) {
 void KnownAlus::writeToVCF(std::string & vcfFile){
 
   std::ofstream vcfStream;
-  vcfStream.open(vcfFile);
+  vcfStream.open(vcfFile, std::ios::out | std::ios::app);
   vcfWriter::writeVCFHeader(vcfStream, stub_);
   KnownAlus::writeContigVecToVCF(vcfStream);
   vcfStream.close();
@@ -289,7 +289,6 @@ void KnownAlus::findContigsContainingKnownAlus()
    mm_verbose = 3; // print to std out
    mm_set_opt(0, &iopt, &mopt); //initialize alignment parameters to default
    mopt.flag |= MM_F_CIGAR; // perform alignment                                                                                                                                                                                               
-   std::cout << "tryna open " << contigFastqPath_.c_str() << std::endl;
 
    gzFile f = gzopen(contigFastqPath_.c_str(), "r");
    assert(f);
@@ -451,37 +450,35 @@ const bool KnownAlus::isDenovo(const std::vector<contigAlignment> & parentContig
 }
 
 
-KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::string contigBamPath, std::string aluFastaPath, std::string aluIndexPath, std::string refPath, std::string refIndexPath, std::vector<std::string> parentBams) :  rawBamPath_(rawBamPath), contigFastqPath_(contigFastqPath), contigBamPath_(contigBamPath), aluFastaPath_(aluFastaPath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(rawBamPath)), parentBams_(parentBams){
+KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::string contigBamPath, std::string aluFastaPath, std::string aluIndexPath, std::string refPath, std::string refIndexPath, std::string vcfOutPath, std::vector<std::string> parentBams) :  rawBamPath_(rawBamPath), contigFastqPath_(contigFastqPath), contigBamPath_(contigBamPath), aluFastaPath_(aluFastaPath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(rawBamPath)), vcfOutPath_(vcfOutPath), parentBams_(parentBams){
    
   contigVec_ = {};
   refData_ = {};
 
-  std::cerr << "[1/6]  Populating reference data for " << stub_ << std::endl;
+  std::cerr << "[1/7]  Populating reference data for " << stub_ << std::endl;
   KnownAlus::populateRefData();
 
-  std::cerr << "[2/6]  Finding contigs containing known alus for " << stub_ << std::endl;
+  std::cerr << "[2/7]  Finding contigs containing known alus for " << stub_ << std::endl;
   KnownAlus::findContigsContainingKnownAlus();
 
-  std::cerr << "[3/6]  Pulling contig hit alignments for " << stub_ <<  std::endl;
+  std::cerr << "[3/7]  Pulling contig hit alignments for " << stub_ <<  std::endl;
   KnownAlus::pullContigAlignments();
 
-  std::cerr << "[4/6]  Finding reads containing polyA tails for " << stub_ << std::endl;
+  std::cerr << "[4/7]  Finding reads containing polyA tails for " << stub_ << std::endl;
   KnownAlus::findReadsContainingPolyTails(9);
 
-  std::cerr << "[5/6]  Finding reads containing alu heads tails for " << stub_ << std::endl;
+  std::cerr << "[5/7]  Finding reads containing alu heads tails for " << stub_ << std::endl;
   KnownAlus::findReadsContainingHeads();
 
-
-
-  std::cerr << "[5.5/5.5] Flaging for Denovos lmao" << std::endl; 
+  std::cerr << "[6/7] Flaging denovos for " << stub_ << std::endl; 
   KnownAlus::findDenovoEvidence();
 
  
 
   //std::cout << "[5/5] Writing out results to bed file " << stub_  << ".bed" << std::endl;
   //KnownAlus::writeToBed(prefix_ + stub_ + "bed");
-  std::cerr << "[6/6] Writing out results to vcf file " << stub_  << ".vcf" << std::endl;
-  std::string vcfString = prefix_ + stub_ + ".vcf";
+  std::cerr << "[7/7] Writing out results to vcf file " << vcfOutPath << stub_  << ".vcf" << std::endl;
+  std::string vcfString = vcfOutPath + stub_ + ".vcf";
   KnownAlus::writeToVCF(vcfString);
 
 }
