@@ -289,6 +289,7 @@ void KnownAlus::findContigsContainingKnownAlus()
    mm_verbose = 3; // print to std out
    mm_set_opt(0, &iopt, &mopt); //initialize alignment parameters to default
    mopt.flag |= MM_F_CIGAR; // perform alignment                                                                                                                                                                                               
+   std::cout << "tryna open " << contigFastqPath_.c_str() << std::endl;
 
    gzFile f = gzopen(contigFastqPath_.c_str(), "r");
    assert(f);

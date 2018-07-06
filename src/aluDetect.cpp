@@ -10,7 +10,7 @@ int main(int argc, char *argv[] ){
   
   if ( argc < 5 ){ 
     std::cout << "Please provide the proper number of arguments";
-    exit (EXIT_FAILURE);
+    //exit (EXIT_FAILURE);
   }
 
   std::string bamPath = std::string(argv[1]);
