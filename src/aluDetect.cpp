@@ -17,10 +17,10 @@ int main(int argc, char *argv[] ){
   std::string contigFilePath = std::string(argv[2]);
   std::string contigBamPath = contigFilePath + ".bam";
   std::string aluFilePath = argv[3];
-  std::string aluIndexPath = (std::string(aluFilePath) + ".fai").c_str();
+  std::string aluIndexPath = std::string(aluFilePath) + ".fai";
   std::string refPath = argv[4];
-  std::string refIndexPath = (std::string(refPath) + ".fai").c_str();
-  std::string vcfOutPath = argv[5];
+  std::string refIndexPath = std::string(refPath) + ".fai";
+  std::string vcfOutPath = bamPath + ".V2.overlap.hashcount.fastq.bam.vcf";
 
   std::vector<std::string> parentBams;
 

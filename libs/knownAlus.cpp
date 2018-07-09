@@ -326,7 +326,6 @@ void KnownAlus::findContigsContainingKnownAlus()
 	 // std::cout << "found contig containing knonw alu: " <<  c.name << std::endl;
 	 contigVec_.push_back(c);
        }
-
        free(reg);
      }
      mm_tbuf_destroy(tbuf);
@@ -477,11 +476,12 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
 
   //std::cout << "[5/5] Writing out results to bed file " << stub_  << ".bed" << std::endl;
   //KnownAlus::writeToBed(prefix_ + stub_ + "bed");
-  std::cerr << "[7/7] Writing out results to vcf file " << vcfOutPath << stub_  << ".vcf" << std::endl;
-  std::string vcfString = vcfOutPath + stub_ + ".vcf";
-  KnownAlus::writeToVCF(vcfString);
 
-}
+
+  std::cerr << "[7/7] Writing out results to vcf file " << vcfOutPath << std::endl;
+  KnownAlus::writeToVCF(vcfOutPath);
+
+ }
 
 
 
