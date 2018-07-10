@@ -119,7 +119,7 @@ bool KnownAlus::bedFilter(contigAlignment & ca) {
 void KnownAlus::writeToVCF(std::string & vcfFile){
 
   std::ofstream vcfStream;
-  vcfStream.open(vcfFile, std::ios::out | std::ios::app);
+  vcfStream.open(vcfFile, std::ios::app);
   vcfWriter::writeVCFHeader(vcfStream, stub_);
   KnownAlus::writeContigVecToVCF(vcfStream);
   vcfStream.close();
