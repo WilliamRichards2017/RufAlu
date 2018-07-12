@@ -20,7 +20,7 @@ int main(int argc, char *argv[] ){
   std::string aluIndexPath = std::string(aluFilePath) + ".fai";
   std::string refPath = argv[4];
   std::string refIndexPath = std::string(refPath) + ".fai";
-  std::string vcfOutPath = bamPath + ".V2.overlap.hashcount.fastq.bam.vcf";
+  std::string vcfOutPath = bamPath + ".generator.V2.overlap.hashcount.fastq.bam.vcf";
 
   std::vector<std::string> parentBams;
 

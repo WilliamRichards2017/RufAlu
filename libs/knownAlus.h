@@ -55,7 +55,7 @@ class KnownAlus{
   void writeContigVecToBedPE(std::ofstream &);
 
   void writeToVCF(std::string &);
-  void writeContigVecToVCF(std::ofstream &);
+  void writeContigVecToVCF(std::fstream &);
 
   std::vector<contigAlignment> findParentContigAlignments(const BamTools::BamAlignment &, const BamTools::BamRegion &, const std::vector<std::string> &);
   std::vector<contigAlignment> populateParentContigAlignments(std::vector<contigAlignment>);

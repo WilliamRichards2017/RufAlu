@@ -72,7 +72,7 @@ void vcfWriter::populateVCFLine(){
 
 }
 
-vcfWriter::vcfWriter(const contigAlignment & ca, std::ofstream & vcfStream, const std::string & stub) : ca_(ca), vcfStream_(vcfStream), stub_(stub) {
+vcfWriter::vcfWriter(const contigAlignment & ca, std::fstream & vcfStream, const std::string & stub) : ca_(ca), vcfStream_(vcfStream), stub_(stub) {
   if(!vcfStream_.is_open()){
     std::cerr << "vcfStream is not open, exiting run with non-zero exit status " << std::endl;
     exit (EXIT_FAILURE);
@@ -119,7 +119,7 @@ void vcfWriter::writeVCFLine(){
   }
 }
 
-void vcfWriter::writeVCFHeader(std::ofstream & vcfStream, const std::string & stub){
+void vcfWriter::writeVCFHeader(std::fstream & vcfStream, const std::string & stub){
   vcfStream << "##fileformat=VCFv4.1" << std::endl;
   vcfStream << "##fileDate=" << time(0) << std::endl;
   vcfStream << "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">" << std::endl;

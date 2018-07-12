@@ -57,19 +57,19 @@ struct vcfLine {
 
 class vcfWriter{
  public:
-  vcfWriter(const contigAlignment &, std::ofstream &, const std::string &);
+  vcfWriter(const contigAlignment &, std::fstream &, const std::string &);
   ~vcfWriter();
 
   const bool vcfFilter();
   void writeVCFLine();
 
-  static void writeVCFHeader(std::ofstream &, const std::string &);
+  static void writeVCFHeader(std::fstream &, const std::string &);
 
   
  private:
   
   vcfLine vcfLine_ = {};
-  std::ofstream & vcfStream_;
+  std::fstream & vcfStream_;
   
   contigAlignment ca_;
   const std::string stub_;
