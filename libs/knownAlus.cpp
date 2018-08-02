@@ -477,9 +477,11 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
   //std::cout << "[5/5] Writing out results to bed file " << stub_  << ".bed" << std::endl;
   //KnownAlus::writeToBed(prefix_ + stub_ + "bed");
 
+  std::string tempy = "~/RUFUS/testy.vcf";
 
   std::cerr << "[7/7] Writing out results to vcf file " << vcfOutPath << std::endl;
-  KnownAlus::writeToVCF(vcfOutPath);
+  //KnownAlus::writeToVCF(vcfOutPath);
+  KnownAlus::writeToVCF(tempy);
 
  }
 
