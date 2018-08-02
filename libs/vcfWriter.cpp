@@ -105,7 +105,9 @@ void vcfWriter::writeInfo(){
   for(auto h : vcfLine_.INFO.HD){
     vcfStream_ << h << '_';
   }
-  vcfStream_ << "GT:DP:RO:AO:LP:PC:SB " << vcfLine_.INFO.GT.first << '/' << vcfLine_.INFO.GT.second << ':' << vcfLine_.INFO.DP << ':' << vcfLine_.INFO.RO << ':' << vcfLine_.INFO.AO << ':' << vcfLine_.INFO.LP << ':' << vcfLine_.INFO.PC << ':' << vcfLine_.INFO.SB << std::endl;
+  vcfStream_ << ";AO=" << vcfLine_.INFO.probandGT.AO << ";VT=" << vcfLine_.INFO.CVT << ';';
+  
+  vcfStream_ << "\tGT:DP:RO:AO:LP:PC:SB " << vcfLine_.INFO.probandGT.GT.first << '/' << vcfLine_.INFO.probandGT.GT.second << ':' << vcfLine_.INFO.probandGT.DP << ':' << vcfLine_.INFO.probandGT.RO << ':' << vcfLine_.INFO.probandGT.AO << ':' << vcfLine_.INFO.probandGT.LP << ':' << vcfLine_.INFO.probandGT.PC << ':' << vcfLine_.INFO.probandGT.SB << std::endl;
 }
 
 void vcfWriter::writeVCFLine(){

@@ -8,6 +8,15 @@
 #include <time.h>
 #include <string>
 
+struct genotypeField{
+  std::pair<bool, bool> GT = std::make_pair(-1,-1); //Genotype information
+  int32_t DP = -1; // Total kmer depth
+  int32_t RO = -1; // reference kmer count
+  int32_t AO = -1; // Altername kmer count
+  int32_t LP = -1; //number of low coverage bases
+  int32_t PC = -1; // Mode of parent coverage
+  float SB = -1.0; // Strand Bias 
+};
   
 struct filterField{
   bool DS; //FILTER=<ID=DS,Description="polyA tails detected on both forward and reverse strand">
@@ -27,14 +36,13 @@ struct infoField {
   int16_t MQ = -1; // INFO=<ID=MQ,Number=1,Type=Integer,Description="Mapping quality of the contig that created the call">
   std::string cigar; 
   std::string CVT = "ME"; //Compressed variant type
-  std::vector<int32_t> HD; // hashcount for kmers overlapping variant
-  std::pair<bool, bool> GT; //Genotype information
-  int32_t DP = -1; // Total kmer depth
-  int32_t RO = -1; // reference kmer count
-  int32_t AO = -1; // Altername kmer count
-  int32_t LP = -1; //number of low coverage bases
-  int32_t PC = -1; // Mode of parent coverage
-  float SB = -1.0; // Strand Bias
+
+  //TODO - REMOVE HARD CODING WHEN HD IS POPULATED
+  std::vector<int32_t> HD = {-1,-1}; // hashcount for kmers overlapping variant
+  //END TODO
+
+  genotypeField probandGT;
+  std::vector<genotypeField> parentGTs;
 
 };
 
