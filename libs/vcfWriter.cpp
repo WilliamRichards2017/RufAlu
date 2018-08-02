@@ -24,10 +24,10 @@ void vcfWriter::populateVCFLine(){
   vcfLine_.POS = ca_.clipCoords_.clipStart+ca_.alignedContig.Position;
 
   if(ca_.isDenovo){
-    vcfLine_.ID = "denovo";
+    vcfLine_.ID = "ME-DeNovo";
   }
   else{
-    vcfLine_.ID = "inherited";
+    vcfLine_.ID = "Inherited";
   }
 
   std::cout << "denovoVec size() is: " << ca_.denovoVec_.size() << std::endl;
@@ -43,7 +43,6 @@ void vcfWriter::populateVCFLine(){
   vcfLine_.INFO.SVTYPE = "INS";
   vcfLine_.INFO.SVLEN = std::abs(ca_.clipCoords_.clipStart - ca_.clipCoords_.clipEnd);
   vcfLine_.INFO.END = ca_.clipCoords_.clipEnd + ca_.alignedContig.Position;
-  vcfLine_.INFO.HD = ca_.maxHash;
   vcfLine_.INFO.MQ = ca_.alignedContig.MapQuality;
   vcfLine_.INFO.RN = ca_.alignedContig.Name;
   if(ca_.tailLeftBound){
@@ -102,8 +101,11 @@ void vcfWriter::writeFilter(){
 }
 
 void vcfWriter::writeInfo(){
-  vcfStream_ << "NR=" << vcfLine_.INFO.NR << ";NT" << vcfLine_.INFO.NT << ";TB=" << vcfLine_.INFO.TB << ";NH=" << vcfLine_.INFO.NH << ";LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE 
-	     << ";SVLEN=" << vcfLine_.INFO.SVLEN << ";END=" << vcfLine_.INFO.END << ";HD=" << vcfLine_.INFO.HD << ";RN=" << vcfLine_.INFO.RN << ";cigar=" << vcfLine_.INFO.cigar << ';';
+  vcfStream_ << "NR=" << vcfLine_.INFO.NR << ";NT" << vcfLine_.INFO.NT << ";TB=" << vcfLine_.INFO.TB << ";NH=" << vcfLine_.INFO.NH << ";LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE << ";SVLEN=" << vcfLine_.INFO.SVLEN << ";END=" << vcfLine_.INFO.END << ";RN=" << vcfLine_.INFO.RN << ";cigar=" << vcfLine_.INFO.cigar << ";CVT=" << vcfLine_.INFO.CVT << ";HD=";
+  for(auto h : vcfLine_.INFO.HD){
+    vcfStream_ << h << '_';
+  }
+  vcfStream_ << "GT:DP:RO:AO:LP:PC:SB " << vcfLine_.INFO.GT.first << '/' << vcfLine_.INFO.GT.second << ':' << vcfLine_.INFO.DP << ':' << vcfLine_.INFO.RO << ':' << vcfLine_.INFO.AO << ':' << vcfLine_.INFO.LP << ':' << vcfLine_.INFO.PC << ':' << vcfLine_.INFO.SB << std::endl;
 }
 
 void vcfWriter::writeVCFLine(){

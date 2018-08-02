@@ -23,12 +23,19 @@ struct infoField {
   std::string SVTYPE; // INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of SV detected">
   int32_t SVLEN = -1; // INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Length of SV detected"> 
   int32_t END = -1; // INFO=<ID=END,Number=1,Type=Integer,Description="END of SV detected">
-  int32_t AO = -1; // INFO=<ID=AO,Number=1,Type=Integer,Description="Alternate allele observations, with partial observations recorded fractionally">
-  int32_t HD = -1; // INFO=<ID=HD,Number=.,Type=String,Description="Hash counts for each k-mer overlapping the vareint, -1 indicates no info">
   std::string RN; // INFO=<ID=RN,Number=1,Type=String,Description="Name of contig that produced the call">
   int16_t MQ = -1; // INFO=<ID=MQ,Number=1,Type=Integer,Description="Mapping quality of the contig that created the call">
   std::string cigar; 
-  
+  std::string CVT = "ME"; //Compressed variant type
+  std::vector<int32_t> HD; // hashcount for kmers overlapping variant
+  std::pair<bool, bool> GT; //Genotype information
+  int32_t DP = -1; // Total kmer depth
+  int32_t RO = -1; // reference kmer count
+  int32_t AO = -1; // Altername kmer count
+  int32_t LP = -1; //number of low coverage bases
+  int32_t PC = -1; // Mode of parent coverage
+  float SB = -1.0; // Strand Bias
+
 };
 
 struct formatField {
