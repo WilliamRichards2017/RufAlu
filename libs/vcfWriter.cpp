@@ -19,6 +19,39 @@ const bool vcfWriter::vcfFilter(){
   return true;
 }
 
+void vcfWriter::populateParentGenotypes(){
+  for(auto & pDE : ca_.getDenovoVec){
+    genotypeField gt = {};
+    gt.GT = pDE.getGenotype();
+    gt.DP = pDE.getRegionCoverage();
+    gt.RO = pDE.getRefCount();
+    gt.AO = pDE.getAltCount();
+    vcfLine_.INFO.parentGTs.push_back(gt);
+  }
+}
+
+void vcfWriter::populateGenotypes(){
+  if((ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size()) > 0 && ca_.readsInRegion > (ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size())){
+    vcfLine_.INFO.probandGT.GT = std::make_pair(1,1);
+   }
+  else if ((ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size()) < 1){
+   vcfLine_.INFO.probandGT.GT = std::make_pair(1,0);
+  }
+  else if (ca_.readsInRegion <= (ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size())){
+    vcfLine_.INFO.probandGT.GT = std::make_pair(0,1);
+  }
+  else {
+    vcfLine_.INFO.probandGT.GT = std::make_pair(-1,-1);
+  }
+
+  vcfLine_.INFO.probandGT.DP = ca_.maxHash;
+  vcfLine_.INFO.probandGT.RO = ca_.readsInRegion - (ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size());
+  vcfLine_.INFO.probandGT.AO = ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size();
+
+  vcfWriter::populateParentGenotypes();
+  
+}
+
 void vcfWriter::populateVCFLine(){
   vcfLine_.CHROM = ca_.chrom;
   vcfLine_.POS = ca_.clipCoords_.clipStart+ca_.alignedContig.Position;
@@ -58,7 +91,10 @@ void vcfWriter::populateVCFLine(){
     vcfLine_.INFO.TB = "tailDoubleBound";
 
   }
-  
+
+
+  vcfLine_.INFO.SB = static_cast<double>(ca_.forwardStrands)/static_cast<double>(ca_.readsInRegion);
+
   vcfLine_.INFO.NH = ca_.leftBoundHeads.size(); 
   vcfLine_.INFO.NR = ca_.readsInRegion;
   vcfLine_.INFO.LT = util::getLongestTail(ca_.leftBoundTails, ca_.rightBoundTails);
@@ -68,14 +104,18 @@ void vcfWriter::populateVCFLine(){
     vcfLine_.INFO.cigar += it->Type;
     vcfLine_.INFO.cigar += std::to_string(it->Length);
   }
+  
+  vcfWriter::populateGenotypes();
 
 }
 
-vcfWriter::vcfWriter(const contigAlignment & ca, std::fstream & vcfStream, const std::string & stub) : ca_(ca), vcfStream_(vcfStream), stub_(stub) {
+vcfWriter::vcfWriter(const contigAlignment & ca, std::fstream & vcfStream, const std::string & probandBam) : ca_(ca), vcfStream_(vcfStream), probandBam_(probandBam) { 
   if(!vcfStream_.is_open()){
     std::cerr << "vcfStream is not open, exiting run with non-zero exit status " << std::endl;
     exit (EXIT_FAILURE);
   }
+  
+  std::cout << "child bam is: " << probandBam_ << std::endl;
   vcfWriter::populateVCFLine();
 }
 
@@ -100,14 +140,25 @@ void vcfWriter::writeFilter(){
   }
 }
 
+void vcfWriter::writeGenotypes(){
+  vcfStream_ << "\tGT:DP:RO:AO " << vcfLine_.INFO.probandGT.GT.first << '/' << vcfLine_.INFO.probandGT.GT.second << ':' << vcfLine_.INFO.probandGT.DP << ':' << vcfLine_.INFO.probandGT.RO << ':' << vcfLine_.INFO.probandGT.AO << '\t';
+
+  for(auto pGT : vcfLine_.INFO.parentGTs){
+    vcfStream_ << pGT.GT.first << '/' << pGT.GT.second << ':' << pGT.DP << ':' << pGT.RO << ':' << pGT.AO << '\t';
+  }
+  vcfStream_ << std::endl;
+
+}
+
 void vcfWriter::writeInfo(){
-  vcfStream_ << "NR=" << vcfLine_.INFO.NR << ";NT" << vcfLine_.INFO.NT << ";TB=" << vcfLine_.INFO.TB << ";NH=" << vcfLine_.INFO.NH << ";LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE << ";SVLEN=" << vcfLine_.INFO.SVLEN << ";END=" << vcfLine_.INFO.END << ";RN=" << vcfLine_.INFO.RN << ";cigar=" << vcfLine_.INFO.cigar << ";CVT=" << vcfLine_.INFO.CVT << ";HD=";
+  vcfStream_ << "NR=" << vcfLine_.INFO.NR << ";NT" << vcfLine_.INFO.NT << ";TB=" << vcfLine_.INFO.TB << ";NH=" << vcfLine_.INFO.NH << ";LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE << ";SVLEN=" << vcfLine_.INFO.SVLEN << ";END=" << vcfLine_.INFO.END << ";RN=" << vcfLine_.INFO.RN << ";cigar=" << vcfLine_.INFO.cigar << ";SB=" << vcfLine_.INFO.SB <<  ";CVT=" << vcfLine_.INFO.CVT << ";HD=";
   for(auto h : vcfLine_.INFO.HD){
     vcfStream_ << h << '_';
   }
   vcfStream_ << ";AO=" << vcfLine_.INFO.probandGT.AO << ";VT=" << vcfLine_.INFO.CVT << ';';
+
+  vcfWriter::writeGenotypes();
   
-  vcfStream_ << "\tGT:DP:RO:AO:LP:PC:SB " << vcfLine_.INFO.probandGT.GT.first << '/' << vcfLine_.INFO.probandGT.GT.second << ':' << vcfLine_.INFO.probandGT.DP << ':' << vcfLine_.INFO.probandGT.RO << ':' << vcfLine_.INFO.probandGT.AO << ':' << vcfLine_.INFO.probandGT.LP << ':' << vcfLine_.INFO.probandGT.PC << ':' << vcfLine_.INFO.probandGT.SB << std::endl;
 }
 
 void vcfWriter::writeVCFLine(){
@@ -123,7 +174,7 @@ void vcfWriter::writeVCFLine(){
   }
 }
 
-void vcfWriter::writeVCFHeader(std::fstream & vcfStream, const std::string & stub){
+void vcfWriter::writeVCFHeader(std::fstream & vcfStream, std::string probandBam){
   vcfStream << "##fileformat=VCFv4.1" << std::endl;
   vcfStream << "##fileDate=" << time(0) << std::endl;
   vcfStream << "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">" << std::endl;
@@ -131,9 +182,6 @@ void vcfWriter::writeVCFHeader(std::fstream & vcfStream, const std::string & stu
   vcfStream << "##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Total Kmer depth across the variant\">" << std::endl;
   vcfStream << "##FORMAT=<ID=RO,Number=1,Type=Integer,Description=\"Mode of reference kmer counts\">" << std::endl;
   vcfStream << "##FORMAT=<ID=AO,Number=1,Type=Integer,Description=\"Mode of alt kmer counts\">" << std::endl;
-  vcfStream << "##FORMAT=<ID=LP,Number=1,Type=Integer,Description=\"Number of lowcoverage parent bases\">" << std::endl;
-  vcfStream << "##FORMAT=<ID=PC,Number=1,Type=Integer,Description=\"Mode of parents coverage\">" << std::endl;
-  vcfStream << "##FORMAT=<ID=SB,Number=1,Type=Float,Description=\"StrandBias\">" << std::endl;
   vcfStream << "##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Type of SV detected\">" << std::endl;
   vcfStream << "##INFO=<ID=SVLEN,Number=1,Type=Integer,Description=\"Length of SV detected\">" << std::endl; 
   vcfStream << "##INFO=<ID=END,Number=1,Type=Integer,Description=\"END of SV detected\">" << std::endl; 
@@ -142,6 +190,7 @@ void vcfWriter::writeVCFHeader(std::fstream & vcfStream, const std::string & stu
   vcfStream << "##INFO=<ID=RN,Number=1,Type=String,Description=\"Name of contig that produced the call\">" << std::endl;
   vcfStream << "##INFO=<ID=MQ,Number=1,Type=Integer,Description=\"Mapping quality of the contig that created the call\">" << std::endl;
   vcfStream << "##INFO=<ID=cigar,Number=1,Type=String,Description=\"Cigar string for the contig that created the call\">" << std::endl;
+  vcfStream << "##INFO=<ID=SB,Number=1,Type=Float,Description=\"StrandBias\">" << std::endl;
   vcfStream << "##INFO=<ID=VT,Number=1,Type=String,Description=\"Varient Type\">" << std::endl;
   vcfStream << "##INFO=<ID=CVT,Number=1,Type=String,Description=\"Compressed Varient Type\">" << std::endl;
   vcfStream << "##INFO=<ID=NT,Number=1,Type=Integer,Description=\"Number of polyA tails in target region\">" << std::endl; 
@@ -151,6 +200,6 @@ void vcfWriter::writeVCFHeader(std::fstream & vcfStream, const std::string & stu
   vcfStream << "##INFO=<ID=LT,Number=1,Type=Integer,Description=\"Longest polyA tail in target region\">" << std::endl;
   vcfStream << "##ALT=<ID=INS:ME:ALU,Description=\"Insertion of ALU element\">" << std::endl;
   vcfStream << "##ALT=<ID=INS:ME:L1,Description=\"Insertion of L1 element\">" << std::endl;
-  vcfStream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t" << stub << std::endl;
+  vcfStream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t" << probandBam << std::endl;
 }
 

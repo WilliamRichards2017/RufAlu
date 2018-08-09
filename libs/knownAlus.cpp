@@ -129,17 +129,20 @@ void KnownAlus::writeContigVecToVCF(std::fstream & vcf){
   //for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
   for(auto c : contigVec_){
     for(auto ca : c.contigAlignments){
-      vcfWriter writer = {ca, vcf, stub_};
-      if(ca.denovoVec_.size() > 0){
-	std::cout << "CA is denovo in KnownAlus " << std::endl;
-      }
-      if(writer.vcfFilter()){
-	writer.writeVCFLine();
+      if(debugPrintFilter(ca)){
+
+	vcfWriter writer = {ca, vcf, stub_};
+	if(ca.denovoVec_.size() > 0){
+	  std::cout << "CA is denovo in KnownAlus " << std::endl;
+	}
+	if(writer.vcfFilter()){
+	  writer.writeVCFLine();
+	}
       }
     }
   }
 }
-
+  
 void KnownAlus::writeContigVecToBedPE(std::ofstream &bed){
   /*for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     for(auto caIt = std::begin(cvIt->contigAlignments); caIt != std::end(cvIt->contigAlignments); ++caIt){
@@ -189,6 +192,9 @@ void KnownAlus::findReadsContainingPolyTails(int32_t tailSize){
 	
       }
       while(reader.GetNextAlignment(al)){
+	if(!al.IsReverseStrand()){
+	  caIt->forwardStrands += 1;
+	}
 	caIt->readsInRegion += 1;
 	if(caIt->readsInRegion > 200){
 	  break;
@@ -227,12 +233,15 @@ void KnownAlus::findDenovoEvidence(){
   
   for(auto & c : contigVec_){
     for(auto & ca : c.contigAlignments){
-      denovoEvidence de = {util::getClipSeqs(ca.alignedContig)[0], ca.alignedRegion,  parentBams_};
-
-      ca.denovoVec_.push_back(de);
-      std::cout << "is de denovo ? : " << de.isDenovo() << std::endl;
-      ca.isDenovo = de.isDenovo();
-      
+      for(auto & pb : parentBams_){
+	denovoEvidence de = {util::getClipSeqs(ca.alignedContig)[0], ca.alignedRegion,  pb};
+	
+	ca.denovoVec_.push_back(de);
+	if(de.isDenovo()){
+	  ca.isDenovo = de.isDenovo();
+	}
+      }
+      std::cout << "is de denovo ? : " << ca.isDenovo << std::endl;
     }
   }
 }
@@ -347,8 +356,7 @@ void KnownAlus::writeToBed(std::string & bedFile){
 }
 
 
-std::vector<contigAlignment>  KnownAlus::findParentContigAlignments(const BamTools::BamAlignment & al, const BamTools::BamRegion & region, const std::vector<std::string> & parentBamPaths){
-  
+std::vector<contigAlignment> KnownAlus::findParentContigAlignments(const BamTools::BamAlignment & al, const BamTools::BamRegion & region, const std::vector<std::string> & parentBamPaths){
   std::vector<contigAlignment> parentContigAlignments;
   for(auto bp : parentBamPaths){
     contigAlignment c;
@@ -417,24 +425,6 @@ std::vector<contigAlignment> KnownAlus::populateParentContigAlignments(std::vect
   }
   return parentContigAlignments;
 }
-
-
-void KnownAlus::flagAllDenovos(const std::vector<std::string> & parentBams){
-  for(auto c :contigVec_){
-    for(auto & ca : c.contigAlignments){
-      if(debugPrintFilter(ca)){
-	
-	
-	std::cout << "checking if alu hit  is denovo" << std::endl;
-	std::vector<contigAlignment> caVec = findParentContigAlignments(ca.alignedContig, ca.alignedRegion, parentBams);
-	caVec = KnownAlus::populateParentContigAlignments(caVec);
-	ca.isDenovo = KnownAlus::isDenovo(caVec);
-      }
-    }
-  }
-}
-
-
 
 const bool KnownAlus::isDenovo(const std::vector<contigAlignment> & parentContigAlignments){
   for(auto pCA : parentContigAlignments){

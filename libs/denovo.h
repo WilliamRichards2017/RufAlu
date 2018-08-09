@@ -14,22 +14,29 @@
 class denovoEvidence{
  public:
 
-  denovoEvidence(std::string aluClippedSeq, BamTools::BamRegion, std::vector<std::string>);
+  denovoEvidence(std::string aluClippedSeq, BamTools::BamRegion, std::string);
   ~denovoEvidence();
   
 
   bool isDenovo_;
 
   bool isDenovo();
-  void findHeads();
-  void findTails();
+  void findHeadsAndTails();
+  int32_t getRegionCoverage();
+  double getStrandBias();
+  int32_t getRefCount();
+  int32_t getAltCount();
+  std::pair<int32_t, int32_t> getGenotype();
   
  private:
+  std::pair<int32_t, int32_t> genotype_;
+  int32_t regionCoverage_ = 0;
+  int32_t forwardCount_ = 0;
   BamTools::BamRegion region_;
   std::vector<aluHead> parentHeads_ = {};
   std::vector<polyA> parentTails_ = {};
   std::string aluClippedSeq_;  
-  std::vector<std::string> parentBams_;
+  std::string parentBam_;
   
 };
 

@@ -13,9 +13,6 @@ struct genotypeField{
   int32_t DP = -1; // Total kmer depth
   int32_t RO = -1; // reference kmer count
   int32_t AO = -1; // Altername kmer count
-  int32_t LP = -1; //number of low coverage bases
-  int32_t PC = -1; // Mode of parent coverage
-  float SB = -1.0; // Strand Bias 
 };
   
 struct filterField{
@@ -35,6 +32,7 @@ struct infoField {
   std::string RN; // INFO=<ID=RN,Number=1,Type=String,Description="Name of contig that produced the call">
   int16_t MQ = -1; // INFO=<ID=MQ,Number=1,Type=Integer,Description="Mapping quality of the contig that created the call">
   std::string cigar; 
+  double SB;
   std::string CVT = "ME"; //Compressed variant type
 
   //TODO - REMOVE HARD CODING WHEN HD IS POPULATED
@@ -78,19 +76,21 @@ class vcfWriter{
   const bool vcfFilter();
   void writeVCFLine();
 
-  static void writeVCFHeader(std::fstream &, const std::string &);
+  static void writeVCFHeader(std::fstream &, std::string probandBam);
 
   
  private:
   
   vcfLine vcfLine_ = {};
   std::fstream & vcfStream_;
-  
   contigAlignment ca_;
-  const std::string stub_;
+  const std::string & probandBam_;
   
   void populateVCFLine();  
+  void populateGenotypes();
+  void populateParentGenotypes();
 
+  void writeGenotypes();
   void writeFilter();
   void writeInfo();
 

@@ -60,8 +60,6 @@ class KnownAlus{
   std::vector<contigAlignment> findParentContigAlignments(const BamTools::BamAlignment &, const BamTools::BamRegion &, const std::vector<std::string> &);
   std::vector<contigAlignment> populateParentContigAlignments(std::vector<contigAlignment>);
 
-  void flagAllDenovos(const std::vector<std::string> &);
-  
   const bool isDenovo(const std::vector<contigAlignment> &);
   
   void writeToBed(std::string &);
