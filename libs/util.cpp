@@ -40,14 +40,9 @@ const std::pair<std::string, int32_t> util::getHighestQualityAluHit(const std::v
   return maxQualHit;
 }
 
-const int32_t util::getLongestTail(const std::vector<polyA> & l, const std::vector<polyA> & r){
-  int32_t maxTail = -1;
-  for(auto t : l){
-    if(t.getLongestTail() > maxTail){
-      maxTail = t.getLongestTail();
-    }
-  }
-  for(auto t : r){
+const int32_t util::getLongestTail(const std::vector<polyA> & tails){
+  int32_t maxTail = 0;
+  for(auto t : tails){
     if(t.getLongestTail() > maxTail){
       maxTail = t.getLongestTail();
     }

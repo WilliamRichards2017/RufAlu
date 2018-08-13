@@ -17,13 +17,11 @@ struct genotypeField{
   
 struct filterField{
   bool DS; //FILTER=<ID=DS,Description="polyA tails detected on both forward and reverse strand">
-  bool SB; //FILTER=<ID=SB,Description="polyA tails on only 1 side of the events"> 
   int32_t polyA; //FILTER=<ID=SB,Description="atleast 3 polyA tails that start at the same point"> 
 };
 struct infoField {
   int32_t NR  =  -1; // INFO=<ID=NR,Number=1,Type=Integer,Description="Number of total reads in target region">
   int32_t NT  =  -1; // INFO=<ID=NT,Number=1,Type=Integer,Description="Number of polyA tails in target region">
-  std::string TB;  // INFO=<ID=TB,Number=1,Type=Integer,Description="Is tail left bound, right bound, or double bound"> 
   int32_t NH = -1; // INFO=<ID=NH,Number=1,Type=Integer,Description="Number of alu heads in target region"> 
   int32_t LT  =  -1; // INFO=<ID=LT,Number=1,Type=Integer,Description="Longest polyA tail in target region"> 
   std::string SVTYPE; // INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of SV detected">
@@ -32,8 +30,8 @@ struct infoField {
   std::string RN; // INFO=<ID=RN,Number=1,Type=String,Description="Name of contig that produced the call">
   int16_t MQ = -1; // INFO=<ID=MQ,Number=1,Type=Integer,Description="Mapping quality of the contig that created the call">
   std::string cigar; 
-  double SB;
   std::string CVT = "ME"; //Compressed variant type
+  double SB; // Strand Bias
 
   //TODO - REMOVE HARD CODING WHEN HD IS POPULATED
   std::vector<int32_t> HD = {-1,-1}; // hashcount for kmers overlapping variant

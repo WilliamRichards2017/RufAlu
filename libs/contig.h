@@ -16,33 +16,11 @@
 struct clipCoords;
 class denovoEvidence;
 
-/*struct contigAlignment {
-  std::string bamPath;
-  std::pair<std::string, int32_t> aluHit;
-  std::string chrom;
-  clipCoords clipCoords_;
-  BamTools::BamAlignment alignedContig;
-  BamTools::BamRegion alignedRegion;
-  std::vector<polyA> leftBoundTails;
-  std::vector<polyA> rightBoundTails;
-  std::vector<aluHead> leftBoundHeads;
-  std::vector<aluHead> rightBoundHeads;
-  bool tailLeftBoundDS = false;
-  bool tailRightBoundDS = false;
-  bool tailLeftBound = false;
-  bool tailRightBound = false;
-  bool isDenovo = false; 
-  int32_t readsInRegion = 0;
-  int32_t forwardStrands = 0;
-  int32_t longestTail = 0;
-  int32_t maxHash = 0;
-  std::vector<denovoEvidence> denovoVec_;
-};
-*/
 
 class contigAlignment{
+
  public:
-  contigAlignment(std::string, clipCoords, std::string, BamTools::BamAlignment, std::string, BamTools::BamRegion, int32_t);
+  contigAlignment(std::string, std::vector<std::string>,  std::pair<std::string, int32_t>, BamTools::BamAlignment, std::string, BamTools::BamRegion);
   ~contigAlignment();
   std::string getBamPath();
   std::pair<std::string,int32_t> getAluHit();
@@ -53,28 +31,47 @@ class contigAlignment{
   std::vector<aluHead> getHeads();
   std::vector<polyA> getConsensusTails();
   int32_t getConsensusTailsStartPos();
+  clipCoords getClipCoords();
   bool isDenvo();
   int32_t getReadsInRegion();
+  int32_t getAltCount();
+  int32_t getForwardStrandCount();
   std::pair<int32_t, int32_t> getGenotype();
+  int32_t getMaxHash();
   int32_t getLongestTail();
-  int32_t getMaxHash();		 
   std::vector<denovoEvidence> getDenovoVec();
+  bool isDenovo();
+  bool isDoubleStranded();
   
 
  private:
+  int32_t tailSize_ = 10;
+  int32_t headSize_ = 10;
   std::string bamPath_;
-  std::string aluHit_;
+  std::vector<std::string> parentBamPaths_;
+  std::pair<std::string, int32_t> aluHit_;
   std::string chrom_;
   BamTools::BamAlignment alignedContig_;
   BamTools::BamRegion alignedRegion_;
   std::vector<polyA> polyATails_;
   std::vector<aluHead> aluHeads_;
   clipCoords clipCoords_;
-  bool isDenovo_;
   int32_t readsInRegion_;
+  int32_t altCount_;
+  int32_t forwardStrandCount_;
   std::pair<int32_t, int32_t> genotype_;
   int32_t maxHash_;
+  int32_t longestTail_;
   std::vector<denovoEvidence> denovoVec_;
+
+  bool isDenovo_;
+  bool doubleStranded_;
+
+  void populateClipCoords();
+  void populateMaxHash();
+  void populateHeadsAndTails();
+  void populateAltCount();
+  void populateDenovoEvidence();
 };
 
 struct contig {

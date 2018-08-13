@@ -20,7 +20,7 @@ const bool vcfWriter::vcfFilter(){
 }
 
 void vcfWriter::populateParentGenotypes(){
-  for(auto & pDE : ca_.getDenovoVec){
+  for(auto & pDE : ca_.getDenovoVec()){
     genotypeField gt = {};
     gt.GT = pDE.getGenotype();
     gt.DP = pDE.getRegionCoverage();
@@ -31,76 +31,63 @@ void vcfWriter::populateParentGenotypes(){
 }
 
 void vcfWriter::populateGenotypes(){
-  if((ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size()) > 0 && ca_.readsInRegion > (ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size())){
+  if(ca_.getAltCount() > 0 &&  ca_.getAltCount() <ca_.getReadsInRegion()) {
     vcfLine_.INFO.probandGT.GT = std::make_pair(1,1);
-   }
-  else if ((ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size()) < 1){
-   vcfLine_.INFO.probandGT.GT = std::make_pair(1,0);
   }
-  else if (ca_.readsInRegion <= (ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size())){
+  else if (ca_.getAltCount() < 1){
+    vcfLine_.INFO.probandGT.GT = std::make_pair(1,0);
+  }
+  else if (ca_.getReadsInRegion() <= ca_.getAltCount()){
     vcfLine_.INFO.probandGT.GT = std::make_pair(0,1);
   }
   else {
     vcfLine_.INFO.probandGT.GT = std::make_pair(-1,-1);
   }
 
-  vcfLine_.INFO.probandGT.DP = ca_.maxHash;
-  vcfLine_.INFO.probandGT.RO = ca_.readsInRegion - (ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size());
-  vcfLine_.INFO.probandGT.AO = ca_.leftBoundTails.size() + ca_.rightBoundTails.size() + ca_.leftBoundHeads.size() + ca_.rightBoundHeads.size();
-
+  vcfLine_.INFO.probandGT.DP = ca_.getMaxHash();
+  vcfLine_.INFO.probandGT.RO = ca_.getReadsInRegion() - ca_.getAltCount();
+  vcfLine_.INFO.probandGT.AO = ca_.getAltCount();
+  
   vcfWriter::populateParentGenotypes();
   
 }
 
 void vcfWriter::populateVCFLine(){
-  vcfLine_.CHROM = ca_.chrom;
-  vcfLine_.POS = ca_.clipCoords_.clipStart+ca_.alignedContig.Position;
-
-  if(ca_.isDenovo){
+  vcfLine_.CHROM = ca_.getChrom();
+  vcfLine_.POS = ca_.getClipCoords().clipStart+ca_.getAlignedContig().Position;
+  
+  if(ca_.isDenovo()){
     vcfLine_.ID = "ME-DeNovo";
   }
   else{
     vcfLine_.ID = "Inherited";
   }
-
-  std::cout << "denovoVec size() is: " << ca_.denovoVec_.size() << std::endl;
-
+  
+  std::cout << "denovoVec size() is: " << ca_.getDenovoVec().size() << std::endl;
+  
   //TODO: //write function to get nucleotide at alu head start pos
   vcfLine_.REF = "N";
-  vcfLine_.ALT = "INS:ME:"+ca_.aluHit.first;  
-  vcfLine_.QUAL = ca_.alignedContig.MapQuality;
+  vcfLine_.ALT = "INS:ME:"+ca_.getAluHit().first;  
+  vcfLine_.QUAL = ca_.getAlignedContig().MapQuality;
 
-  vcfLine_.FILTER.SB = (ca_.tailLeftBound) ^ (ca_.tailRightBound); // ^ = XOR
-  vcfLine_.FILTER.DS = (ca_.tailLeftBoundDS ^ ca_.tailRightBoundDS) and vcfLine_.FILTER.SB;
+  //vcfLine_.FILTER.SB = (ca_.tailLeftBound) ^ (ca_.tailRightBound); // ^ = XOR
+  //vcfLine_.FILTER.DS = (ca_.tailLeftBoundDS ^ ca_.tailRightBoundDS) and vcfLine_.FILTER.SB;
   
   vcfLine_.INFO.SVTYPE = "INS";
-  vcfLine_.INFO.SVLEN = std::abs(ca_.clipCoords_.clipStart - ca_.clipCoords_.clipEnd);
-  vcfLine_.INFO.END = ca_.clipCoords_.clipEnd + ca_.alignedContig.Position;
-  vcfLine_.INFO.MQ = ca_.alignedContig.MapQuality;
-  vcfLine_.INFO.RN = ca_.alignedContig.Name;
-  if(ca_.tailLeftBound){
-    vcfLine_.INFO.TB = "tailLeftBound";
-    vcfLine_.INFO.NT = ca_.leftBoundTails.size();
-  }
-  if (ca_.tailRightBound){
-    vcfLine_.INFO.TB = "tailRightBound";
-    vcfLine_.INFO.NT = ca_.rightBoundTails.size();
-  }
+  vcfLine_.INFO.SVLEN = std::abs(ca_.getClipCoords().clipStart - ca_.getClipCoords().clipEnd);
+  vcfLine_.INFO.END = ca_.getClipCoords().clipEnd + ca_.getAlignedContig().Position;
+  vcfLine_.INFO.MQ = ca_.getAlignedContig().MapQuality;
+  vcfLine_.INFO.RN = ca_.getAlignedContig().Name;
+  vcfLine_.INFO.NT = ca_.getConsensusTails().size();
   
-  else if (ca_.tailLeftBound and ca_.tailRightBound){
-    vcfLine_.INFO.TB = "tailDoubleBound";
+  vcfLine_.INFO.SB = static_cast<double>(ca_.getForwardStrandCount())/static_cast<double>(ca_.getReadsInRegion());
 
-  }
-
-
-  vcfLine_.INFO.SB = static_cast<double>(ca_.forwardStrands)/static_cast<double>(ca_.readsInRegion);
-
-  vcfLine_.INFO.NH = ca_.leftBoundHeads.size(); 
-  vcfLine_.INFO.NR = ca_.readsInRegion;
-  vcfLine_.INFO.LT = util::getLongestTail(ca_.leftBoundTails, ca_.rightBoundTails);
+  vcfLine_.INFO.NH = ca_.getConsensusTails().size(); 
+  vcfLine_.INFO.NR = ca_.getReadsInRegion();
+  vcfLine_.INFO.LT = util::getLongestTail(ca_.getConsensusTails());
 
 
-  for(auto it = std::begin(ca_.alignedContig.CigarData); it != std::end(ca_.alignedContig.CigarData); ++it){
+  for(auto it = std::begin(ca_.getAlignedContig().CigarData); it != std::end(ca_.getAlignedContig().CigarData); ++it){
     vcfLine_.INFO.cigar += it->Type;
     vcfLine_.INFO.cigar += std::to_string(it->Length);
   }
@@ -123,19 +110,12 @@ vcfWriter::~vcfWriter(){
 }
 
 void vcfWriter::writeFilter(){
-  if (vcfLine_.FILTER.DS and vcfLine_.FILTER.SB){
+  if (vcfLine_.FILTER.DS){
     vcfStream_ << "PASS\t";
   }
-  else if((!vcfLine_.FILTER.DS) and (!vcfLine_.FILTER.SB)) {
-    vcfStream_ << "DS:SB\t";
-  }
-  else if (!vcfLine_.FILTER.SB){
-    vcfStream_ << "SB\t";
-  }
-  else if (!vcfLine_.FILTER.DS){
-    vcfStream_ << "DS\t";
-  }
-  else{
+  else if(!vcfLine_.FILTER.DS) {
+    vcfStream_ << "DS";
+  }  else{
     vcfStream_ << '\t';
   }
 }
@@ -151,7 +131,7 @@ void vcfWriter::writeGenotypes(){
 }
 
 void vcfWriter::writeInfo(){
-  vcfStream_ << "NR=" << vcfLine_.INFO.NR << ";NT" << vcfLine_.INFO.NT << ";TB=" << vcfLine_.INFO.TB << ";NH=" << vcfLine_.INFO.NH << ";LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE << ";SVLEN=" << vcfLine_.INFO.SVLEN << ";END=" << vcfLine_.INFO.END << ";RN=" << vcfLine_.INFO.RN << ";cigar=" << vcfLine_.INFO.cigar << ";SB=" << vcfLine_.INFO.SB <<  ";CVT=" << vcfLine_.INFO.CVT << ";HD=";
+  vcfStream_ << "NR=" << vcfLine_.INFO.NR << ";NT" << vcfLine_.INFO.NT <<  ";NH=" << vcfLine_.INFO.NH << ";LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE << ";SVLEN=" << vcfLine_.INFO.SVLEN << ";END=" << vcfLine_.INFO.END << ";RN=" << vcfLine_.INFO.RN << ";cigar=" << vcfLine_.INFO.cigar << ";SB=" << vcfLine_.INFO.SB <<  ";CVT=" << vcfLine_.INFO.CVT << ";HD=";
   for(auto h : vcfLine_.INFO.HD){
     vcfStream_ << h << '_';
   }

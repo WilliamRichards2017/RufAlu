@@ -45,13 +45,6 @@ class KnownAlus{
   void populateRefData();
   void findContigsContainingKnownAlus();
   void pullContigAlignments();
-  void findReadsContainingPolyTails(int32_t);
-  void findReadsContainingHeads();
-  void findDenovoEvidence();
-
-
-  bool bedFilter(contigAlignment &);
-  void writeBedPEHeader(std::ofstream &);
   void writeContigVecToBedPE(std::ofstream &);
 
   void writeToVCF(std::string &);

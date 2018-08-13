@@ -15,6 +15,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 
 add_library(aludetect_core STATIC
+	contig.cpp
 	vcfWriter.cpp
 	aluHead.cpp
 	denovo.cpp
