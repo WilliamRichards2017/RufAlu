@@ -31,11 +31,14 @@ class polyA{
   bool isTailLeftBound();
   bool isTailReverseStrand();
   const int32_t getLongestTail();
+  int32_t getGlobalTailStart();
+
  private:
 
   bool isTail_ = false;
   int32_t tailSize_;
   int32_t longestTail_ = 0;
+  int32_t globalTailStart_;
   int32_t detectRightTail(const clipCoords &, const char &);
   int32_t detectLeftTail(const clipCoords &, const char &);
   void setLongestTail(const std::vector<clipCoords> & c);

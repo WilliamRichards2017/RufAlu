@@ -38,15 +38,31 @@ std::vector<polyA> contigAlignment::getTails(){
 }
 
 //TODO: implement
-std::vector<polyA> contigAlignment::getConsensusTails(){
-  std::vector<polyA> notImplemented;
-  return notImplemented;
-}
+void contigAlignment::populateConsensusTails(){
 
-//TODO: implement
-int32_t contigAlignment::getConsensusTailsStartPos(){
-  int32_t notImplemented;
-  return notImplemented;
+  int modeCount = 0;
+  int startPosMode = -1;
+  
+  std::map<int32_t, int32_t> hashMap;
+  for(int i = 0; i < polyATails_.size(); ++i){
+    int startPos = polyATails_[i].getGlobalTailStart();
+    ++hashMap[startPos];
+
+    modeCount = std::max(modeCount, hashMap[startPos]);
+  }
+  
+  for (auto & startPos : hashMap){
+    if (startPos.second == modeCount){
+      startPosMode = startPos.first;
+    }
+  }
+
+
+  for (auto & t : polyATails_){
+    if(t.getGlobalTailStart() == startPosMode){
+      consensusTails_.push_back(t);
+    }
+  }
 }
 
 std::vector<aluHead> contigAlignment::getHeads(){
@@ -65,7 +81,6 @@ std::pair<int32_t, int32_t> contigAlignment::getGenotype(){
   return genotype_;
 }
 
-//TODO:: implement
 int32_t contigAlignment::getLongestTail(){
   return longestTail_;
 }
@@ -88,6 +103,10 @@ std::vector<denovoEvidence> contigAlignment::getDenovoVec(){
 
 clipCoords contigAlignment::getClipCoords(){
   return clipCoords_;
+}
+
+std::vector<polyA> contigAlignment::getConsensusTails(){
+  return consensusTails_;
 }
 
 
@@ -146,6 +165,8 @@ void contigAlignment::populateAltCount() {
   altCount_ = contigAlignment::getConsensusTails().size() + contigAlignment::getHeads().size();
 }
 
+
+
 void contigAlignment::populateDenovoEvidence(){
   for(const auto & pb : parentBamPaths_) {
     denovoEvidence de = {util::getClipSeqs(alignedContig_)[0], alignedRegion_, pb};
@@ -156,10 +177,20 @@ void contigAlignment::populateDenovoEvidence(){
   }
 }
 
+//TODO:: Implement
+void contigAlignment::populateLongestTail(){
+  for(auto & t : consensusTails_){
+    if(t.getLongestTail() > longestTail_){
+      longestTail_ = t.getLongestTail();
+    }
+  }
+}
+
 void contigAlignment::populateMaxHash(){
   std::vector<int32_t> peakVector = util::getPeakVector(alignedContig_);
+  std::cout << "peakVector.size() is: " << peakVector.size() << std::endl;
   auto it = std::max_element(peakVector.begin(), peakVector.end());
-  maxHash_ = peakVector[std::distance(peakVector.begin(), peakVector.end())];
+  maxHash_ = peakVector[std::distance(peakVector.begin(), it)];
 }
 
 void contigAlignment::populateClipCoords(){
@@ -172,6 +203,8 @@ contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> p
   contigAlignment::populateClipCoords();
   contigAlignment::populateMaxHash();
   contigAlignment::populateHeadsAndTails();
+  contigAlignment::populateConsensusTails();
+  contigAlignment::populateLongestTail();
   contigAlignment::populateDenovoEvidence();
 }
 

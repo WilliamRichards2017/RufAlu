@@ -22,26 +22,31 @@ class contigAlignment{
  public:
   contigAlignment(std::string, std::vector<std::string>,  std::pair<std::string, int32_t>, BamTools::BamAlignment, std::string, BamTools::BamRegion);
   ~contigAlignment();
-  std::string getBamPath();
-  std::pair<std::string,int32_t> getAluHit();
-  std::string getChrom();
-  BamTools::BamAlignment getAlignedContig();
-  BamTools::BamRegion getAlignedRegion();
-  std::vector<polyA> getTails();
-  std::vector<aluHead> getHeads();
-  std::vector<polyA> getConsensusTails();
-  int32_t getConsensusTailsStartPos();
-  clipCoords getClipCoords();
-  bool isDenvo();
+
+  bool isDenovo();
+  bool isDoubleStranded();
+
   int32_t getReadsInRegion();
   int32_t getAltCount();
   int32_t getForwardStrandCount();
-  std::pair<int32_t, int32_t> getGenotype();
   int32_t getMaxHash();
   int32_t getLongestTail();
+
+  std::string getBamPath();
+  std::string getChrom();
+  std::pair<std::string,int32_t> getAluHit();
+  std::pair<int32_t, int32_t> getGenotype();
+
+  BamTools::BamAlignment getAlignedContig();
+  BamTools::BamRegion getAlignedRegion();
+
+  clipCoords getClipCoords();
+
+  std::vector<polyA> getTails();
+  std::vector<aluHead> getHeads();
+  std::vector<polyA> getConsensusTails();
+
   std::vector<denovoEvidence> getDenovoVec();
-  bool isDenovo();
-  bool isDoubleStranded();
   
 
  private:
@@ -54,11 +59,12 @@ class contigAlignment{
   BamTools::BamAlignment alignedContig_;
   BamTools::BamRegion alignedRegion_;
   std::vector<polyA> polyATails_;
+  std::vector<polyA> consensusTails_;
   std::vector<aluHead> aluHeads_;
   clipCoords clipCoords_;
-  int32_t readsInRegion_;
-  int32_t altCount_;
-  int32_t forwardStrandCount_;
+  int32_t readsInRegion_ = 0;
+  int32_t altCount_ = 0;
+  int32_t forwardStrandCount_ = 0;
   std::pair<int32_t, int32_t> genotype_;
   int32_t maxHash_;
   int32_t longestTail_;
@@ -70,6 +76,8 @@ class contigAlignment{
   void populateClipCoords();
   void populateMaxHash();
   void populateHeadsAndTails();
+  void populateConsensusTails();
+  void populateLongestTail();
   void populateAltCount();
   void populateDenovoEvidence();
 };

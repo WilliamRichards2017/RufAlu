@@ -104,7 +104,7 @@ denovoEvidence::~denovoEvidence(){
 
 
 bool denovoEvidence::isDenovo(){
-  std::cout << "found " << parentHeads_.size() << " heads and " << parentTails_.size() << "tails" << std::endl;
+  //std::cout << "found " << parentHeads_.size() << " heads and " << parentTails_.size() << "tails" << std::endl;
   bool b = parentHeads_.size() > 0 || parentTails_.size() > 0;
   if(b){
     std::cout << "returning isDenovo" << std::endl;

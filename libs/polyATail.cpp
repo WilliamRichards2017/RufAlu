@@ -170,6 +170,10 @@ bool polyA::detectTailInWindow(const clipCoords &  c,  const char & atChar){
   return false;
 }
 
+int32_t polyA::getGlobalTailStart(){
+  return coords_.clipStart;
+}
+
 std::vector<clipCoords> polyA::getLocalClipCoords() {
   std::vector<clipCoords> coordsVec;
   std::vector<int> clipSizes;
