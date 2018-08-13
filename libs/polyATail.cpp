@@ -114,6 +114,7 @@ void polyA::setLongestTail(const std::vector<clipCoords> & clipVec){
     }
   }
   longestTail_ = std::max(mla, std::max(mlt, std::max(mra, mrt)));
+  //std::cout << "longest tail inside polyATail is: " << longestTail_ << std::endl;
 }
 
 
@@ -229,7 +230,9 @@ void polyA::setGlobalClipCoords(int32_t index){
 }
 
 bool polyA::detectPolyTail(){
+  //std::cout << "is longest tail of " << longestTail_ << " greater than tailSize of " << tailSize_ << std::endl;
   if(longestTail_ >= tailSize_){
+    std::cout << "found polyA Tail" << std::endl;
     return true;
   }
   return false;

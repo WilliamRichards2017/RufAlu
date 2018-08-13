@@ -40,9 +40,14 @@ std::vector<polyA> contigAlignment::getTails(){
 //TODO: implement
 void contigAlignment::populateConsensusTails(){
 
+  std::cout << "Inside populateConsensusTails" << std::endl;
+  
   int modeCount = 0;
   int startPosMode = -1;
   
+
+  std::cout << "PolyATails_.size() is: " << polyATails_.size() << std::endl;
+
   std::map<int32_t, int32_t> hashMap;
   for(int i = 0; i < polyATails_.size(); ++i){
     int startPos = polyATails_[i].getGlobalTailStart();
@@ -71,6 +76,10 @@ std::vector<aluHead> contigAlignment::getHeads(){
 
 bool contigAlignment::isDenovo(){
   return isDenovo_;
+}
+
+bool contigAlignment::isDoubleStranded(){
+  return doubleStranded_;
 }
 
 int32_t contigAlignment::getReadsInRegion(){
@@ -112,6 +121,9 @@ std::vector<polyA> contigAlignment::getConsensusTails(){
 
 
 void contigAlignment::populateHeadsAndTails(){
+
+  std::cout << "Inside populateHeadsAndTails" << std::endl;
+
   BamTools::BamReader reader;
   BamTools::BamAlignment al;
 
@@ -143,14 +155,17 @@ void contigAlignment::populateHeadsAndTails(){
       ++forwardStrandCount_;
     }
 
-    if(readsInRegion_ < 998){
+    if(readsInRegion_ > 998){
       break;
     }
 
     polyA tail = {al, tailSize_};
+
+    std::cout << "Tail name is " << tail.al_.Name;
     aluHead head = {util::getClipSeqs(alignedContig_)[0], al, headSize_};
     
-    if(tail.isTail()){
+    if(tail.detectPolyTail()){
+      std::cout << "Have we found any polyA tails here?" << std::endl;
       polyATails_.push_back(tail);
     }
 
@@ -166,7 +181,6 @@ void contigAlignment::populateAltCount() {
 }
 
 
-
 void contigAlignment::populateDenovoEvidence(){
   for(const auto & pb : parentBamPaths_) {
     denovoEvidence de = {util::getClipSeqs(alignedContig_)[0], alignedRegion_, pb};
@@ -179,7 +193,7 @@ void contigAlignment::populateDenovoEvidence(){
 
 //TODO:: Implement
 void contigAlignment::populateLongestTail(){
-  for(auto & t : consensusTails_){
+  for(auto & t : polyATails_){
     if(t.getLongestTail() > longestTail_){
       longestTail_ = t.getLongestTail();
     }
@@ -188,7 +202,6 @@ void contigAlignment::populateLongestTail(){
 
 void contigAlignment::populateMaxHash(){
   std::vector<int32_t> peakVector = util::getPeakVector(alignedContig_);
-  std::cout << "peakVector.size() is: " << peakVector.size() << std::endl;
   auto it = std::max_element(peakVector.begin(), peakVector.end());
   maxHash_ = peakVector[std::distance(peakVector.begin(), it)];
 }
@@ -204,6 +217,7 @@ contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> p
   contigAlignment::populateMaxHash();
   contigAlignment::populateHeadsAndTails();
   contigAlignment::populateConsensusTails();
+  contigAlignment::populateAltCount();
   contigAlignment::populateLongestTail();
   contigAlignment::populateDenovoEvidence();
 }

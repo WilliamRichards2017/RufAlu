@@ -35,12 +35,13 @@ bool debugPrintFilter(contigAlignment & ca){
 }
 
 void printContigAlignment(contigAlignment & ca){
-  if(ca.getAlignedContig().Name.compare("NODE_8800.bam.generator.V2_372_L151_D6:6:0::MH0") == 0){
+  //  if(ca.getAlignedContig().Name.compare("NODE_8800.bam.generator.V2_372_L151_D6:6:0::MH0") == 0){
     std::cout << std::endl;
     std::cout << "printing contig alignment: " << ca.getAlignedContig().Name;
     std::cout << "polyAails.size(): " << ca.getConsensusTails().size();
+    std::cout << "aluHeads.size(): " << ca.getHeads().size();
     std::cout << std::endl;
-  }
+    //}
 }
 
 void printContig(contig & c){
@@ -90,17 +91,14 @@ void KnownAlus::writeToVCF(std::string & vcfFile){
 
 void KnownAlus::writeContigVecToVCF(std::fstream & vcf){
   //for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
-  for(auto c : contigVec_){
-    for(auto ca : c.contigAlignments){
-      if(debugPrintFilter(ca)){
-
-	vcfWriter writer = {ca, vcf, stub_};
+  for(auto  c : contigVec_){
+    for(auto  ca : c.contigAlignments){
+      vcfWriter writer = {ca, vcf, stub_};
 	if(ca.getDenovoVec().size() > 0){
 	  std::cout << "CA is denovo in KnownAlus " << std::endl;
 	}
 	if(writer.vcfFilter()){
 	  writer.writeVCFLine();
-	}
       }
     }
   }
@@ -197,6 +195,9 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
 
   std::string tempy = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/testy.vcf";
 
+  KnownAlus::printContigVec();
+
+
   std::cerr << "[7/7] Writing out results to vcf file " << vcfOutPath << std::endl;
   //KnownAlus::writeToVCF(vcfOutPath);
   KnownAlus::writeToVCF(tempy);
@@ -218,7 +219,7 @@ void KnownAlus::pullContigAlignments(){
 
   BamTools::BamAlignment al;
   
-  for(auto cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
+  for(auto  cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     while(reader.GetNextAlignment(al)){
       if(cvIt->name.compare(al.Name)==0 and al.HasTag("SA")){
 	//std::cout << "Checking for peak and clip coord intersection for read: " << al.Name << std::endl;
@@ -231,6 +232,7 @@ void KnownAlus::pullContigAlignments(){
 	  std::string chrom = getChromosomeFromRefID(al.RefID);
 	  BamTools::BamRegion region = {al.RefID, al.Position, al.RefID, al.GetEndPosition()};
 	  contigAlignment ca = {rawBamPath_, parentBams_, hqAlu, al, chrom, region };
+	  cvIt->contigAlignments.push_back(ca);
 	}
       }
     }

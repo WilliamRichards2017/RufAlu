@@ -67,11 +67,11 @@ class contigAlignment{
   int32_t forwardStrandCount_ = 0;
   std::pair<int32_t, int32_t> genotype_;
   int32_t maxHash_;
-  int32_t longestTail_;
+  int32_t longestTail_ = 0;
   std::vector<denovoEvidence> denovoVec_;
 
   bool isDenovo_;
-  bool doubleStranded_;
+  bool doubleStranded_ = false;
 
   void populateClipCoords();
   void populateMaxHash();

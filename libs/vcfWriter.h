@@ -29,7 +29,7 @@ struct infoField {
   int32_t END = -1; // INFO=<ID=END,Number=1,Type=Integer,Description="END of SV detected">
   std::string RN; // INFO=<ID=RN,Number=1,Type=String,Description="Name of contig that produced the call">
   int16_t MQ = -1; // INFO=<ID=MQ,Number=1,Type=Integer,Description="Mapping quality of the contig that created the call">
-  std::string cigar; 
+  std::string cigar = ""; 
   std::string CVT = "ME"; //Compressed variant type
   double SB; // Strand Bias
 
@@ -68,7 +68,7 @@ struct vcfLine {
 
 class vcfWriter{
  public:
-  vcfWriter(const contigAlignment &, std::fstream &, const std::string &);
+  vcfWriter(contigAlignment &, std::fstream &, const std::string &);
   ~vcfWriter();
 
   const bool vcfFilter();
@@ -83,7 +83,9 @@ class vcfWriter{
   std::fstream & vcfStream_;
   contigAlignment ca_;
   const std::string & probandBam_;
-  
+
+
+  void printContigAlignment();
   void populateVCFLine();  
   void populateGenotypes();
   void populateParentGenotypes();

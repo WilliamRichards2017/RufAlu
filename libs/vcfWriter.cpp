@@ -9,14 +9,11 @@
 //TODO: Implement vcf filter
 const bool vcfWriter::vcfFilter(){
   return true;
-  if(vcfLine_.INFO.NR > 200) {
-    return false;
-  }
+}
+
+void vcfWriter::printContigAlignment(){
+  std::cout << "alt count is: " << ca_.getAltCount() << std::endl;
   
-  if(vcfLine_.INFO.NH < 2 || vcfLine_.INFO.NT < 2){
-    return false; 
-  }
-  return true;
 }
 
 void vcfWriter::populateParentGenotypes(){
@@ -71,7 +68,7 @@ void vcfWriter::populateVCFLine(){
   vcfLine_.QUAL = ca_.getAlignedContig().MapQuality;
 
   //vcfLine_.FILTER.SB = (ca_.tailLeftBound) ^ (ca_.tailRightBound); // ^ = XOR
-  //vcfLine_.FILTER.DS = (ca_.tailLeftBoundDS ^ ca_.tailRightBoundDS) and vcfLine_.FILTER.SB;
+  vcfLine_.FILTER.DS = ca_.isDoubleStranded();
   
   vcfLine_.INFO.SVTYPE = "INS";
   vcfLine_.INFO.SVLEN = std::abs(ca_.getClipCoords().clipStart - ca_.getClipCoords().clipEnd);
@@ -87,22 +84,26 @@ void vcfWriter::populateVCFLine(){
   vcfLine_.INFO.LT = util::getLongestTail(ca_.getConsensusTails());
 
 
-  for(auto it = std::begin(ca_.getAlignedContig().CigarData); it != std::end(ca_.getAlignedContig().CigarData); ++it){
+  /*for(auto it = std::begin(ca_.getAlignedContig().CigarData); it != std::end(ca_.getAlignedContig().CigarData); it++){
+    std::cout << "it->type is: " << it->Type << ", it->Length is: " << it->Length << std::endl;
     vcfLine_.INFO.cigar += it->Type;
     vcfLine_.INFO.cigar += std::to_string(it->Length);
-  }
+    }*/
   
   vcfWriter::populateGenotypes();
 
 }
 
-vcfWriter::vcfWriter(const contigAlignment & ca, std::fstream & vcfStream, const std::string & probandBam) : ca_(ca), vcfStream_(vcfStream), probandBam_(probandBam) { 
+vcfWriter::vcfWriter(contigAlignment & ca, std::fstream & vcfStream, const std::string & probandBam) : ca_(ca), vcfStream_(vcfStream), probandBam_(probandBam) { 
   if(!vcfStream_.is_open()){
     std::cerr << "vcfStream is not open, exiting run with non-zero exit status " << std::endl;
     exit (EXIT_FAILURE);
   }
+
+
   
   std::cout << "child bam is: " << probandBam_ << std::endl;
+  vcfWriter::printContigAlignment();
   vcfWriter::populateVCFLine();
 }
 
@@ -114,7 +115,7 @@ void vcfWriter::writeFilter(){
     vcfStream_ << "PASS\t";
   }
   else if(!vcfLine_.FILTER.DS) {
-    vcfStream_ << "DS";
+    vcfStream_ << "DS\t";
   }  else{
     vcfStream_ << '\t';
   }
