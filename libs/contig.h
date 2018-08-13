@@ -34,6 +34,7 @@ class contigAlignment{
 
   std::string getBamPath();
   std::string getChrom();
+  std::string getCigarString();
   std::pair<std::string,int32_t> getAluHit();
   std::pair<int32_t, int32_t> getGenotype();
 
@@ -45,7 +46,6 @@ class contigAlignment{
   std::vector<polyA> getTails();
   std::vector<aluHead> getHeads();
   std::vector<polyA> getConsensusTails();
-
   std::vector<denovoEvidence> getDenovoVec();
   
 
@@ -56,6 +56,7 @@ class contigAlignment{
   std::vector<std::string> parentBamPaths_;
   std::pair<std::string, int32_t> aluHit_;
   std::string chrom_;
+  std::string cigarString_ = "";
   BamTools::BamAlignment alignedContig_;
   BamTools::BamRegion alignedRegion_;
   std::vector<polyA> polyATails_;
@@ -73,6 +74,7 @@ class contigAlignment{
   bool isDenovo_;
   bool doubleStranded_ = false;
 
+  void populateCigarString();
   void populateClipCoords();
   void populateMaxHash();
   void populateHeadsAndTails();

@@ -118,6 +118,9 @@ std::vector<polyA> contigAlignment::getConsensusTails(){
   return consensusTails_;
 }
 
+std::string contigAlignment::getCigarString(){
+  return cigarString_;
+}
 
 
 void contigAlignment::populateHeadsAndTails(){
@@ -210,9 +213,19 @@ void contigAlignment::populateClipCoords(){
   clipCoords_ = util::intersectPeaksAndClips(util::getPeaks(alignedContig_), util::getLocalClipCoords(alignedContig_));
 }
 
+void contigAlignment::populateCigarString(){
+    for(auto it = std::begin(alignedContig_.CigarData); it != std::end(alignedContig_.CigarData); it++){
+      std::cout << "it->type is: " << it->Type << ", it->Length is: " << it->Length << std::endl;
+      cigarString_ += it->Type;
+      cigarString_ += std::to_string(it->Length);
+    }
+
+}
+
 
 contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> parentBamPaths, std::pair<std::string, int32_t> aluHit, BamTools::BamAlignment alignedContig, std::string chrom, BamTools::BamRegion alignedRegion) : bamPath_(bamPath), parentBamPaths_(parentBamPaths), aluHit_(aluHit), alignedContig_(alignedContig), chrom_(chrom), alignedRegion_(alignedRegion){
 
+  contigAlignment::populateCigarString();
   contigAlignment::populateClipCoords();
   contigAlignment::populateMaxHash();
   contigAlignment::populateHeadsAndTails();

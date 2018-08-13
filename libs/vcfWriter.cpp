@@ -83,12 +83,8 @@ void vcfWriter::populateVCFLine(){
   vcfLine_.INFO.NR = ca_.getReadsInRegion();
   vcfLine_.INFO.LT = util::getLongestTail(ca_.getConsensusTails());
 
-
-  /*for(auto it = std::begin(ca_.getAlignedContig().CigarData); it != std::end(ca_.getAlignedContig().CigarData); it++){
-    std::cout << "it->type is: " << it->Type << ", it->Length is: " << it->Length << std::endl;
-    vcfLine_.INFO.cigar += it->Type;
-    vcfLine_.INFO.cigar += std::to_string(it->Length);
-    }*/
+  vcfLine_.INFO.cigar = ca_.getCigarString();
+  
   
   vcfWriter::populateGenotypes();
 
