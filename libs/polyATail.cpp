@@ -232,7 +232,6 @@ void polyA::setGlobalClipCoords(int32_t index){
 bool polyA::detectPolyTail(){
   //std::cout << "is longest tail of " << longestTail_ << " greater than tailSize of " << tailSize_ << std::endl;
   if(longestTail_ >= tailSize_){
-    std::cout << "found polyA Tail" << std::endl;
     return true;
   }
   return false;

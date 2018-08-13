@@ -95,7 +95,6 @@ void KnownAlus::writeContigVecToVCF(std::fstream & vcf){
     for(auto  ca : c.contigAlignments){
       vcfWriter writer = {ca, vcf, stub_};
 	if(ca.getDenovoVec().size() > 0){
-	  std::cout << "CA is denovo in KnownAlus " << std::endl;
 	}
 	if(writer.vcfFilter()){
 	  writer.writeVCFLine();
@@ -170,35 +169,18 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
   contigVec_ = {};
   refData_ = {};
 
-  std::cerr << "[1/7]  Populating reference data for " << stub_ << std::endl;
+  std::cerr << "[1/4]  Populating reference data for " << stub_ << std::endl;
   KnownAlus::populateRefData();
 
-  std::cerr << "[2/7]  Finding contigs containing known alus for " << stub_ << std::endl;
+  std::cerr << "[2/4]  Finding contigs containing known alus for " << stub_ << std::endl;
   KnownAlus::findContigsContainingKnownAlus();
 
-  std::cerr << "[3/7]  Pulling contig hit alignments for " << stub_ <<  std::endl;
+  std::cerr << "[3/4]  Pulling contig hit alignments for " << stub_ <<  std::endl;
   KnownAlus::pullContigAlignments();
-
-  //  std::cerr << "[4/7]  Finding reads containing polyA tails for " << stub_ << std::endl;
-  //KnownAlus::findReadsContainingPolyTails(9);
-
-  //std::cerr << "[5/7]  Finding reads containing alu heads tails for " << stub_ << std::endl;
-  // KnownAlus::findReadsContainingHeads();
-
-  //std::cerr << "[6/7] Flaging denovos for " << stub_ << std::endl; 
-  //KnownAlus::findDenovoEvidence();
-
- 
-
-  //std::cout << "[5/5] Writing out results to bed file " << stub_  << ".bed" << std::endl;
-  //KnownAlus::writeToBed(prefix_ + stub_ + "bed");
 
   std::string tempy = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/testy.vcf";
 
-  KnownAlus::printContigVec();
-
-
-  std::cerr << "[7/7] Writing out results to vcf file " << vcfOutPath << std::endl;
+  std::cerr << "[4/4] Writing out results to vcf file " << vcfOutPath << std::endl;
   //KnownAlus::writeToVCF(vcfOutPath);
   KnownAlus::writeToVCF(tempy);
 
@@ -222,9 +204,6 @@ void KnownAlus::pullContigAlignments(){
   for(auto  cvIt = std::begin(contigVec_); cvIt != std::end(contigVec_); ++cvIt){
     while(reader.GetNextAlignment(al)){
       if(cvIt->name.compare(al.Name)==0 and al.HasTag("SA")){
-	//std::cout << "Checking for peak and clip coord intersection for read: " << al.Name << std::endl;
-	//util::printCigar(al.CigarData);
-	//std::cout << al.Qualities << std::endl;
 	clipCoords clipPeak = util::intersectPeaksAndClips(util::getPeaks(al), util::getLocalClipCoords(al));
 	if(clipPeak.clipStart != -1){
 	  //std::cout << "Found intersection between peak and clips for " << cvIt->name << std::endl;

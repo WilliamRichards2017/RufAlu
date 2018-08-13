@@ -44,14 +44,12 @@ void denovoEvidence::findHeadsAndTails(){
     ++regionCoverage_;
     aluHead head = {aluClippedSeq_, al, 10};
     if (head.isHead()){
-      std::cout << "found head in parent" << std::endl;
       parentHeads_.push_back(head);
     }
     
     polyA tail = {al, 10};
     
     if(tail.isTail()){
-      std::cout << "found denovo tail in parent" << std::endl;
       parentTails_.push_back(tail);
     }
   }
@@ -76,8 +74,6 @@ double denovoEvidence::getStrandBias(){
 
 std::pair<int32_t, int32_t> denovoEvidence::getGenotype(){
 
-  std::cout << "region coverage is: " << regionCoverage_ << std::endl;
-  std::cout << "alt counts is: " << parentHeads_.size() + parentTails_.size() << std::endl;
 
   if(parentHeads_.size() + parentTails_.size() > 0 && regionCoverage_ > parentHeads_.size() + parentTails_.size()){
     return std::make_pair(1,1);
@@ -106,10 +102,6 @@ denovoEvidence::~denovoEvidence(){
 bool denovoEvidence::isDenovo(){
   //std::cout << "found " << parentHeads_.size() << " heads and " << parentTails_.size() << "tails" << std::endl;
   bool b = parentHeads_.size() > 0 || parentTails_.size() > 0;
-  if(b){
-    std::cout << "returning isDenovo" << std::endl;
-  }
-
   return !b;
 }
 

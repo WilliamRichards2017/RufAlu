@@ -40,14 +40,9 @@ std::vector<polyA> contigAlignment::getTails(){
 //TODO: implement
 void contigAlignment::populateConsensusTails(){
 
-  std::cout << "Inside populateConsensusTails" << std::endl;
-  
   int modeCount = 0;
   int startPosMode = -1;
   
-
-  std::cout << "PolyATails_.size() is: " << polyATails_.size() << std::endl;
-
   std::map<int32_t, int32_t> hashMap;
   for(int i = 0; i < polyATails_.size(); ++i){
     int startPos = polyATails_[i].getGlobalTailStart();
@@ -125,8 +120,6 @@ std::string contigAlignment::getCigarString(){
 
 void contigAlignment::populateHeadsAndTails(){
 
-  std::cout << "Inside populateHeadsAndTails" << std::endl;
-
   BamTools::BamReader reader;
   BamTools::BamAlignment al;
 
@@ -164,11 +157,9 @@ void contigAlignment::populateHeadsAndTails(){
 
     polyA tail = {al, tailSize_};
 
-    std::cout << "Tail name is " << tail.al_.Name;
     aluHead head = {util::getClipSeqs(alignedContig_)[0], al, headSize_};
     
     if(tail.detectPolyTail()){
-      std::cout << "Have we found any polyA tails here?" << std::endl;
       polyATails_.push_back(tail);
     }
 
@@ -215,7 +206,6 @@ void contigAlignment::populateClipCoords(){
 
 void contigAlignment::populateCigarString(){
     for(auto it = std::begin(alignedContig_.CigarData); it != std::end(alignedContig_.CigarData); it++){
-      std::cout << "it->type is: " << it->Type << ", it->Length is: " << it->Length << std::endl;
       cigarString_ += it->Type;
       cigarString_ += std::to_string(it->Length);
     }

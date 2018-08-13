@@ -12,7 +12,6 @@ const bool vcfWriter::vcfFilter(){
 }
 
 void vcfWriter::printContigAlignment(){
-  std::cout << "alt count is: " << ca_.getAltCount() << std::endl;
   
 }
 
@@ -60,8 +59,6 @@ void vcfWriter::populateVCFLine(){
     vcfLine_.ID = "Inherited";
   }
   
-  std::cout << "denovoVec size() is: " << ca_.getDenovoVec().size() << std::endl;
-  
   //TODO: //write function to get nucleotide at alu head start pos
   vcfLine_.REF = "N";
   vcfLine_.ALT = "INS:ME:"+ca_.getAluHit().first;  
@@ -96,9 +93,6 @@ vcfWriter::vcfWriter(contigAlignment & ca, std::fstream & vcfStream, const std::
     exit (EXIT_FAILURE);
   }
 
-
-  
-  std::cout << "child bam is: " << probandBam_ << std::endl;
   vcfWriter::printContigAlignment();
   vcfWriter::populateVCFLine();
 }
