@@ -90,7 +90,7 @@ const std::vector<int32_t> util::getInsertionVec(const BamTools::BamAlignment & 
   return insertionVec;
 }
 
-std::vector<clipCoords> util::getLocalClipCoords(const BamTools::BamAlignment & al) {
+const std::vector<clipCoords> util::getLocalClipCoords(const BamTools::BamAlignment & al) {
   std::vector<clipCoords> coordsVec = {};
   std::vector<int> clipSizes;
   std::vector<int> readPositions;
@@ -196,16 +196,17 @@ const bool util::anyOverlap(std::vector<int32_t> const & a, std::vector<int32_t>
 			     b.begin(), b.end()) != a.end();
 }
 
+
+//TODO: Refactor to be optimized with new position information rather than left/right
 bool util::checkDoubleStranded(std::vector<polyA> t){
   std::vector<int32_t> reverseTailStarts = {};
   std::vector<int32_t> forwardTailStarts = {};
   for(auto it = std::begin(t); it != std::end(t); ++it){
     if(it->isTailReverseStrand()){
-        reverseTailStarts.push_back(it->coords_.clipStart);
+      reverseTailStarts.push_back(it->getGlobalClipCoords().clipStart);
     }
     else{
-      forwardTailStarts.push_back(it->coords_.clipStart);
-
+      forwardTailStarts.push_back(it->getGlobalClipCoords().clipStart);
     }
   }
   

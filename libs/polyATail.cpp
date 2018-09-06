@@ -16,26 +16,24 @@ void printWindow(std::list<const char*> window){
   std::cout << std::endl;
 }
 
+
+//TODO: implement
+void polyA::setGlobalTailStart(){
+  globalTailStart_ = globalClipCoords_.clipStart;
+}
+
+
 int32_t polyA::detectLeftTail(const clipCoords & cc, const char & c){
+  //  std::cout << "Inside detect left tail " << std::endl;
   if (cc.clipStart == -1){
     return -1;
   }
-  //std::cerr << "Inside detectLeftTail, substr coords are: " <<cc.clipStart <<", " << cc.clipEnd <<  "for read: " 
-  //    << al_.Name << " at coords " << al_.RefID << ", " << al_.Position  <<  std::endl;
-  
-  
+
   int32_t leftTail = 0;
   std::string leftClip = al_.QueryBases.substr(0, cc.clipStart);
-  
-  
 
   std::reverse(leftClip.begin(), leftClip.end());
-  
-  //std::cerr << "left clip string is: " << leftClip << std::endl;
-  //std::cerr << "clip starts at " << cc.clipStart << std::endl;
-  
   for(auto i : leftClip) {
-    //std::cout << "checking if " << i << " == " << c << std::endl;
     if(i==c){
       leftTail += 1;
     }
@@ -43,30 +41,19 @@ int32_t polyA::detectLeftTail(const clipCoords & cc, const char & c){
       break;
     }
   }
-  //std::cerr << "left Tail inside detectLeftTail is: " << leftTail << std::endl;
   return leftTail;
 }
 
 int32_t polyA::detectRightTail(const clipCoords & cc, const char & c){
-
-
+  //std::cout << "inside detect left tail " << std::endl;
   if(cc.clipStart == -1){
     return -1;
   }
 
   int32_t rightTail = 0;
-
-  //std::cout << "Inside detectRightTail, substr coords are: " << cc.clipStart << ", " << cc.clipStart + (cc.clipEnd-cc.clipStart) <<  " for read: " << al_.Name << " at coords " << al_.RefID << ", " << al_.Position << std::endl;
-
-
-  //std::cout << "query bases size is: " << al_.QueryBases.size() << std::endl;
-  
-  //std::cout << "Query bases are: " << al_.QueryBases << std::endl;
   std::string rightClip = al_.QueryBases.substr(cc.clipStart, cc.clipEnd-cc.clipStart+1);
-  //std::cout << "rightClip is: " << rightClip << std::endl;
 
   for(auto i : rightClip) {
-    //std::cout << "checking if " << i << " == " << c << std::endl;
     if(i==c){
       rightTail += 1;
     }
@@ -78,43 +65,93 @@ int32_t polyA::detectRightTail(const clipCoords & cc, const char & c){
 }
 
 
+void polyA::setLongestTail(){
+  int32_t mla = 0;
+  int32_t mlt = 0;
+  int32_t mra = 0;
+  int32_t mrt = 0;
 
-void polyA::setLongestTail(const std::vector<clipCoords> & clipVec){
-  int32_t mla = -1;
-  int32_t mlt = -1;
-  int32_t mra = -1;
-  int32_t mrt = -1;
+  int32_t longestTailIndex = 0;
+  int32_t count = 0;
   
-  for(auto c : clipVec) {
-    int32_t leftATail = 0;
-    int32_t leftTTail = 0;
-    int32_t rightATail = 0;
-    int32_t rightTTail = 0;
+  std::pair<int32_t, int32_t> leftATail = std::make_pair(0, 0);
+  std::pair<int32_t, int32_t> leftTTail = std::make_pair(0, 0);
+  std::pair<int32_t, int32_t> rightATail = std::make_pair(0, 0);
+  std::pair<int32_t, int32_t> rightTTail = std::make_pair(0, 0);
+
+
+  
+  
+  for(auto c : localClipCoords_) {
+        
+    int32_t lat = 0;
+    int32_t ltt = 0;
+    int32_t rat = 0;
+    int32_t rtt = 0;
+
+    //std::cout << "Clip coords are: " << c.clipStart << ", " << c.clipEnd << ", " << c.clipDir << std::endl;
+    
     if(c.clipDir == rtl){
-      leftATail = polyA::detectLeftTail(c, 'A');
-      leftTTail = polyA::detectLeftTail(c, 'T');
-      //std::string leftClip = al_.QueryBases.substr(0, c.clipStart-1);
+      lat = polyA::detectLeftTail(c, 'A');
+      ltt = polyA::detectLeftTail(c, 'T');
+      //std::cout << "lat, ltt: " << lat << ", " << ltt << std::endl;
     }
     else if(c.clipDir == ltr){
-      rightATail = polyA::detectRightTail(c, 'A');
-      rightTTail = polyA::detectRightTail(c, 'T');
+      rat = polyA::detectRightTail(c, 'A');
+      rtt = polyA::detectRightTail(c, 'T');
+      //std::cout << "rat, rtt: " << rat << ", " << rtt << std::endl;
     }
-    
-    if(leftATail > mla){
-      mla = leftATail;
+    else {
+      std::cout << "Clip dir is uninitialized " << std::endl;
+      break;
     }
-    if(leftTTail > mlt){
-      mlt = leftTTail;
+
+    if(lat > mla){
+      mla = lat;
+      leftATail.first = lat;
+      leftATail.second = count;
     }
-    if(rightATail > mra){
-      mra = rightATail;
+    if(ltt > mlt){
+      mlt = ltt;
+      leftTTail.first = ltt;
+      leftTTail.second = count;
     }
-    if(rightTTail > mrt){
-      mrt = rightTTail;
+    if(rat > mra){
+      mra = rat;
+      rightATail.first = rat;
+      rightATail.second = count;
     }
+    if(rtt > mrt){
+      mrt = rtt;
+      rightTTail.first = rtt;
+      rightTTail.second = count;
+    }
+    ++count;
+    //std::cout << "count is " << count << std::endl;
   }
-  longestTail_ = std::max(mla, std::max(mlt, std::max(mra, mrt)));
-  //std::cout << "longest tail inside polyATail is: " << longestTail_ << std::endl;
+
+
+  std::vector<std::pair<int32_t, int32_t> > allMaxTails;
+  allMaxTails.push_back(leftATail);
+  allMaxTails.push_back(leftTTail);
+  allMaxTails.push_back(rightATail);
+  allMaxTails.push_back(rightTTail);
+
+
+  // yi would be proud
+  auto find = std::max_element(begin(allMaxTails), end(allMaxTails), 
+  			       [](const std::pair<int32_t, int32_t> & a, const std::pair<int32_t, int32_t> & b)
+			       { 
+				 return a.first < b.first;
+			       }
+			       );
+  longestTail_ = find->first;
+  longestTailIndex_ = find->second; 
+
+  //longestTail_ = 0;	     
+  //longestTailIndex_ = 0;
+  
+  std::cout << "longest tail inside polyATail is: " << longestTail_ << std::endl;
 }
 
 
@@ -122,111 +159,61 @@ bool polyA::isTail(){
   return isTail_;
 }
 
-bool polyA::isTailLeftBound(){
-  return util::isReadLeftBound(al_.CigarData);
-}
-
 bool polyA::isTailReverseStrand(){
   return al_.IsReverseStrand();
 }
 
-bool polyA::detectTailInWindow(const clipCoords &  c,  const char & atChar){
-  std::string seq = al_.QueryBases;
-  
-  if(c.clipDir == rtl){
-    if(c.clipStart - tailSize_ < 0){
-      return false;
-    }
-    
-    int i = 0;
-    while(i < tailSize_){
-      const char cc = seq.at(c.clipStart-i);
-      if(cc==atChar){
-	  ++i;
-      }
-      else{
-	return false;
-      }
-    }
-    //std::cout << "found polyTail " << std::endl;
-    
-    return true;
-  } else {
-    if (c.clipStart + tailSize_ >= seq.size()-1){
-      return false;
-    }
-    int i = 0;
-    while(i < tailSize_){
-      const char cc = seq.at(c.clipStart+i);
-      if(cc==atChar){
-	++i;
-      }
-      else{
-	return false;
-      }
-    }
-    //std::cout << "found polyTail " << std::endl;
-    return true;
-  }
-  return false;
+clipCoords polyA::getGlobalClipCoords(){
+  return globalClipCoords_;
 }
 
 int32_t polyA::getGlobalTailStart(){
-  return coords_.clipStart;
+  return globalClipCoords_.clipStart;
 }
+  
 
-std::vector<clipCoords> polyA::getLocalClipCoords() {
-  std::vector<clipCoords> coordsVec;
+void polyA::setGlobalClipCoords(){
+  std::cout << "index inside setGlobalClipCoords is " << longestTailIndex_ << std::endl;
   std::vector<int> clipSizes;
   std::vector<int> readPositions;
   std::vector<int> genomePositions;
-
-
-  
   al_.GetSoftClips(clipSizes, readPositions, genomePositions);
-
-  clipCoords c = {};
-
+  
   const std::vector<int32_t> insertionVec = util::getInsertionVec(al_);
-
- 
-  for(int32_t i = 0; i < readPositions.size(); ++i){
+  
+  if(clipSizes.size() > 0){
+    
     if(util::isReadLeftBound(al_.CigarData)){
-      c.clipDir = rtl;
+      globalClipCoords_.clipDir = rtl;
     }
     else{
-      c.clipDir = ltr;
+      globalClipCoords_.clipDir = ltr;
     }
-    c.clipStart = readPositions[i] + insertionVec[i];
-    c.clipEnd = c.clipStart + clipSizes[i]-1;
-    c.index = i;
-    coordsVec.push_back(c);
-  }
-  return coordsVec;
-}
-
-
-  
-void polyA::setGlobalClipCoords(int32_t index){
-  std::vector<int> clipSizes;
-  std::vector<int> readPositions;
-  std::vector<int> genomePositions;
-  al_.GetSoftClips(clipSizes, readPositions, genomePositions);
-
-  const std::vector<int32_t> insertionVec = util::getInsertionVec(al_);
-
-
-  if(util::isReadLeftBound(al_.CigarData)){
-    coords_.clipDir = rtl;
+    
+    
+    std::cout << "size of clipSizeVec: " << clipSizes.size() << std::endl;
+    std::cout << "values of clipSizeVec:" << std::endl;
+    for(auto c : clipSizes){
+      std::cout << c << ",";
+    }
+    std::cout << std::endl;
+    std::cout << "longestTailIndex_ is : " << longestTailIndex_ << std::endl;
+    std::cout << "insertion vec values:" << std::endl;
+    for (auto i : insertionVec){
+      std::cout << i << ",";
+    }
+    std::cout << std::endl;
+    
+    globalClipCoords_.clipStart = genomePositions[longestTailIndex_] + insertionVec[longestTailIndex_];
+    globalClipCoords_.clipEnd = globalClipCoords_.clipStart + clipSizes[longestTailIndex_] - 1;
+    
+    std::cout << "Setting global clip coords to be: " << globalClipCoords_.clipDir << ", " << globalClipCoords_.clipStart << ", " << globalClipCoords_.clipEnd << std::endl;
   }
   else{
-    coords_.clipDir = ltr;
+    globalClipCoords_.clipStart = 0;
+    globalClipCoords_.clipEnd = 0;
+    globalClipCoords_.clipDir = ltr;
   }
-  
-  coords_.clipStart = genomePositions[index] + insertionVec[index];
-  coords_.clipEnd = coords_.clipStart + clipSizes[index] - 1;
-  
-  //std::cout << "Setting global clip coords to be: " << coords_.clipDir << ", " << coords_.clipStart << ", " << coords_.clipEnd << std::endl;
 }
 
 bool polyA::detectPolyTail(){
@@ -237,13 +224,19 @@ bool polyA::detectPolyTail(){
   return false;
 }
 
+void polyA::setLocalClipCoords(){
+  localClipCoords_ = util::getLocalClipCoords(al_);
+}
+
 const int32_t polyA::getLongestTail(){
   return longestTail_;
 }
 
 polyA::polyA(BamTools::BamAlignment al, int32_t tailSize) : al_(al), tailSize_(tailSize){
-    polyA::setLongestTail(polyA::getLocalClipCoords());
-    isTail_ = detectPolyTail();
+  polyA::setLocalClipCoords();
+  polyA::setGlobalClipCoords();
+  polyA::setLongestTail();
+  isTail_ = detectPolyTail();
 }
 
 polyA::~polyA(){

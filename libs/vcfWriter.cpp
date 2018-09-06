@@ -27,7 +27,7 @@ void vcfWriter::populateParentGenotypes(){
 }
 
 void vcfWriter::populateGenotypes(){
-  if(ca_.getAltCount() > 0 &&  ca_.getAltCount() <ca_.getReadsInRegion()) {
+  if(ca_.getAltCount() > 0 &&  ca_.getAltCount() < ca_.getReadsInRegion()) {
     vcfLine_.INFO.probandGT.GT = std::make_pair(1,1);
   }
   else if (ca_.getAltCount() < 1){

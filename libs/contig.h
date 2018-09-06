@@ -79,6 +79,7 @@ class contigAlignment{
   void populateMaxHash();
   void populateHeadsAndTails();
   void populateConsensusTails();
+  void populateTailDS();
   void populateLongestTail();
   void populateAltCount();
   void populateDenovoEvidence();

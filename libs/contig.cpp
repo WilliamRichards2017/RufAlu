@@ -57,9 +57,16 @@ void contigAlignment::populateConsensusTails(){
     }
   }
 
+  std::cout << "~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~" << std::endl;
+  std::cout << "startPosMode is: " << startPosMode << std::endl;
+  std::cout << "size of polyATail_ is: " << polyATails_.size() << std::endl;
+  std::cout << "~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~" << std::endl;
 
+  
   for (auto & t : polyATails_){
+    std::cout << "globalTailStart is: " << t.getGlobalTailStart() << std::endl;
     if(t.getGlobalTailStart() == startPosMode){
+      std::cout << "found consensus tail " << std::endl;
       consensusTails_.push_back(t);
     }
   }
@@ -160,10 +167,12 @@ void contigAlignment::populateHeadsAndTails(){
     aluHead head = {util::getClipSeqs(alignedContig_)[0], al, headSize_};
     
     if(tail.detectPolyTail()){
+      std::cout << "detected polyATail" << std::endl;
       polyATails_.push_back(tail);
     }
 
     if(head.isHead()){
+      std::cout << "detect aluHead" << std::endl;
       aluHeads_.push_back(head);
     }
   }
@@ -212,6 +221,21 @@ void contigAlignment::populateCigarString(){
 
 }
 
+void contigAlignment::populateTailDS(){
+  bool fs = false;
+  bool rs = false;
+
+  for(auto & ct : consensusTails_){
+    if(ct.al_.IsReverseStrand()){
+      rs = true;
+    }
+    else{
+      fs = true;
+    }
+  }
+  doubleStranded_ = rs && fs;
+}
+
 
 contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> parentBamPaths, std::pair<std::string, int32_t> aluHit, BamTools::BamAlignment alignedContig, std::string chrom, BamTools::BamRegion alignedRegion) : bamPath_(bamPath), parentBamPaths_(parentBamPaths), aluHit_(aluHit), alignedContig_(alignedContig), chrom_(chrom), alignedRegion_(alignedRegion){
 
@@ -220,6 +244,7 @@ contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> p
   contigAlignment::populateMaxHash();
   contigAlignment::populateHeadsAndTails();
   contigAlignment::populateConsensusTails();
+  contigAlignment::populateTailDS();
   contigAlignment::populateAltCount();
   contigAlignment::populateLongestTail();
   contigAlignment::populateDenovoEvidence();
