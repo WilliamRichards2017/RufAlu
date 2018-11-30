@@ -16,7 +16,8 @@ struct genotypeField{
 };
   
 struct filterField{
-  bool DS; //FILTER=<ID=DS,Description="polyA tails detected on both forward and reverse strand">
+  bool HDS;
+  bool TDS; //FILTER=<ID=DS,Description="polyA tails detected on both forward and reverse strand">
   int32_t polyA; //FILTER=<ID=SB,Description="atleast 3 polyA tails that start at the same point"> 
 };
 struct infoField {
