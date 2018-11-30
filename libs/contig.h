@@ -24,11 +24,13 @@ class contigAlignment{
   ~contigAlignment();
 
   bool isDenovo();
-  bool isDoubleStranded();
+  bool isTailDoubleStranded();
+  bool isHeadDoubleStranded();
 
   int32_t getReadsInRegion();
   int32_t getAltCount();
   int32_t getForwardStrandCount();
+  int32_t getAltForwardStrandCount();
   int32_t getMaxHash();
   int32_t getLongestTail();
 
@@ -66,13 +68,15 @@ class contigAlignment{
   int32_t readsInRegion_ = 0;
   int32_t altCount_ = 0;
   int32_t forwardStrandCount_ = 0;
+  int32_t altForwardStrandCount_ = 0;
   std::pair<int32_t, int32_t> genotype_;
   int32_t maxHash_;
   int32_t longestTail_ = 0;
   std::vector<denovoEvidence> denovoVec_;
 
   bool isDenovo_;
-  bool doubleStranded_ = false;
+  bool tailDS_ = false;
+  bool headDS_ = false;
 
   void populateCigarString();
   void populateClipCoords();
@@ -80,9 +84,11 @@ class contigAlignment{
   void populateHeadsAndTails();
   void populateConsensusTails();
   void populateTailDS();
+  void populateHeadDS();
   void populateLongestTail();
   void populateAltCount();
   void populateDenovoEvidence();
+  void populateAltForwardStrandCount();
 };
 
 struct contig {
