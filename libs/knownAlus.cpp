@@ -180,7 +180,6 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
 
   std::cerr << "[4/4] Writing out results to vcf file " << vcfOutPath << std::endl;
   KnownAlus::writeToVCF(vcfOutPath);
-  //KnownAlus::writeToVCF(tempy);
 
  }
 
