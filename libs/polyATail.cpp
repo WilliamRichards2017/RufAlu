@@ -173,7 +173,7 @@ int32_t polyA::getGlobalTailStart(){
   
 
 void polyA::setGlobalClipCoords(){
-  std::cout << "index inside setGlobalClipCoords is " << longestTailIndex_ << std::endl;
+  //std::cout << "index inside setGlobalClipCoords is " << longestTailIndex_ << std::endl;
   std::vector<int> clipSizes;
   std::vector<int> readPositions;
   std::vector<int> genomePositions;
@@ -191,23 +191,23 @@ void polyA::setGlobalClipCoords(){
     }
     
     
-    std::cout << "size of clipSizeVec: " << clipSizes.size() << std::endl;
-    std::cout << "values of clipSizeVec:" << std::endl;
-    for(auto c : clipSizes){
-      std::cout << c << ",";
-    }
-    std::cout << std::endl;
-    std::cout << "longestTailIndex_ is : " << longestTailIndex_ << std::endl;
-    std::cout << "insertion vec values:" << std::endl;
-    for (auto i : insertionVec){
-      std::cout << i << ",";
-    }
-    std::cout << std::endl;
+    //std::cout << "size of clipSizeVec: " << clipSizes.size() << std::endl;
+    //std::cout << "values of clipSizeVec:" << std::endl;
+    //for(auto c : clipSizes){
+    //  std::cout << c << ",";
+    //}
+    //std::cout << std::endl;
+    //std::cout << "longestTailIndex_ is : " << longestTailIndex_ << std::endl;
+    //std::cout << "insertion vec values:" << std::endl;
+    //for (auto i : insertionVec){
+    //  std::cout << i << ",";
+    //}
+    //std::cout << std::endl;
     
     globalClipCoords_.clipStart = genomePositions[longestTailIndex_] + insertionVec[longestTailIndex_];
     globalClipCoords_.clipEnd = globalClipCoords_.clipStart + clipSizes[longestTailIndex_] - 1;
     
-    std::cout << "Setting global clip coords to be: " << globalClipCoords_.clipDir << ", " << globalClipCoords_.clipStart << ", " << globalClipCoords_.clipEnd << std::endl;
+    //std::cout << "Setting global clip coords to be: " << globalClipCoords_.clipDir << ", " << globalClipCoords_.clipStart << ", " << globalClipCoords_.clipEnd << std::endl;
   }
   else{
     globalClipCoords_.clipStart = 0;

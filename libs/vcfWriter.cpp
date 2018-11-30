@@ -28,13 +28,13 @@ void vcfWriter::populateParentGenotypes(){
 
 void vcfWriter::populateGenotypes(){
   if(ca_.getAltCount() > 0 &&  ca_.getAltCount() < ca_.getReadsInRegion()) {
-    vcfLine_.INFO.probandGT.GT = std::make_pair(1,1);
+    vcfLine_.INFO.probandGT.GT = std::make_pair(0,1);
   }
   else if (ca_.getAltCount() < 1){
-    vcfLine_.INFO.probandGT.GT = std::make_pair(1,0);
+    vcfLine_.INFO.probandGT.GT = std::make_pair(0,0);
   }
   else if (ca_.getReadsInRegion() <= ca_.getAltCount()){
-    vcfLine_.INFO.probandGT.GT = std::make_pair(0,1);
+    vcfLine_.INFO.probandGT.GT = std::make_pair(1,1);
   }
   else {
     vcfLine_.INFO.probandGT.GT = std::make_pair(-1,-1);
@@ -65,7 +65,8 @@ void vcfWriter::populateVCFLine(){
   vcfLine_.QUAL = ca_.getAlignedContig().MapQuality;
 
   //vcfLine_.FILTER.SB = (ca_.tailLeftBound) ^ (ca_.tailRightBound); // ^ = XOR
-  vcfLine_.FILTER.DS = ca_.isDoubleStranded();
+  vcfLine_.FILTER.TDS = ca_.isTailDoubleStranded();
+  vcfLine_.FILTER.HDS = ca_.isHeadDoubleStranded();
   
   vcfLine_.INFO.SVTYPE = "INS";
   vcfLine_.INFO.SVLEN = std::abs(ca_.getClipCoords().clipStart - ca_.getClipCoords().clipEnd);
@@ -101,13 +102,21 @@ vcfWriter::~vcfWriter(){
 }
 
 void vcfWriter::writeFilter(){
-  if (vcfLine_.FILTER.DS){
+  
+  std::cout << "\n\n WRITING FILTER" << std::endl;
+  std::cout << "tds is : " << vcfLine_.FILTER.TDS << std::endl;
+  std::cout << "hds is : " << vcfLine_.FILTER.HDS << std::endl << std::endl;
+  if (vcfLine_.FILTER.TDS && vcfLine_.FILTER.HDS){
     vcfStream_ << "PASS\t";
   }
-  else if(!vcfLine_.FILTER.DS) {
-    vcfStream_ << "DS\t";
-  }  else{
-    vcfStream_ << '\t';
+  else if(!vcfLine_.FILTER.TDS && vcfLine_.FILTER.HDS) {
+    vcfStream_ << "TDS\t";
+  }
+  else if (!vcfLine_.FILTER.HDS && vcfLine_.FILTER.TDS) {
+      vcfStream_ << "HDS\t";
+  }
+  else{
+    vcfStream_ << "TDS,HDS\t";
   }
 }
 

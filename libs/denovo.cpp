@@ -32,7 +32,7 @@ void denovoEvidence::findHeadsAndTails(){
     exit (EXIT_FAILURE);
   }
   
-  std::cout << "setting region coords to be: " << region_.LeftRefID << ", " << region_.LeftPosition << ", " << region_.RightRefID << ", " << region_.RightPosition << std::endl;
+  //std::cout << "setting region coords to be: " << region_.LeftRefID << ", " << region_.LeftPosition << ", " << region_.RightRefID << ", " << region_.RightPosition << std::endl;
   
   
   BamTools::BamAlignment al;

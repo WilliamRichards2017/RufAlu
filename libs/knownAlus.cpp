@@ -178,11 +178,9 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
   std::cerr << "[3/4]  Pulling contig hit alignments for " << stub_ <<  std::endl;
   KnownAlus::pullContigAlignments();
 
-  std::string tempy = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/testy.vcf";
-
-  std::cerr << "[4/4] Writing out results to vcf file " << vcfOutPath << std::endl;
-  //KnownAlus::writeToVCF(vcfOutPath);
-  KnownAlus::writeToVCF(tempy);
+  std::cerr << "[4/4] Writing out results to vcf file " << vcfOutPath_ << std::endl;
+  KnownAlus::writeToVCF(vcfOutPath_);
+  //KnownAlus::writeToVCF(tempy);
 
  }
 

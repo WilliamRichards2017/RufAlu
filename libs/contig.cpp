@@ -57,16 +57,16 @@ void contigAlignment::populateConsensusTails(){
     }
   }
 
-  std::cout << "~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~" << std::endl;
-  std::cout << "startPosMode is: " << startPosMode << std::endl;
-  std::cout << "size of polyATail_ is: " << polyATails_.size() << std::endl;
-  std::cout << "~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~" << std::endl;
+  //  std::cout << "~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~" << std::endl;
+  //std::cout << "startPosMode is: " << startPosMode << std::endl;
+  //std::cout << "size of polyATail_ is: " << polyATails_.size() << std::endl;
+  //std::cout << "~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~" << std::endl;
 
   
   for (auto & t : polyATails_){
-    std::cout << "globalTailStart is: " << t.getGlobalTailStart() << std::endl;
+    //std::cout << "globalTailStart is: " << t.getGlobalTailStart() << std::endl;
     if(t.getGlobalTailStart() == startPosMode){
-      std::cout << "found consensus tail " << std::endl;
+      //std::cout << "found consensus tail " << std::endl;
       consensusTails_.push_back(t);
     }
   }
@@ -80,8 +80,12 @@ bool contigAlignment::isDenovo(){
   return isDenovo_;
 }
 
-bool contigAlignment::isDoubleStranded(){
-  return doubleStranded_;
+bool contigAlignment::isTailDoubleStranded(){
+  return tailDS_;
+}
+
+bool contigAlignment::isHeadDoubleStranded(){
+  return headDS_;
 }
 
 int32_t contigAlignment::getReadsInRegion(){
@@ -124,6 +128,13 @@ std::string contigAlignment::getCigarString(){
   return cigarString_;
 }
 
+int32_t contigAlignment::getAltForwardStrandCount(){
+  return altForwardStrandCount_;
+}
+
+void contigAlignment::populateAltForwardStrandCount(){
+  
+}
 
 void contigAlignment::populateHeadsAndTails(){
 
@@ -167,12 +178,12 @@ void contigAlignment::populateHeadsAndTails(){
     aluHead head = {util::getClipSeqs(alignedContig_)[0], al, headSize_};
     
     if(tail.detectPolyTail()){
-      std::cout << "detected polyATail" << std::endl;
+      //std::cout << "detected polyATail" << std::endl;
       polyATails_.push_back(tail);
     }
 
     if(head.isHead()){
-      std::cout << "detect aluHead" << std::endl;
+      //std::cout << "detect aluHead" << std::endl;
       aluHeads_.push_back(head);
     }
   }
@@ -218,7 +229,6 @@ void contigAlignment::populateCigarString(){
       cigarString_ += it->Type;
       cigarString_ += std::to_string(it->Length);
     }
-
 }
 
 void contigAlignment::populateTailDS(){
@@ -233,7 +243,23 @@ void contigAlignment::populateTailDS(){
       fs = true;
     }
   }
-  doubleStranded_ = rs && fs;
+  tailDS_ = rs && fs;
+}
+
+void contigAlignment::populateHeadDS(){
+  bool fs = false;
+  bool rs = false;
+
+  for(auto & ah : aluHeads_){
+    if(ah.al_.IsReverseStrand()){
+      rs = true;
+    }
+    else{
+      fs = true;
+    }
+  }
+  headDS_ = rs && fs;
+
 }
 
 
@@ -245,6 +271,7 @@ contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> p
   contigAlignment::populateHeadsAndTails();
   contigAlignment::populateConsensusTails();
   contigAlignment::populateTailDS();
+  contigAlignment::populateHeadDS();
   contigAlignment::populateAltCount();
   contigAlignment::populateLongestTail();
   contigAlignment::populateDenovoEvidence();
