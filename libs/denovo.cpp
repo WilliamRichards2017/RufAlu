@@ -145,7 +145,7 @@ denovoEvidence::~denovoEvidence(){
 
 
 bool denovoEvidence::isDenovo(){
-  //std::cout << "found " << parentHeads_.size() << " heads and " << parentTails_.size() << "tails" << std::endl;
+  std::cout << "found " << parentHeads_.size() << " heads and " << parentTails_.size() << "tails" << std::endl;
   bool b = parentHeads_.size() < 1 and parentTails_.size() <  1;
   return b;
 }

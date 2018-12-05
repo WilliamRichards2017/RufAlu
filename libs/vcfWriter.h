@@ -8,12 +8,12 @@
 #include <time.h>
 #include <string>
 
-struct genotypeField{
+/*struct genotypeField{
   std::pair<bool, bool> GT = std::make_pair(-1,-1); //Genotype information
   int32_t DP = -1; // Total kmer depth
   int32_t RO = -1; // reference kmer count
   int32_t AO = -1; // Altername kmer count
-};
+  };*/
   
 struct filterField{
   bool HDS;
@@ -89,7 +89,6 @@ class vcfWriter{
   void printContigAlignment();
   void populateVCFLine();  
   void populateGenotypes();
-  void populateParentGenotypes();
 
   void writeGenotypes();
   void writeFilter();

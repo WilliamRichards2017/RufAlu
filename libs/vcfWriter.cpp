@@ -15,39 +15,16 @@ void vcfWriter::printContigAlignment(){
   
 }
 
-void vcfWriter::populateParentGenotypes(){
+void vcfWriter::populateGenotypes(){
+  vcfLine_.INFO.probandGT = ca_.getProbandGT();
   for(auto & pDE : ca_.getDenovoVec()){
     genotypeField gt = {};
-    gt.GT = pDE.getGenotype();
+    gt.genotype = pDE.getGenotype();
     gt.DP = pDE.DP_;
     gt.RO = pDE.RO_;
     gt.AO = pDE.AO_;
     vcfLine_.INFO.parentGTs.push_back(gt);
   }
-}
-
-void vcfWriter::populateGenotypes(){
-  if(ca_.getAltCount() > 0 and ca_.getRefCount() > 0){
-    vcfLine_.INFO.probandGT.GT = std::make_pair(0,1);
-  }
-  else if (ca_.getAltCount() < 1 and ca_.getRefCount() > 0 ){
-    vcfLine_.INFO.probandGT.GT = std::make_pair(0,0);
-  }
-  else if (ca_.getAltCount() > 0 and ca_.getRefCount() < 1){
-    vcfLine_.INFO.probandGT.GT = std::make_pair(1,1);
-  }
-  else {
-    vcfLine_.INFO.probandGT.GT = std::make_pair(-1,-1);
-  }
-
-
-  //TODO: implement depth with kmers
-  vcfLine_.INFO.probandGT.DP = ca_.getReadsInRegion();
-  vcfLine_.INFO.probandGT.RO = ca_.getReadsInRegion() - ca_.getAltCount();
-  vcfLine_.INFO.probandGT.AO = ca_.getAltCount();
-  
-  vcfWriter::populateParentGenotypes();
-  
 }
 
 void vcfWriter::populateVCFLine(){
@@ -85,7 +62,7 @@ void vcfWriter::populateVCFLine(){
   
   vcfLine_.INFO.SB = static_cast<double>(ca_.getForwardStrandCount())/static_cast<double>(ca_.getReadsInRegion());
 
-  vcfLine_.INFO.NH = ca_.getConsensusTails().size(); 
+  vcfLine_.INFO.NH = ca_.getHeads().size(); 
   vcfLine_.INFO.NR = ca_.getReadsInRegion();
   vcfLine_.INFO.LT = util::getLongestTail(ca_.getConsensusTails());
 
@@ -102,7 +79,6 @@ vcfWriter::vcfWriter(contigAlignment & ca, std::fstream & vcfStream, const std::
     exit (EXIT_FAILURE);
   }
 
-  vcfWriter::printContigAlignment();
   vcfWriter::populateVCFLine();
 }
 
@@ -129,17 +105,17 @@ void vcfWriter::writeFilter(){
 }
 
 void vcfWriter::writeGenotypes(){
-  vcfStream_ << "\tGT:DP:RO:AO " << vcfLine_.INFO.probandGT.GT.first << '/' << vcfLine_.INFO.probandGT.GT.second << ':' << vcfLine_.INFO.probandGT.DP << ':' << vcfLine_.INFO.probandGT.RO << ':' << vcfLine_.INFO.probandGT.AO << '\t';
+  vcfStream_ << "\tGT:DP:RO:AO " << vcfLine_.INFO.probandGT.genotype.first << '/' << vcfLine_.INFO.probandGT.genotype.second << ':' << vcfLine_.INFO.probandGT.DP << ':' << vcfLine_.INFO.probandGT.RO << ':' << vcfLine_.INFO.probandGT.AO << '\t';
 
   for(auto pGT : vcfLine_.INFO.parentGTs){
-    vcfStream_ << pGT.GT.first << '/' << pGT.GT.second << ':' << pGT.DP << ':' << pGT.RO << ':' << pGT.AO << '\t';
+    vcfStream_ << pGT.genotype.first << '/' << pGT.genotype.second << ':' << pGT.DP << ':' << pGT.RO << ':' << pGT.AO << '\t';
   }
   vcfStream_ << std::endl;
 
 }
 
 void vcfWriter::writeInfo(){
-  vcfStream_ << "NR=" << vcfLine_.INFO.NR << ";NT" << vcfLine_.INFO.NT <<  ";NH=" << vcfLine_.INFO.NH << ";LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE << ";SVLEN=" << vcfLine_.INFO.SVLEN << ";END=" << vcfLine_.INFO.END << ";RN=" << vcfLine_.INFO.RN << ";cigar=" << vcfLine_.INFO.cigar << ";SB=" << vcfLine_.INFO.SB <<  ";CVT=" << vcfLine_.INFO.CVT << ";HD=";
+  vcfStream_ << "NR=" << vcfLine_.INFO.NR << ";NT=" << vcfLine_.INFO.NT <<  ";NH=" << vcfLine_.INFO.NH << ";LT=" << vcfLine_.INFO.LT <<  ";SVTYPE=" << vcfLine_.INFO.SVTYPE << ";SVLEN=" << vcfLine_.INFO.SVLEN << ";END=" << vcfLine_.INFO.END << ";RN=" << vcfLine_.INFO.RN << ";cigar=" << vcfLine_.INFO.cigar << ";SB=" << vcfLine_.INFO.SB <<  ";CVT=" << vcfLine_.INFO.CVT << ";HD=";
   for(auto h : vcfLine_.INFO.HD){
     vcfStream_ << h << '_';
   }

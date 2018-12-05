@@ -282,7 +282,7 @@ void util::printCigar(const std::vector<BamTools::CigarOp> & cig){
 const int32_t util::calculateModeKmerDepth(const std::vector<int32_t> & kmerDepth){
 
   if(kmerDepth.size() == 0){
-    return -1;
+    return 0;
   }
   int32_t number = kmerDepth.front();
   int32_t mode = number;

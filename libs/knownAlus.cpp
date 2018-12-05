@@ -83,6 +83,9 @@ std::string KnownAlus::getChromosomeFromRefID(int32_t id){
 void KnownAlus::writeToVCF(std::string & vcfFile){
 
   std::fstream vcfStream;
+
+  std::cout << "Trying to open vcfFile: " << vcfFile << std::endl;
+
   vcfStream.open(vcfFile.c_str(), std::fstream::in | std::fstream::out | std::fstream::app);
   //vcfWriter::writeVCFHeader(vcfStream, stub_);
   KnownAlus::writeContigVecToVCF(vcfStream);

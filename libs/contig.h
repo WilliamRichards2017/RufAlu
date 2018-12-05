@@ -16,6 +16,13 @@
 struct clipCoords;
 class denovoEvidence;
 
+struct genotypeField{
+  int32_t RO;
+  int32_t AO;
+  int32_t DP;
+  std::pair<int32_t, int32_t> genotype;
+};
+
 
 class contigAlignment{
 
@@ -46,7 +53,8 @@ class contigAlignment{
   BamTools::BamRegion getAlignedRegion();
 
   clipCoords getClipCoords();
-
+  genotypeField getProbandGT();
+  void populateProbandGT();
   std::vector<polyA> getTails();
   std::vector<aluHead> getHeads();
   std::vector<polyA> getConsensusTails();
@@ -80,6 +88,17 @@ class contigAlignment{
   bool isDenovo_ = false;
   bool tailDS_ = false;
   bool headDS_ = false;
+
+  genotypeField probandGT_;
+  std::string probandRefPath_;
+  std::string probandAltPath_;
+  std::vector<std::string> refKmers_;
+  std::vector<std::string> altKmers_;
+  std::string refSequence_;
+  std::string altSequence_;
+
+  std::string referencePath_ = "/uufs/chpc.utah.edu/common/home/u0991464/d1/home/farrelac/references/current/human_reference_v37_decoys.fa";
+
 
   void populateCigarString();
   void populateClipCoords();

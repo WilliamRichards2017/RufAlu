@@ -213,6 +213,40 @@ void contigAlignment::populateDenovoEvidence(){
   }
 }
 
+void contigAlignment::populateProbandGT(){
+
+ 
+
+  std::vector<std::pair<std::string, int32_t> > refKmerCounts = util::countKmersFromText(probandRefPath_, refKmers_);
+  std::vector<std::pair<std::string, int32_t> > altKmerCounts = util::countKmersFromText(probandAltPath_, altKmers_);
+
+  probandGT_.RO = util::countKmerDepth(refKmerCounts);
+  std::cout << "RO_ is: " << probandGT_.RO << std::endl;
+  probandGT_.AO = util::countKmerDepth(altKmerCounts);
+  std::cout << "AO_ is: " << probandGT_.AO << std::endl;
+  probandGT_.RO = probandGT_.RO + probandGT_.AO;
+
+  if(probandGT_.RO > 0  and probandGT_.AO > 0){
+    probandGT_.genotype = std::make_pair(1, 0);
+  }
+  else if(probandGT_.RO > 0 and probandGT_.AO == 0){
+   probandGT_.genotype = std::make_pair(0, 0);
+  }
+  else if(probandGT_.AO > 0 and probandGT_.RO == 0){
+    probandGT_.genotype = std::make_pair(1, 1);
+  }
+  else {
+    std::cerr << "Error in setGenotype, no ref or alt counts in genotype information" << std::endl;
+    std::cerr << "Setting genotype to (0, 0) and proceeding" << std::endl;
+    probandGT_.genotype = std::make_pair(0,0);
+  }
+  
+}
+
+genotypeField contigAlignment::getProbandGT(){
+  return probandGT_;
+}
+
 //TODO:: Implement
 void contigAlignment::populateLongestTail(){
   for(auto & t : polyATails_){
@@ -277,6 +311,26 @@ void contigAlignment::populateIsLeftBound(){
 
 contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> parentBamPaths, std::pair<std::string, int32_t> aluHit, BamTools::BamAlignment alignedContig, std::string chrom, BamTools::BamRegion alignedRegion) : bamPath_(bamPath), parentBamPaths_(parentBamPaths), aluHit_(aluHit), alignedContig_(alignedContig), chrom_(chrom), alignedRegion_(alignedRegion){
 
+
+  probandRefPath_ = bamPath_ + ".generator.V2.overlap.asembly.hash.fastq.Ref.sample";
+  probandAltPath_ = bamPath_ + ".generator.V2.overlap.asembly.hash.fastq.sample";
+  std::pair<int32_t, int32_t> breakpoint;
+
+  if(util::isReadLeftBound(alignedContig_.CigarData)){
+    breakpoint = std::make_pair(alignedContig_.RefID, alignedContig_.Position);
+  }
+  else{
+    breakpoint = std::make_pair(alignedContig_.RefID, alignedContig_.GetEndPosition());
+  }
+
+  std::vector<BamTools::RefData> refData = util::populateRefData(bamPath);
+  refSequence_ = util::pullRefSequenceFromRegion(breakpoint, referencePath_, refData, alignedContig_.QueryBases.size());
+  refKmers_ = util::kmerize(refSequence_, 25);
+  //altSequence_ = util::getClipSeqs(alignedContig_)[0];
+  altSequence_ = alignedContig_.QueryBases;
+  altKmers_ = util::kmerize(altSequence_, 25);
+
+
   contigAlignment::populateCigarString();
   contigAlignment::populateClipCoords();
   contigAlignment::populateIsLeftBound();
@@ -287,6 +341,7 @@ contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> p
   contigAlignment::populateHeadDS();
   contigAlignment::populateAltCount();
   contigAlignment::populateLongestTail();
+  contigAlignment::populateProbandGT();
   contigAlignment::populateDenovoEvidence();
 }
 
