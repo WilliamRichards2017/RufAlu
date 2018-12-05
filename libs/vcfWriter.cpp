@@ -43,7 +43,7 @@ void vcfWriter::populateVCFLine(){
   else{
     vcfLine_.ID = "Inherited";
   }
-  
+
   //TODO: //write function to get nucleotide at alu head start pos
   vcfLine_.REF = "N";
   vcfLine_.ALT = "INS:ME:"+ca_.getAluHit().first;  
@@ -52,6 +52,10 @@ void vcfWriter::populateVCFLine(){
   //vcfLine_.FILTER.SB = (ca_.tailLeftBound) ^ (ca_.tailRightBound); // ^ = XOR
   vcfLine_.FILTER.TDS = ca_.isTailDoubleStranded();
   vcfLine_.FILTER.HDS = ca_.isHeadDoubleStranded();
+
+  if(!vcfLine_.FILTER.TDS or !vcfLine_.FILTER.HDS){
+    vcfLine_.ID = "ME-StrandBias";
+  }
   
   vcfLine_.INFO.SVTYPE = "INS";
   vcfLine_.INFO.SVLEN = std::abs(ca_.getClipCoords().clipStart - ca_.getClipCoords().clipEnd);

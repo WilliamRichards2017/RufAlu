@@ -85,7 +85,7 @@ class contigAlignment{
   std::vector<denovoEvidence> denovoVec_;
 
   bool isLeftBound_;
-  bool isDenovo_ = false;
+  bool isDenovo_ = true;
   bool tailDS_ = false;
   bool headDS_ = false;
 

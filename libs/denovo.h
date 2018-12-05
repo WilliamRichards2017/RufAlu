@@ -14,7 +14,7 @@
 class denovoEvidence{
  public:
 
-  denovoEvidence(const std::string &, const BamTools::BamRegion &, const std::string &, const std::string &, const BamTools::BamAlignment &);
+  denovoEvidence(const std::string &, const BamTools::BamRegion &, const std::string &, const std::string &, const BamTools::BamAlignment &, const std::vector<std::string> &, const std::vector<std::string> &);
   ~denovoEvidence();
   
 

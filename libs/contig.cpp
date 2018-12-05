@@ -205,10 +205,11 @@ void contigAlignment::populateAltCount() {
 
 void contigAlignment::populateDenovoEvidence(){
   for(const auto & pb : parentBamPaths_) {
-    denovoEvidence de = {util::getClipSeqs(alignedContig_)[0], alignedRegion_, pb, bamPath_, alignedContig_};
+    denovoEvidence de = {util::getClipSeqs(alignedContig_)[0], alignedRegion_, pb, bamPath_, alignedContig_, refKmers_, altKmers_};
     denovoVec_.push_back(de);
-    if(de.isDenovo()){
-      isDenovo_ = true;
+    if(!de.isDenovo()){
+      std::cout << "\n\n\n FOUND ISDENOVO\n\n\n";
+      isDenovo_ = false;
     }
   }
 }
@@ -224,7 +225,7 @@ void contigAlignment::populateProbandGT(){
   std::cout << "RO_ is: " << probandGT_.RO << std::endl;
   probandGT_.AO = util::countKmerDepth(altKmerCounts);
   std::cout << "AO_ is: " << probandGT_.AO << std::endl;
-  probandGT_.RO = probandGT_.RO + probandGT_.AO;
+  probandGT_.DP = probandGT_.RO + probandGT_.AO;
 
   if(probandGT_.RO > 0  and probandGT_.AO > 0){
     probandGT_.genotype = std::make_pair(1, 0);

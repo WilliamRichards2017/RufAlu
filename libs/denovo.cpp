@@ -83,6 +83,7 @@ void denovoEvidence::populateGTFields(){
   AO_ = util::countKmerDepth(altKmerCounts);
   std::cout << "AO_ is: " << AO_ << std::endl;
   DP_ = RO_ + AO_;
+  std::cout << "DP_ os: " << DP_ << std::endl;
   
   if(RO_ > 0  and AO_ > 0){
     genotype_ = std::make_pair(1, 0);
@@ -105,36 +106,11 @@ std::pair<int32_t, int32_t> denovoEvidence::getGenotype(){
 }
 
 
-denovoEvidence::denovoEvidence(const std::string & aluClippedSeq, const BamTools::BamRegion & region, const std::string & parentBam, const std::string & probandBam,  const BamTools::BamAlignment & al) : aluClippedSeq_(aluClippedSeq), region_(region), parentBam_(parentBam), probandBam_(probandBam), al_(al){
+denovoEvidence::denovoEvidence(const std::string & aluClippedSeq, const BamTools::BamRegion & region, const std::string & parentBam, const std::string & probandBam,  const BamTools::BamAlignment & al, const std::vector<std::string> & refKmers, const std::vector<std::string> & altKmers) : aluClippedSeq_(aluClippedSeq), region_(region), parentBam_(parentBam), probandBam_(probandBam), al_(al), refKmers_(refKmers), altKmers_(altKmers){
   
   refPath_ = probandBam + ".generator.V2.overlap.asembly.hash.fastq.Ref." + util::baseName(parentBam_) + ".generator.Jhash";
-
-  //Child.bam.generator.V2.overlap.asembly.hash.fastq.Ref.Father.bam.generator.Jhash
-  
   altPath_ = probandBam + ".generator.V2.overlap.asembly.hash.fastq." + util::baseName(parentBam_) + ".generator.Jhash";
     
-  std::vector<BamTools::RefData> refData = util::populateRefData(parentBam);
-  //TODO: unhardcode ref path
-
-  std::pair<int32_t, int32_t> breakpoint;
-
-  if(util::isReadLeftBound(al.CigarData)){
-    breakpoint = std::make_pair(al.RefID, al.Position);
-  }
-  else{
-    breakpoint = std::make_pair(al.RefID, al.GetEndPosition());
-  }
-
-  refSequence_ = util::pullRefSequenceFromRegion(breakpoint, referencePath_, refData, al_.QueryBases.size());
-  std::cout << "refSequence is: " << refSequence_ << std::endl;
-  refKmers_ = util::kmerize(refSequence_, 25);
-  std::cout << "refKmers_.size() is: " << refKmers_.size() << std::endl;
-  altSequence_ = aluClippedSeq_;
-  std::cout << "altSequence is: " << altSequence_ << std::endl;
-  altKmers_ = util::kmerize(altSequence_, 25);
-  std::cout << "altKmers_.size() is: " << altKmers_.size() << std::endl;
-  
-
   denovoEvidence::findHeadsAndTails();
   denovoEvidence::populateGTFields();
 }
@@ -145,9 +121,7 @@ denovoEvidence::~denovoEvidence(){
 
 
 bool denovoEvidence::isDenovo(){
-  std::cout << "found " << parentHeads_.size() << " heads and " << parentTails_.size() << "tails" << std::endl;
-  bool b = parentHeads_.size() < 1 and parentTails_.size() <  1;
-  return b;
+  return AO_ == 0;
 }
 
 
