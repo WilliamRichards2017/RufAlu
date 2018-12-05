@@ -151,7 +151,6 @@ void polyA::setLongestTail(){
   //longestTail_ = 0;	     
   //longestTailIndex_ = 0;
   
-  std::cout << "longest tail inside polyATail is: " << longestTail_ << std::endl;
 }
 
 

@@ -26,8 +26,10 @@ class contigAlignment{
   bool isDenovo();
   bool isTailDoubleStranded();
   bool isHeadDoubleStranded();
+  bool isReadLeftBound();
 
   int32_t getReadsInRegion();
+  int32_t getRefCount();
   int32_t getAltCount();
   int32_t getForwardStrandCount();
   int32_t getAltForwardStrandCount();
@@ -74,13 +76,15 @@ class contigAlignment{
   int32_t longestTail_ = 0;
   std::vector<denovoEvidence> denovoVec_;
 
-  bool isDenovo_;
+  bool isLeftBound_;
+  bool isDenovo_ = false;
   bool tailDS_ = false;
   bool headDS_ = false;
 
   void populateCigarString();
   void populateClipCoords();
   void populateMaxHash();
+  void populateIsLeftBound();
   void populateHeadsAndTails();
   void populateConsensusTails();
   void populateTailDS();

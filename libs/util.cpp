@@ -1,10 +1,14 @@
+#include <algorithm>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <iterator>
 #include <stdexcept>
 #include <string>
-#include <algorithm>
 
-#include "util.h"
 #include "contig.h"
 #include "knownAlus.h"
+#include "util.h"
 
 const bool util::isReadLeftBound(const std::vector<BamTools::CigarOp> & cigOps){
   if(cigOps[0].Type == 'S'){
@@ -217,7 +221,7 @@ std::string util::baseName(std::string path){
   return path.substr(path.find_last_of("/\\")+1);
 }
 
-void util::exec(char const* cmd) {
+std::string util::exec(char const* cmd) {
   std::cout << "executing command " << cmd << std::endl;
   char buffer[512];
   std::string result = "";
@@ -233,7 +237,7 @@ void util::exec(char const* cmd) {
     throw;
   }
   pclose(pipe);
-  return;
+  return result;
 }
 
 const std::vector<std::string> util::Split(const std::string& line, const char delim)
@@ -273,4 +277,147 @@ void util::printCigar(const std::vector<BamTools::CigarOp> & cig){
     std::cout << c.Type << c.Length;
   }
   std::cout << std::endl;
+}
+
+const int32_t util::calculateModeKmerDepth(const std::vector<int32_t> & kmerDepth){
+
+  if(kmerDepth.size() == 0){
+    return -1;
+  }
+  int32_t number = kmerDepth.front();
+  int32_t mode = number;
+  int32_t count = 0;
+  int32_t countMode = 0;
+  
+  for(const auto d : kmerDepth){
+    //std::cout << "Number, mode, count, countMode is: " << number << ", " << mode << ", " << count << ", " << countMode << std::endl;
+    if(d == number){
+      ++count;
+    }
+    else{
+      if (count > countMode){
+	countMode = count;
+	mode = number;
+      }
+      count = 1;
+      number = d;
+    }
+  }
+  return mode;
+}
+
+const int32_t util::countKmerDepth(const std::vector<std::pair<std::string, int32_t> > & kmers){
+  std::vector<int32_t> kmerCounts;
+  
+  for(const auto & k : kmers){
+    kmerCounts.push_back(k.second);
+  }
+
+  return util::calculateModeKmerDepth(kmerCounts);
+}
+
+const std::vector<std::pair<std::string, int32_t> > util::countKmersFromText(const std::string & textPath, const std::vector<std::string> & kmers){
+  std::ifstream file(textPath);
+  std::string line;
+
+  std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+  std::cout << "inside util::countKmersFromText" << std::endl;
+  std::cout << "textPath is: " << textPath << std::endl;
+  std::cout << "size of kmerVec to count from is: " << kmers.size() << std::endl;
+  std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+
+  std::vector<std::pair<std::string, int32_t> > kmerCounts;
+  std::map<std::string, int32_t> kmerMap;
+
+  while(std::getline(file, line)){
+    std::istringstream iss(line);
+    std::vector<std::string> kmerCount((std::istream_iterator<std::string>(iss)), std::istream_iterator<std::string>());
+    if(kmerCount.size() == 2){
+      kmerMap.insert({kmerCount[0], atoi(kmerCount[1].c_str())});
+      //kmerCounts.push_back(std::make_pair(kmerCount[0], atoi(kmerCount[1].c_str())));
+      //std::cout << "kmer " << kmerCount[0] << " has count " << kmerCount[1] << std::endl;
+    }
+  }
+for(auto k : kmers){
+  //std::cout << "looking up kmer: " << k << std::endl;
+    auto it = kmerMap.find(k);
+    auto revIt = kmerMap.find(util::revComp(k));
+    if(it != kmerMap.end()){
+      kmerCounts.push_back(std::make_pair(it->first, it->second));
+      //std::cout << "found kmer in map" << std::endl;
+    }
+    else if(revIt != kmerMap.end()){
+      kmerCounts.push_back(std::make_pair(k, revIt->second));
+      //std::cout << "found revComp(kmer) in map" << std::endl;
+    }
+    else{
+      //std::cout << "else statement" << std::endl;
+      kmerCounts.push_back(std::make_pair(k, 0));
+    }
+  }
+  //std::cout << "Returning kmerCounts with size of" << kmerCounts.size() << std::endl;
+  return kmerCounts;
+}
+
+const std::vector<std::string> util::kmerize(const std::string & sequence, const int32_t & kmerSize){
+  int32_t kmercount = 0;
+  std::vector<std::string> kmers;
+
+  while(kmercount + kmerSize <= sequence.length()){
+    std::string kmer = sequence.substr(kmercount, kmerSize);
+    kmers.push_back(kmer);
+    ++kmercount;
+  }
+  return kmers;
+}
+
+const std::vector<BamTools::RefData> util::populateRefData(const std::string & bamPath){
+  BamTools::BamReader reader;
+  if (!reader.Open(bamPath)){
+    std::cout << "Could not open input Bam file" << bamPath << std::endl;
+    exit (EXIT_FAILURE);
+  }
+  return reader.GetReferenceData();
+}
+
+const std::string util::pullRefSequenceFromRegion(const std::pair<int32_t, int32_t> & region, const std::string & refPath, const std::vector<BamTools::RefData> & refData, const int32_t & refSize){
+
+  std::string fastahack = "/uufs/chpc.utah.edu/common/home/u0401321/RufusBigInsertions/bin/externals/fastahack/src/fastahack_project/tools/fastahack";
+
+  std::string cmd = fastahack + " -r " + util::getChromosomeFromRefID(region.first, refData) + ":" + std::to_string(region.second) + ".." + std::to_string(region.second + refSize) + ' ' + refPath;
+  std::cout << "Executing command: " << cmd << std::endl;
+  std::string out = util::exec(cmd.c_str());
+
+  std::cout << "Returning output: " << out << std::endl;
+  return out;
+}
+
+const std::string util::revComp (const std::string sequence){
+  std::string newString = "";
+  //cout << "Start - " << Sequence << "\n";
+  for(int i = sequence.size()-1; i>=0; i+= -1) {
+    char C = sequence.c_str()[i];
+    if (C == 'A')
+      {newString += 'T';}
+    else if (C == 'C')
+      {newString += 'G';}
+    else if (C == 'G')
+      {newString += 'C';}
+    else if (C == 'T')
+      {newString += 'A';}
+    else if (C == 'N')
+      {newString += 'N';}
+    else {std::cout << "ERROR IN RevComp - " << C << std::endl;}
+  }
+  return newString;
+}
+
+const std::string util::getChromosomeFromRefID(const int32_t & id, const std::vector<BamTools::RefData> & refData){
+  std::string ret = "";
+  if(id == -1) {
+    ret = "unmapped";
+    return ret;
+  }
+  ret = refData[id].RefName;
+  return ret;
 }

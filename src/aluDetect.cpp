@@ -20,7 +20,9 @@ int main(int argc, char *argv[] ){
   std::string aluIndexPath = std::string(aluFilePath) + ".fai";
   std::string refPath = argv[4];
   std::string refIndexPath = std::string(refPath) + ".fai";
-  std::string vcfOutPath = bamPath + ".generator.V2.overlap.hashcount.fastq.bam.vcf";
+  //std::string vcfOutPath = bamPath + ".generator.V2.overlap.hashcount.fastq.bam.vcf";
+  std::string vcfOutPath = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/testy.vcf";
+  
   
   std::vector<std::string> parentBams;
 
@@ -39,7 +41,8 @@ int main(int argc, char *argv[] ){
   std::cout << "Known Alu list path is: " << aluFilePath << std::endl;
   std::cout << "Reference path is: " << refPath << std::endl;
   std::cout << "Reference index path is: " << refIndexPath << std::endl;
-  std::cout << "Vcf out path is: " << vcfOutPath << std::endl;
+  //std::cout << "Vcf out path is: " << vcfOutPath << std::endl;
+
   
   KnownAlus knownAlus = {bamPath, contigFilePath, contigBamPath, aluFilePath, aluIndexPath, refPath, refIndexPath, vcfOutPath, parentBams};
   

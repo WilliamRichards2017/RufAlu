@@ -19,28 +19,30 @@ void vcfWriter::populateParentGenotypes(){
   for(auto & pDE : ca_.getDenovoVec()){
     genotypeField gt = {};
     gt.GT = pDE.getGenotype();
-    gt.DP = pDE.getRegionCoverage();
-    gt.RO = pDE.getRefCount();
-    gt.AO = pDE.getAltCount();
+    gt.DP = pDE.DP_;
+    gt.RO = pDE.RO_;
+    gt.AO = pDE.AO_;
     vcfLine_.INFO.parentGTs.push_back(gt);
   }
 }
 
 void vcfWriter::populateGenotypes(){
-  if(ca_.getAltCount() > 0 &&  ca_.getAltCount() < ca_.getReadsInRegion()) {
+  if(ca_.getAltCount() > 0 and ca_.getRefCount() > 0){
     vcfLine_.INFO.probandGT.GT = std::make_pair(0,1);
   }
-  else if (ca_.getAltCount() < 1){
+  else if (ca_.getAltCount() < 1 and ca_.getRefCount() > 0 ){
     vcfLine_.INFO.probandGT.GT = std::make_pair(0,0);
   }
-  else if (ca_.getReadsInRegion() <= ca_.getAltCount()){
+  else if (ca_.getAltCount() > 0 and ca_.getRefCount() < 1){
     vcfLine_.INFO.probandGT.GT = std::make_pair(1,1);
   }
   else {
     vcfLine_.INFO.probandGT.GT = std::make_pair(-1,-1);
   }
 
-  vcfLine_.INFO.probandGT.DP = ca_.getMaxHash();
+
+  //TODO: implement depth with kmers
+  vcfLine_.INFO.probandGT.DP = ca_.getReadsInRegion();
   vcfLine_.INFO.probandGT.RO = ca_.getReadsInRegion() - ca_.getAltCount();
   vcfLine_.INFO.probandGT.AO = ca_.getAltCount();
   
@@ -50,7 +52,13 @@ void vcfWriter::populateGenotypes(){
 
 void vcfWriter::populateVCFLine(){
   vcfLine_.CHROM = ca_.getChrom();
-  vcfLine_.POS = ca_.getClipCoords().clipStart+ca_.getAlignedContig().Position;
+  //vcfLine_.POS = ca_.getClipCoords().clipStart+ca_.getAlignedContig().Position;
+  if(ca_.isReadLeftBound()){
+    vcfLine_.POS = ca_.getAlignedContig().Position + 1;
+  }
+  else{
+    vcfLine_.POS = ca_.getAlignedContig().GetEndPosition();
+  }
   
   if(ca_.isDenovo()){
     vcfLine_.ID = "ME-DeNovo";

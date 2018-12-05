@@ -108,8 +108,16 @@ int32_t contigAlignment::getAltCount() {
   return contigAlignment::getConsensusTails().size() + contigAlignment::getHeads().size();
 }
 
+int32_t contigAlignment::getRefCount() {
+  return readsInRegion_ - altCount_;
+}
+
 int32_t contigAlignment::getForwardStrandCount() {
   return forwardStrandCount_;
+}
+
+bool contigAlignment::isReadLeftBound(){
+  return isLeftBound_;
 }
 
 std::vector<denovoEvidence> contigAlignment::getDenovoVec(){
@@ -197,7 +205,7 @@ void contigAlignment::populateAltCount() {
 
 void contigAlignment::populateDenovoEvidence(){
   for(const auto & pb : parentBamPaths_) {
-    denovoEvidence de = {util::getClipSeqs(alignedContig_)[0], alignedRegion_, pb};
+    denovoEvidence de = {util::getClipSeqs(alignedContig_)[0], alignedRegion_, pb, bamPath_, alignedContig_};
     denovoVec_.push_back(de);
     if(de.isDenovo()){
       isDenovo_ = true;
@@ -259,7 +267,11 @@ void contigAlignment::populateHeadDS(){
     }
   }
   headDS_ = rs && fs;
+}
 
+void contigAlignment::populateIsLeftBound(){
+  isLeftBound_ = util::isReadLeftBound(alignedContig_.CigarData);
+  std::cout << "isLeftBound is: " << isLeftBound_ << std::endl;
 }
 
 
@@ -267,6 +279,7 @@ contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> p
 
   contigAlignment::populateCigarString();
   contigAlignment::populateClipCoords();
+  contigAlignment::populateIsLeftBound();
   contigAlignment::populateMaxHash();
   contigAlignment::populateHeadsAndTails();
   contigAlignment::populateConsensusTails();

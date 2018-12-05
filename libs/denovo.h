@@ -14,7 +14,7 @@
 class denovoEvidence{
  public:
 
-  denovoEvidence(std::string aluClippedSeq, BamTools::BamRegion, std::string);
+  denovoEvidence(const std::string &, const BamTools::BamRegion &, const std::string &, const std::string &, const BamTools::BamAlignment &);
   ~denovoEvidence();
   
 
@@ -27,6 +27,12 @@ class denovoEvidence{
   int32_t getRefCount();
   int32_t getAltCount();
   std::pair<int32_t, int32_t> getGenotype();
+
+  void populateGTFields();
+  int32_t RO_;
+  int32_t AO_;
+  int32_t DP_;
+
   
  private:
   std::pair<int32_t, int32_t> genotype_;
@@ -37,6 +43,20 @@ class denovoEvidence{
   std::vector<polyA> parentTails_ = {};
   std::string aluClippedSeq_;  
   std::string parentBam_;
+  std::string probandBam_;
+  std::vector<std::string> refKmers_;
+  std::vector<std::string> altKmers_;
+  std::string refPath_;
+  std::string altPath_;
+
+  std::string refSequence_;
+  std::string altSequence_;
+
+  BamTools::BamAlignment al_;
+
+  std::string referencePath_ = "/uufs/chpc.utah.edu/common/home/u0991464/d1/home/farrelac/references/current/human_reference_v37_decoys.fa";
+
+
   
 };
 
