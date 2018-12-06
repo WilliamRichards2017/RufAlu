@@ -19,6 +19,7 @@ struct clipCoords;
 class util{
 
 public:
+
   static std::string exec(char const*);
   static std::vector<BamTools::BamAlignment> intersect(const char *, const char *);
   static std::string baseName(std::string);
@@ -40,12 +41,15 @@ public:
   static const int32_t calculateModeKmerDepth(const std::vector<int32_t> &);
   static const std::vector<std::string> kmerize(const std::string &, const int32_t &);
   static const std::vector<BamTools::RefData> populateRefData(const std::string &);
-  static const std::string pullRefSequenceFromRegion(const std::pair<int32_t, int32_t> &, const std::string &, const std::vector<BamTools::RefData> &, const int32_t &);
+  
   static const std::string revComp(const std::string);
   static const std::string getChromosomeFromRefID(const int32_t &, const std::vector<BamTools::RefData> &);
 
+  static const std::string pullRefSequenceFromRegion(const std::pair<int32_t, int32_t> &, const std::string &, const std::vector<BamTools::RefData> &, const int32_t &, std::string);
+  
 
  private:
+
   static const clipCoords isWithinRegion(clipCoords &, const std::pair<int32_t, int32_t> &);
   static const bool anyOverlap(std::vector<int32_t> const &, std::vector<int32_t> const &);
 };

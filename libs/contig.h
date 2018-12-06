@@ -27,7 +27,7 @@ struct genotypeField{
 class contigAlignment{
 
  public:
-  contigAlignment(std::string, std::vector<std::string>,  std::pair<std::string, int32_t>, BamTools::BamAlignment, std::string, BamTools::BamRegion);
+  contigAlignment(std::string, std::vector<std::string>,  std::pair<std::string, int32_t>, BamTools::BamAlignment, std::string, BamTools::BamRegion, std::string, std::string);
   ~contigAlignment();
 
   bool isDenovo();
@@ -59,7 +59,6 @@ class contigAlignment{
   std::vector<aluHead> getHeads();
   std::vector<polyA> getConsensusTails();
   std::vector<denovoEvidence> getDenovoVec();
-  
 
  private:
   int32_t tailSize_ = 10;
@@ -67,6 +66,8 @@ class contigAlignment{
   std::string bamPath_;
   std::vector<std::string> parentBamPaths_;
   std::pair<std::string, int32_t> aluHit_;
+  std::string referencePath_;
+  std::string fastaHackPath_;
   std::string chrom_;
   std::string cigarString_ = "";
   BamTools::BamAlignment alignedContig_;
@@ -97,7 +98,6 @@ class contigAlignment{
   std::string refSequence_;
   std::string altSequence_;
 
-  std::string referencePath_ = "/uufs/chpc.utah.edu/common/home/u0991464/d1/home/farrelac/references/current/human_reference_v37_decoys.fa";
 
 
   void populateCigarString();
