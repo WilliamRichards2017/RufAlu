@@ -24,6 +24,8 @@ class KnownAlus{
  public:
   KnownAlus(std::string, std::string, std::string, std::string, std::string, std::string, std::string, std::string, std::vector<std::string>, std::string);
   ~KnownAlus();
+
+  const std::vector<contig> getContigVec();
   
  private:
   const std::string rawBamPath_;

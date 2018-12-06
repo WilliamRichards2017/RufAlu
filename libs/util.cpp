@@ -5,6 +5,8 @@
 #include <iterator>
 #include <stdexcept>
 #include <string>
+#include <unistd.h>
+
 
 #include "contig.h"
 #include "knownAlus.h"
@@ -419,4 +421,9 @@ const std::string util::getChromosomeFromRefID(const int32_t & id, const std::ve
   }
   ret = refData[id].RefName;
   return ret;
+}
+
+const bool util::fileExists( const std::string &Filename )
+{
+  return access( Filename.c_str(), 0 ) == 0;
 }

@@ -21,18 +21,34 @@ TEST(KnownAluTests, populateRefData){
 
 TEST(KnownAluTests, knownAlusIntegrationTest){
 
-  static const char * contigFilePath = std::string("/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1348.bam.generator.V2.overlap.hashcount.fastq").c_str();
-  static const char * mutationPath = std::string("/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1348.bam.generator.Mutations.fastq.bam").c_str();
-  static const char * aluFilePath = std::string("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/test_data/primate_non-LTR_Retrotransposon.fasta").c_str();
-  static const char * aluIndexPath = std::string("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/test_data/primate_non-LTR_Retrotransposon.fasta.fai").c_str();
-  static const char * refPath = std::string("/uufs/chpc.utah.edu/common/home/marth-ucgdstor/resources/references/human/GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa").c_str();
-  static const char * refIndexPath = std::string("/uufs/chpc.utah.edu/common/home/marth-ucgdstor/resources/references/human/GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.fai").c_str();
-  static const char * contigBamPath = std::string("/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1348.bam.generator.V2.overlap.hashcount.fastq.bam").c_str();
+  const std::string bamPath = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1348.bam";
+  const std::string contigFilePath = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1348.bam.generator.V2.overlap.hashcount.fastq";
+  const std::string mutationPath = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1348.bam.generator.Mutations.fastq.bam";
+  const std::string aluFilePath = "/uufs/chpc.utah.edu/common/home/u0401321/RUFUS/resources/primate_non-LTR_Retrotransposon.fasta";
+  const std::string aluIndexPath = "/uufs/chpc.utah.edu/common/home/u0401321/RUFUS/resources/primate_non-LTR_Retrotransposon.fasta.fai";
+  const std::string refPath = "/uufs/chpc.utah.edu/common/home/marth-ucgdstor/resources/references/human/GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
+  const std::string refIndexPath = "/uufs/chpc.utah.edu/common/home/marth-ucgdstor/resources/references/human/GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.fai";
+  const std::string contigBamPath = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1348.bam.generator.V2.overlap.hashcount.fastq.bam";
+  const std::string fatherBamPath = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1333.bam";
+  const std::string motherBamPath = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1334.bam";
+  const std::string fastaHackPath = "/uufs/chpc.utah.edu/common/home/u0401321/RUFUS/bin/externals/fastahack/src/fastahack_project/bin/tools/fastahack";
+  const std::string vcfOutPath = "~/RufAlu/bin/gtest.out";
 
-  KnownAlus *knownAlus = new KnownAlus(contigFilePath, contigBamPath, mutationPath, aluFilePath, aluIndexPath, refPath, refIndexPath);
-  std::cout << "found " << knownAlus->getContigsContainingKnownAlus()->size() << " contig hits" << std::endl;
+  std::vector<std::string> parentBamPaths = {fatherBamPath, motherBamPath};
 
+  auto knownAlus = new KnownAlus(bamPath, contigFilePath, contigBamPath, aluFilePath, aluIndexPath, refPath, refIndexPath, vcfOutPath, parentBamPaths, fastaHackPath);
+
+
+
+  auto contigVec = knownAlus->getContigVec();
+
+  std::cerr << "contigVec.size() is: " << contigVec.size() << std::endl;
+  
+  ASSERT_GT(contigVec.size(), 0);
+
+  delete knownAlus;
 }
 
 
 #endif // RUFALU_TESTS_KNOWN_ALUS_HPP
+

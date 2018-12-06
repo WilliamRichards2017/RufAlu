@@ -44,9 +44,9 @@ public:
   
   static const std::string revComp(const std::string);
   static const std::string getChromosomeFromRefID(const int32_t &, const std::vector<BamTools::RefData> &);
-
-  static const std::string pullRefSequenceFromRegion(const std::pair<int32_t, int32_t> &, const std::string &, const std::vector<BamTools::RefData> &, const int32_t &, std::string);
-  
+  static const std::string pullRefSequenceFromRegion(const std::pair<int32_t, int32_t> &, const std::string &, 
+						     const std::vector<BamTools::RefData> &, const int32_t &, std::string);
+  static const bool fileExists(const std::string &); 
 
  private:
 

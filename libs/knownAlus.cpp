@@ -125,6 +125,12 @@ void KnownAlus::findContigsContainingKnownAlus()
    kseq_t *ks = kseq_init(f);
 
    // open index reader
+   if(! util::fileExists(aluFastaPath_)){
+     std::cout << "Could not open alu fasta file " << aluFastaPath_ << std::endl;
+     std::cout << "Exiting run with non-zero status..." << std::endl;
+     exit (EXIT_FAILURE);
+   }
+
    mm_idx_reader_t *r = mm_idx_reader_open(aluFastaPath_.c_str(), &iopt, 0);
    mm_idx_t *mi;
    while ((mi = mm_idx_reader_read(r, n_threads)) != 0) { // traverse each part of the index
@@ -189,6 +195,9 @@ KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::s
 
  }
 
+const std::vector<contig> KnownAlus::getContigVec(){
+  return contigVec_;
+}
 
 
 KnownAlus::~KnownAlus(){

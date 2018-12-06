@@ -13,6 +13,22 @@
 #include "util.h"
 
 
+bool contigAlignment::isDenovo(){
+  return isDenovo_;
+}
+
+bool contigAlignment::isHeadDoubleStranded(){
+  return headDS_;
+}
+
+bool contigAlignment::isReadLeftBound(){
+  return isLeftBound_;
+}
+
+bool contigAlignment::isTailDoubleStranded(){
+  return tailDS_;
+}
+
 std::string contigAlignment::getBamPath(){
   return bamPath_;
 }
@@ -37,56 +53,15 @@ std::vector<polyA> contigAlignment::getTails(){
   return polyATails_;
 }
 
-//TODO: implement
-void contigAlignment::populateConsensusTails(){
 
-  int modeCount = 0;
-  int startPosMode = -1;
-  
-  std::map<int32_t, int32_t> hashMap;
-  for(int i = 0; i < polyATails_.size(); ++i){
-    int startPos = polyATails_[i].getGlobalTailStart();
-    ++hashMap[startPos];
-
-    modeCount = std::max(modeCount, hashMap[startPos]);
-  }
-  
-  for (auto & startPos : hashMap){
-    if (startPos.second == modeCount){
-      startPosMode = startPos.first;
-    }
-  }
-
-  //  std::cout << "~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~" << std::endl;
-  //std::cout << "startPosMode is: " << startPosMode << std::endl;
-  //std::cout << "size of polyATail_ is: " << polyATails_.size() << std::endl;
-  //std::cout << "~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~+~" << std::endl;
-
-  
-  for (auto & t : polyATails_){
-    //std::cout << "globalTailStart is: " << t.getGlobalTailStart() << std::endl;
-    if(t.getGlobalTailStart() == startPosMode){
-      //std::cout << "found consensus tail " << std::endl;
-      consensusTails_.push_back(t);
-    }
-  }
-}
 
 std::vector<aluHead> contigAlignment::getHeads(){
   return aluHeads_;
 }
 
-bool contigAlignment::isDenovo(){
-  return isDenovo_;
-}
 
-bool contigAlignment::isTailDoubleStranded(){
-  return tailDS_;
-}
 
-bool contigAlignment::isHeadDoubleStranded(){
-  return headDS_;
-}
+
 
 int32_t contigAlignment::getReadsInRegion(){
   return readsInRegion_;
@@ -116,9 +91,7 @@ int32_t contigAlignment::getForwardStrandCount() {
   return forwardStrandCount_;
 }
 
-bool contigAlignment::isReadLeftBound(){
-  return isLeftBound_;
-}
+
 
 std::vector<denovoEvidence> contigAlignment::getDenovoVec(){
   return denovoVec_;
@@ -136,13 +109,32 @@ std::string contigAlignment::getCigarString(){
   return cigarString_;
 }
 
-int32_t contigAlignment::getAltForwardStrandCount(){
-  return altForwardStrandCount_;
+
+void contigAlignment::populateConsensusTails(){
+
+  int modeCount = 0;
+  int startPosMode = -1;
+  std::map<int32_t, int32_t> hashMap;
+
+  for(int i = 0; i < polyATails_.size(); ++i){
+    int startPos = polyATails_[i].getGlobalTailStart();
+    ++hashMap[startPos];
+    modeCount = std::max(modeCount, hashMap[startPos]);
+  }
+  
+  for (auto & startPos : hashMap){
+    if (startPos.second == modeCount){
+      startPosMode = startPos.first;
+    }
+  }
+  
+  for (auto & t : polyATails_){
+    if(t.getGlobalTailStart() == startPosMode){
+      consensusTails_.push_back(t);
+    }
+  }
 }
 
-void contigAlignment::populateAltForwardStrandCount(){
-  
-}
 
 void contigAlignment::populateHeadsAndTails(){
 
@@ -182,21 +174,19 @@ void contigAlignment::populateHeadsAndTails(){
     }
 
     polyA tail = {al, tailSize_};
-
     aluHead head = {util::getClipSeqs(alignedContig_)[0], al, headSize_};
     
     if(tail.detectPolyTail()){
-      //std::cout << "detected polyATail" << std::endl;
       polyATails_.push_back(tail);
     }
 
     if(head.isHead()){
-      //std::cout << "detect aluHead" << std::endl;
       aluHeads_.push_back(head);
     }
   }
   reader.Close();
 }
+
 
 void contigAlignment::populateAltCount() {
   altCount_ = contigAlignment::getConsensusTails().size() + contigAlignment::getHeads().size();
@@ -305,7 +295,6 @@ void contigAlignment::populateHeadDS(){
 
 void contigAlignment::populateIsLeftBound(){
   isLeftBound_ = util::isReadLeftBound(alignedContig_.CigarData);
-  std::cout << "isLeftBound is: " << isLeftBound_ << std::endl;
 }
 
 
@@ -325,7 +314,6 @@ contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> p
   std::vector<BamTools::RefData> refData = util::populateRefData(bamPath);
   refSequence_ = util::pullRefSequenceFromRegion(breakpoint, referencePath_, refData, alignedContig_.QueryBases.size(), fastaHackPath_);
   refKmers_ = util::kmerize(refSequence_, 25);
-  //altSequence_ = util::getClipSeqs(alignedContig_)[0];
   altSequence_ = alignedContig_.QueryBases;
   altKmers_ = util::kmerize(altSequence_, 25);
 
