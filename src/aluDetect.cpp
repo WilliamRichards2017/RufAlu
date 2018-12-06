@@ -20,8 +20,8 @@ int main(int argc, char *argv[] ){
   std::string aluIndexPath = std::string(aluFilePath) + ".fai";
   std::string refPath = argv[4];
   std::string refIndexPath = std::string(refPath) + ".fai";
-  //std::string vcfOutPath = bamPath + ".generator.V2.overlap.hashcount.fastq.bam.vcf";
-  std::string vcfOutPath = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/testy.vcf";
+  std::string vcfOutPath = bamPath + ".generator.V2.overlap.hashcount.fastq.bam.vcf";
+  //std::string vcfOutPath = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/testy.vcf";
   std::string fastaHackPath = argv[5];
   
   
