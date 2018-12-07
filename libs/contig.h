@@ -17,13 +17,6 @@ struct clipCoords;
 
 class denovoEvidence;
 
-struct contig {
-  std::string name;
-  std::string seq;
-  std::vector<std::pair<std::string, int32_t> > alusHit;
-  std::vector<contigAlignment> contigAlignments;
-};
-
 struct genotypeField{
   int32_t RO;
   int32_t AO;
@@ -123,5 +116,14 @@ class contigAlignment{
   void populateProbandGT();
   void populateTailDS();
 };
+
+struct contig {
+  std::string name;
+  std::string seq;
+  std::vector<std::pair<std::string, int32_t> > alusHit;
+  std::vector<contigAlignment> contigAlignments;
+};
+
+
 
 #endif //__LIBS_CONTIG_H__
