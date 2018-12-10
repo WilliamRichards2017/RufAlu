@@ -74,7 +74,10 @@ void vcfWriter::populateVCFLine(){
   
   
   vcfWriter::populateGenotypes();
+}
 
+const vcfLine vcfWriter::getVCFLine(){
+  return vcfLine_;
 }
 
 vcfWriter::vcfWriter(contigAlignment & ca, std::fstream & vcfStream, const std::string & probandBam) : ca_(ca), vcfStream_(vcfStream), probandBam_(probandBam) { 
@@ -92,8 +95,8 @@ vcfWriter::~vcfWriter(){
 void vcfWriter::writeFilter(){
   
   std::cout << "\n\n WRITING FILTER" << std::endl;
-  std::cout << "tds is : " << vcfLine_.FILTER.TDS << std::endl;
-  std::cout << "hds is : " << vcfLine_.FILTER.HDS << std::endl << std::endl;
+  // std::cout << "tds is : " << vcfLine_.FILTER.TDS << std::endl;
+  // std::cout << "hds is : " << vcfLine_.FILTER.HDS << std::endl << std::endl;
   if (vcfLine_.FILTER.TDS && vcfLine_.FILTER.HDS){
     vcfStream_ << "PASS\t";
   }

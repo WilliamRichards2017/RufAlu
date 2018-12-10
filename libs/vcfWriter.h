@@ -73,6 +73,7 @@ class vcfWriter{
   ~vcfWriter();
 
   const bool vcfFilter();
+  const vcfLine getVCFLine();
   void writeVCFLine();
 
   static void writeVCFHeader(std::fstream &, std::string probandBam);

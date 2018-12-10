@@ -29,6 +29,7 @@ class contigAlignment{
  public:
   contigAlignment(std::string, std::vector<std::string>,  std::pair<std::string, int32_t>, 
 		  BamTools::BamAlignment, std::string, BamTools::BamRegion, std::string, std::string);
+  contigAlignment();
   ~contigAlignment();
 
   bool isDenovo();

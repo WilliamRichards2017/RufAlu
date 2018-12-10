@@ -224,7 +224,7 @@ std::string util::baseName(std::string path){
 }
 
 std::string util::exec(char const* cmd) {
-  std::cout << "executing command " << cmd << std::endl;
+  //std::cout << "executing command " << cmd << std::endl;
   char buffer[512];
   std::string result = "";
   FILE* pipe = popen(cmd, "r");
@@ -321,13 +321,6 @@ const int32_t util::countKmerDepth(const std::vector<std::pair<std::string, int3
 const std::vector<std::pair<std::string, int32_t> > util::countKmersFromText(const std::string & textPath, const std::vector<std::string> & kmers){
   std::ifstream file(textPath);
   std::string line;
-
-  std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
-  std::cout << "inside util::countKmersFromText" << std::endl;
-  std::cout << "textPath is: " << textPath << std::endl;
-  std::cout << "size of kmerVec to count from is: " << kmers.size() << std::endl;
-  std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
-
   std::vector<std::pair<std::string, int32_t> > kmerCounts;
   std::map<std::string, int32_t> kmerMap;
 
@@ -386,10 +379,10 @@ const std::string util::pullRefSequenceFromRegion(const std::pair<int32_t, int32
 
 
   std::string cmd = fastaHackPath + " -r " + util::getChromosomeFromRefID(region.first, refData) + ":" + std::to_string(region.second) + ".." + std::to_string(region.second + refSize) + ' ' + refPath;
-  std::cout << "Executing command: " << cmd << std::endl;
+  //std::cout << "Executing command: " << cmd << std::endl;
   std::string out = util::exec(cmd.c_str());
 
-  std::cout << "Returning output: " << out << std::endl;
+  //std::cout << "Returning output: " << out << std::endl;
   return out;
 }
 
@@ -408,7 +401,9 @@ const std::string util::revComp (const std::string sequence){
       {newString += 'A';}
     else if (C == 'N')
       {newString += 'N';}
-    else {std::cout << "ERROR IN RevComp - " << C << std::endl;}
+    else {
+      //std::cout << "ERROR IN RevComp - " << C << std::endl;
+    }
   }
   return newString;
 }
