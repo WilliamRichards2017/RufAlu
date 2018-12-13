@@ -75,8 +75,8 @@ double denovoEvidence::getStrandBias(){
 }
 
 void denovoEvidence::populateGTFields(){
-  std::vector<std::pair<std::string, int32_t> > refKmerCounts = util::countKmersFromText(refPath_, refKmers_);
-  std::vector<std::pair<std::string, int32_t> > altKmerCounts = util::countKmersFromText(altPath_, altKmers_);
+  std::vector<std::pair<std::string, int32_t> > refKmerCounts = util::countKmersFromJhash(jhashPath_, refKmers_);
+  std::vector<std::pair<std::string, int32_t> > altKmerCounts = util::countKmersFromJhash(jhashPath_, altKmers_);
 
   RO_ = util::countKmerDepth(refKmerCounts);
   std::cout << "RO_ is: " << RO_ << std::endl;
@@ -108,8 +108,9 @@ std::pair<int32_t, int32_t> denovoEvidence::getGenotype(){
 
 denovoEvidence::denovoEvidence(const std::string & aluClippedSeq, const BamTools::BamRegion & region, const std::string & parentBam, const std::string & probandBam,  const BamTools::BamAlignment & al, const std::vector<std::string> & refKmers, const std::vector<std::string> & altKmers) : aluClippedSeq_(aluClippedSeq), region_(region), parentBam_(parentBam), probandBam_(probandBam), al_(al), refKmers_(refKmers), altKmers_(altKmers){
   
-  refPath_ = probandBam + ".generator.V2.overlap.asembly.hash.fastq.Ref." + util::baseName(parentBam_) + ".generator.Jhash";
-  altPath_ = probandBam + ".generator.V2.overlap.asembly.hash.fastq." + util::baseName(parentBam_) + ".generator.Jhash";
+
+  
+  jhashPath_ = parentBam_ + ".generator.Jhash";
     
   denovoEvidence::findHeadsAndTails();
   denovoEvidence::populateGTFields();

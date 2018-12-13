@@ -80,8 +80,7 @@ class contigAlignment{
   std::string chrom_;
   std::string cigarString_;
   std::string fastaHackPath_;
-  std::string probandAltPath_;
-  std::string probandRefPath_;
+  std::string probandJhashPath_;
   std::string referencePath_;
   std::string refSequence_;
 

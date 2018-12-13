@@ -224,7 +224,7 @@ std::string util::baseName(std::string path){
 }
 
 std::string util::exec(char const* cmd) {
-  std::cout << "executing command " << cmd << std::endl;
+  //std::cout << "executing command " << cmd << std::endl;
   char buffer[512];
   std::string result = "";
   FILE* pipe = popen(cmd, "r");
@@ -308,14 +308,41 @@ const int32_t util::calculateModeKmerDepth(const std::vector<int32_t> & kmerDept
   return mode;
 }
 
-const int32_t util::countKmerDepth(const std::vector<std::pair<std::string, int32_t> > & kmers){
-  std::vector<int32_t> kmerCounts;
-  
-  for(const auto & k : kmers){
-    kmerCounts.push_back(k.second);
+
+const int32_t util::getMinConsecutiveKmerDepth(const std::vector<int32_t> & kmerCounts){
+
+  std::vector<int32_t> longestNonZeroVec;
+  std::vector<int32_t> tempVec;
+
+  int32_t cutoff = 10;
+
+  for(const auto & k : kmerCounts){
+    if(k > 0){
+      tempVec.push_back(k);
+    }
+    else{
+      longestNonZeroVec = tempVec;
+      tempVec.clear();
+    }
   }
 
-  return util::calculateModeKmerDepth(kmerCounts);
+  if(longestNonZeroVec.size() > cutoff){
+    return *std::min_element(longestNonZeroVec.begin(), longestNonZeroVec.end());
+  }
+  return 0;
+}
+
+const int32_t util::countKmerDepth(const std::vector<std::pair<std::string, int32_t> > & kmers){
+  std::vector<int32_t> kmerCounts;
+
+  std::cout << "Printing out kmerDepthMap" << std::endl;
+  for(const auto & k : kmers){
+    std::cout << k.second << ", ";
+    kmerCounts.push_back(k.second);
+  }
+  std::cout << std::endl;
+
+  return util::getMinConsecutiveKmerDepth(kmerCounts);
 }
 
 const std::vector<std::pair<std::string, int32_t> > util::countKmersFromText(const std::string & textPath, const std::vector<std::string> & kmers){
@@ -340,8 +367,8 @@ const std::vector<std::pair<std::string, int32_t> > util::countKmersFromText(con
       //std::cout << "kmer " << kmerCount[0] << " has count " << kmerCount[1] << std::endl;
     }
   }
-for(auto k : kmers){
-  //std::cout << "looking up kmer: " << k << std::endl;
+  for(auto k : kmers){
+    //std::cout << "looking up kmer: " << k << std::endl;
     auto it = kmerMap.find(k);
     auto revIt = kmerMap.find(util::revComp(k));
     if(it != kmerMap.end()){
@@ -361,11 +388,37 @@ for(auto k : kmers){
   return kmerCounts;
 }
 
+const std::vector<std::pair<std::string, int32_t> > util::countKmersFromJhash(const std::string & jhashPath, const std::vector<std::string> & kmers){
+  std::string jellyfishPath = "/uufs/chpc.utah.edu/common/home/u0401321/RUFUS/src/externals/jellyfish-2.2.5/bin/jellyfish";
+  
+  //  std::map<std::string, int32_t> ret;
+
+  std::vector<std::pair<std::string, int32_t> > ret;
+
+  for (const auto & kmer : kmers){
+
+    std::string cmd = jellyfishPath + " query " + jhashPath + " " + kmer;
+    //std::cout << "executing command: " << cmd << std::endl;
+    
+    std::string queryOutput = util::exec(cmd.c_str());
+    //std::cout << "command output is: " << queryOutput << std::endl;
+    std::istringstream iss(queryOutput);
+    std::vector<std::string> kmerCount((std::istream_iterator<std::string>(iss)),
+				       std::istream_iterator<std::string>());
+
+    if(kmerCount.size() == 2){
+      //ret.insert({kmerCount[0], atoi(kmerCount[1].c_str())});
+      ret.push_back(std::make_pair(kmerCount[0], atoi(kmerCount[1].c_str())));
+    }
+  }
+  return ret;
+}
+
 const std::vector<std::string> util::kmerize(const std::string & sequence, const int32_t & kmerSize){
   int32_t kmercount = 0;
   std::vector<std::string> kmers;
 
-  while(kmercount + kmerSize <= sequence.length()){
+  while(kmercount + kmerSize < sequence.length()){
     std::string kmer = sequence.substr(kmercount, kmerSize);
     kmers.push_back(kmer);
     ++kmercount;
@@ -426,4 +479,39 @@ const std::string util::getChromosomeFromRefID(const int32_t & id, const std::ve
 const bool util::fileExists( const std::string &Filename )
 {
   return access( Filename.c_str(), 0 ) == 0;
+}
+
+
+const int32_t util::getLargestClipIndex(const std::vector<int> & clipSizes){
+  int32_t index = -1;
+  int32_t largestSize = -1;
+  for(int32_t i = 0; i < clipSizes.size(); ++i){
+    if(clipSizes[i] > largestSize){
+      largestSize = clipSizes[i];
+      index = i;
+    }
+  }
+  return index;
+}
+
+const std::string util::calculateAltSequence(const BamTools::BamAlignment & al){
+
+  int32_t kmerSize = 25;
+
+  std::vector<int> clipSizes;
+  std::vector<int> readPositions;
+  std::vector<int> genomePositions;
+
+  const std::vector<int32_t> insertionVec = util::getInsertionVec(al);
+  al.GetSoftClips(clipSizes, readPositions, genomePositions);
+
+  int32_t index = util::getLargestClipIndex(clipSizes);
+  int32_t breakPoint = readPositions[index];
+
+
+  std::string altSequence = al.QueryBases.substr(breakPoint-kmerSize, kmerSize*2);
+
+  std::cout << "Alt sequence is: " << altSequence << std::endl;
+
+  return altSequence;
 }

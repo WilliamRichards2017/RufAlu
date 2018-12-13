@@ -46,8 +46,7 @@ class denovoEvidence{
   std::string probandBam_;
   std::vector<std::string> refKmers_;
   std::vector<std::string> altKmers_;
-  std::string refPath_;
-  std::string altPath_;
+  std::string jhashPath_;
 
   std::string refSequence_;
   std::string altSequence_;
