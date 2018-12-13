@@ -48,7 +48,6 @@ TEST(KnownAluTests, p1348){
 
   BamTools::BamReader reader;
   BamTools::BamAlignment al;
-
   std::pair<std::string, int32_t> aluHit = std::make_pair("AluYa5", 60);
 
   ASSERT_TRUE(reader.Open(i.contigBamPath));
@@ -115,5 +114,77 @@ TEST(KnownAluTests, p1348){
 }
 
 
-#endif // RUFALU_TESTS_KNOWN_ALUS_HPP
 
+TEST(KnownAluTests, p2788){
+
+  input i = {"/scratch/ucgd/lustre/u0991464/Projects/CEPH.1kg.cut0.5.v2/", std::to_string(2788), std::to_string(8125), std::to_string(8126)};
+
+  BamTools::BamReader reader;
+  BamTools::BamAlignment al;
+
+  std::pair<std::string, int32_t> aluHit = std::make_pair("SVA_B", 0);
+
+  ASSERT_TRUE(reader.Open(i.contigBamPath));
+  ASSERT_TRUE(reader.LocateIndex());
+
+  BamTools::BamRegion region = {10, 9072830, 6, 9072840};
+
+  std::fstream streamy;
+
+  streamy.open("/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/testy.vcf");
+
+  reader.SetRegion(region);
+
+
+  bool contigFound = false;
+
+  while(reader.GetNextAlignment(al)){
+    std::cerr << "Found contig: " << al.Name << std::endl;
+
+    if(al.Name.compare("NODE_2788.bam.generator.V2_736_L261_D14:6:8::MH0") == 0){
+      
+      contigFound = true;
+
+      contigAlignment ca = contigAlignment(i.bamPath, i.parentBams, aluHit, al, "10", region, i.refPath, i.fastaHackPath);
+      vcfWriter w = vcfWriter(ca, streamy, i.bamPath);
+      vcfLine l = w.getVCFLine();
+
+      ASSERT_EQ(l.CHROM, "11");
+      ASSERT_EQ(l.POS, 110305761);
+      ASSERT_STREQ(l.ID.c_str(), "ME-DeNovo");
+      ASSERT_STREQ(l.REF.c_str(), "N");
+      ASSERT_STREQ(l.ALT.c_str(), "INS:ME:SVA_B");
+      ASSERT_EQ(l.FILTER.HDS and l.FILTER.TDS, true);
+
+      EXPECT_EQ(l.QUAL, 0);
+      EXPECT_EQ(l.INFO.NR, 74);
+      EXPECT_EQ(l.INFO.NT, 5);
+      EXPECT_EQ(l.INFO.NH, 12);
+      
+      ASSERT_EQ(l.INFO.LT, 60);
+      ASSERT_STREQ(l.INFO.cigar.c_str(), "M24D4M102S135");
+
+      ASSERT_EQ(l.INFO.probandGT.DP, 37);
+      ASSERT_EQ(l.INFO.probandGT.RO, 19);
+      ASSERT_EQ(l.INFO.probandGT.AO, 18);
+      ASSERT_EQ(l.INFO.probandGT.genotype, std::make_pair(1,0));
+
+      ASSERT_EQ(l.INFO.parentGTs[0].DP, 34);
+      ASSERT_EQ(l.INFO.parentGTs[0].RO, 34);
+      ASSERT_EQ(l.INFO.parentGTs[0].AO, 0);
+      ASSERT_EQ(l.INFO.parentGTs[0].genotype, std::make_pair(0,0));
+
+      ASSERT_EQ(l.INFO.parentGTs[1].DP, 22);
+      ASSERT_EQ(l.INFO.parentGTs[1].RO, 22);
+      ASSERT_EQ(l.INFO.parentGTs[1].AO, 0);
+      ASSERT_EQ(l.INFO.parentGTs[1].genotype, std::make_pair(0,0));
+
+    }
+  }
+
+  ASSERT_EQ(contigFound, true);
+  streamy.close();
+
+}
+
+#endif // RUFALU_TESTS_KNOWN_ALUS_HPP

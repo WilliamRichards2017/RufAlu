@@ -1,7 +1,6 @@
 #include <stdexcept>
 #include <string>
 #include <time.h>
-
 #include "contig.h"
 #include "vcfWriter.h"
 
@@ -53,9 +52,9 @@ void vcfWriter::populateVCFLine(){
   vcfLine_.FILTER.TDS = ca_.isTailDoubleStranded();
   vcfLine_.FILTER.HDS = ca_.isHeadDoubleStranded();
 
-  if(!vcfLine_.FILTER.TDS or !vcfLine_.FILTER.HDS){
+   if(!vcfLine_.FILTER.TDS or !vcfLine_.FILTER.HDS){
     vcfLine_.ID = "ME-StrandBias";
-  }
+   } 
   
   vcfLine_.INFO.SVTYPE = "INS";
   vcfLine_.INFO.SVLEN = std::abs(ca_.getClipCoords().clipStart - ca_.getClipCoords().clipEnd);
@@ -93,11 +92,11 @@ vcfWriter::~vcfWriter(){
 }
 
 void vcfWriter::writeFilter(){
-  
-  std::cout << "\n\n WRITING FILTER" << std::endl;
+  vcfStream_ << vcfLine_.ID << '\t';
+  //std::cout << "\n\n WRITING FILTER" << std::endl;
   // std::cout << "tds is : " << vcfLine_.FILTER.TDS << std::endl;
   // std::cout << "hds is : " << vcfLine_.FILTER.HDS << std::endl << std::endl;
-  if (vcfLine_.FILTER.TDS && vcfLine_.FILTER.HDS){
+    if (vcfLine_.FILTER.TDS && vcfLine_.FILTER.HDS){
     vcfStream_ << "PASS\t";
   }
   else if(!vcfLine_.FILTER.TDS && vcfLine_.FILTER.HDS) {
