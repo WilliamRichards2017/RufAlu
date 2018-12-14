@@ -42,7 +42,8 @@ public:
   static const int32_t calculateModeKmerDepth(const std::vector<int32_t> &);
   static const std::vector<std::string> kmerize(const std::string &, const int32_t &);
   static const std::vector<BamTools::RefData> populateRefData(const std::string &);
-  
+  static const std::vector<std::string> filterKmersFromText(const std::string &, const std::vector<std::string> &);
+
   static const std::string revComp(const std::string);
   static const std::string getChromosomeFromRefID(const int32_t &, const std::vector<BamTools::RefData> &);
   static const std::string pullRefSequenceFromRegion(const std::pair<int32_t, int32_t> &, const std::string &, 
@@ -50,7 +51,6 @@ public:
   static const bool fileExists(const std::string &); 
   static const int32_t getLargestClipIndex(const std::vector<int> &);
   static const std::string calculateAltSequence(const BamTools::BamAlignment &);
-  static const int32_t getMinConsecutiveKmerDepth(const std::vector<int32_t> &);
 
  private:
 

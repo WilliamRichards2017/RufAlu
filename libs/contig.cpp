@@ -317,6 +317,8 @@ contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> p
 
   altKmers_ = util::kmerize(altSequence_, 25);
 
+  std::string path = bamPath_ + ".generator.V2.ref.RepRefHash";  
+  altKmers_ = util::filterKmersFromText(path, altKmers_);
 
   contigAlignment::populateCigarString();
   contigAlignment::populateClipCoords();

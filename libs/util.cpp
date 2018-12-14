@@ -309,51 +309,60 @@ const int32_t util::calculateModeKmerDepth(const std::vector<int32_t> & kmerDept
 }
 
 
-const int32_t util::getMinConsecutiveKmerDepth(const std::vector<int32_t> & kmerCounts){
-
-  std::vector<int32_t> longestNonZeroVec;
-  std::vector<int32_t> tempVec;
-
-  int32_t cutoff = 10;
-
-  for(const auto & k : kmerCounts){
-    if(k > 0){
-      tempVec.push_back(k);
-    }
-    else{
-      longestNonZeroVec = tempVec;
-      tempVec.clear();
-    }
-  }
-
-  if(longestNonZeroVec.size() > cutoff){
-    return *std::min_element(longestNonZeroVec.begin(), longestNonZeroVec.end());
-  }
-  return 0;
-}
-
 const int32_t util::countKmerDepth(const std::vector<std::pair<std::string, int32_t> > & kmers){
   std::vector<int32_t> kmerCounts;
 
-  std::cout << "Printing out kmerDepthMap" << std::endl;
   for(const auto & k : kmers){
-    std::cout << k.second << ", ";
-    kmerCounts.push_back(k.second);
+    if(k.second > 0){
+      kmerCounts.push_back(k.second);
+    }
   }
-  std::cout << std::endl;
 
-  return util::getMinConsecutiveKmerDepth(kmerCounts);
+  if(kmerCounts.size() == 0){
+    return 0;
+  }
+
+  return *std::min_element(kmerCounts.begin(), kmerCounts.end());
 }
+
+const std::vector<std::string> util::filterKmersFromText(const std::string & textPath, const std::vector<std::string> & kmers){
+
+  std::cout << "Filtering kmers from file: " << textPath << std::endl;
+  std::ifstream file(textPath);
+  std::string line;
+
+  std::vector<std::string> kmerCounts;
+  std::map<std::string, int32_t> kmerMap;
+
+  while(std::getline(file, line)){
+    std::istringstream iss(line);
+    std::vector<std::string> kmerCount((std::istream_iterator<std::string>(iss)), std::istream_iterator<std::string>());
+    if(kmerCount.size() == 2){
+      kmerMap.insert({kmerCount[0], atoi(kmerCount[1].c_str())});
+    }
+    else{
+      std::cout << "kmerCount.size() != 2" << std::endl;
+    }
+  }
+
+  for(auto k : kmers){
+    auto it = kmerMap.find(k);
+    auto revIt = kmerMap.find(util::revComp(k));
+    if(it == kmerMap.end() and revIt == kmerMap.end()){
+      std::cout << "Did not find kmer: " << k << " in exclude file" << std::endl;
+      kmerCounts.push_back(k);
+    }
+    else{
+      std::cout << "Filtering out reference kmer" << k  << std::endl;
+    }
+  }
+  return kmerCounts;
+}
+
 
 const std::vector<std::pair<std::string, int32_t> > util::countKmersFromText(const std::string & textPath, const std::vector<std::string> & kmers){
   std::ifstream file(textPath);
   std::string line;
-
-  std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
-  std::cout << "inside util::countKmersFromText" << std::endl;
-  std::cout << "textPath is: " << textPath << std::endl;
-  std::cout << "size of kmerVec to count from is: " << kmers.size() << std::endl;
-  std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
 
   std::vector<std::pair<std::string, int32_t> > kmerCounts;
   std::map<std::string, int32_t> kmerMap;
@@ -423,6 +432,7 @@ const std::vector<std::string> util::kmerize(const std::string & sequence, const
     kmers.push_back(kmer);
     ++kmercount;
   }
+  
   return kmers;
 }
 
@@ -509,7 +519,7 @@ const std::string util::calculateAltSequence(const BamTools::BamAlignment & al){
   int32_t breakPoint = readPositions[index];
 
 
-  std::string altSequence = al.QueryBases.substr(breakPoint-kmerSize, kmerSize*2);
+  std::string altSequence = al.QueryBases.substr(breakPoint-kmerSize+1, kmerSize*2-1);
 
   std::cout << "Alt sequence is: " << altSequence << std::endl;
 

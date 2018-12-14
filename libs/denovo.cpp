@@ -80,7 +80,10 @@ void denovoEvidence::populateGTFields(){
 
   RO_ = util::countKmerDepth(refKmerCounts);
   std::cout << "RO_ is: " << RO_ << std::endl;
+
+  std::cout << "Printing out alt kmers for: " << parentBam_ << "at Position" << region_.LeftRefID << ":" << region_.LeftPosition << std::endl; 
   AO_ = util::countKmerDepth(altKmerCounts);
+  std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
   std::cout << "AO_ is: " << AO_ << std::endl;
   DP_ = RO_ + AO_;
   std::cout << "DP_ os: " << DP_ << std::endl;
