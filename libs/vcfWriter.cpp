@@ -53,7 +53,7 @@ void vcfWriter::populateVCFLine(){
   vcfLine_.FILTER.TDS = ca_.isTailDoubleStranded();
   vcfLine_.FILTER.HDS = ca_.isHeadDoubleStranded();
 
-  if(!vcfLine_.FILTER.TDS or !vcfLine_.FILTER.HDS){
+  if(!vcfLine_.FILTER.TDS and !vcfLine_.FILTER.HDS){
     vcfLine_.ID = "ME-StrandBias";
   }
   
