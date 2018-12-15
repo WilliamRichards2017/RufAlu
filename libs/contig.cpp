@@ -195,7 +195,7 @@ void contigAlignment::populateAltCount() {
 
 void contigAlignment::populateDenovoEvidence(){
   for(const auto & pb : parentBamPaths_) {
-    denovoEvidence de = {util::getClipSeqs(alignedContig_)[0], alignedRegion_, pb, bamPath_, alignedContig_, refKmers_, altKmers_};
+    denovoEvidence de = {util::getClipSeqs(alignedContig_)[0], alignedRegion_, pb, bamPath_, alignedContig_, refKmers_, altKmers_, jellyfishPath_};
     denovoVec_.push_back(de);
     if(!de.isDenovo()){
       isDenovo_ = false;
@@ -205,10 +205,8 @@ void contigAlignment::populateDenovoEvidence(){
 
 void contigAlignment::populateProbandGT(){
 
- 
-
-  std::vector<std::pair<std::string, int32_t> > refKmerCounts = util::countKmersFromText(probandRefPath_, refKmers_);
-  std::vector<std::pair<std::string, int32_t> > altKmerCounts = util::countKmersFromText(probandAltPath_, altKmers_);
+  std::vector<std::pair<std::string, int32_t> > refKmerCounts = util::countKmersFromJhash(probandJhashPath_, refKmers_, jellyfishPath_);
+  std::vector<std::pair<std::string, int32_t> > altKmerCounts = util::countKmersFromJhash(probandJhashPath_, altKmers_, jellyfishPath_);
 
   probandGT_.RO = util::countKmerDepth(refKmerCounts);
   std::cout << "RO_ is: " << probandGT_.RO << std::endl;
@@ -298,10 +296,10 @@ void contigAlignment::populateIsLeftBound(){
 }
 
 
-contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> parentBamPaths, std::pair<std::string, int32_t> aluHit, BamTools::BamAlignment alignedContig, std::string chrom, BamTools::BamRegion alignedRegion, std::string referencePath, std::string fastaHackPath) : bamPath_(bamPath), parentBamPaths_(parentBamPaths), aluHit_(aluHit), alignedContig_(alignedContig), chrom_(chrom), alignedRegion_(alignedRegion), referencePath_(referencePath), fastaHackPath_(fastaHackPath){
+contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> parentBamPaths, std::pair<std::string, int32_t> aluHit, BamTools::BamAlignment alignedContig, std::string chrom, BamTools::BamRegion alignedRegion, std::string referencePath, std::string fastaHackPath, std::string jellyfishPath) : bamPath_(bamPath), parentBamPaths_(parentBamPaths), aluHit_(aluHit), alignedContig_(alignedContig), chrom_(chrom), alignedRegion_(alignedRegion), referencePath_(referencePath), fastaHackPath_(fastaHackPath), jellyfishPath_(jellyfishPath){
 
-  probandRefPath_ = bamPath_ + ".generator.V2.overlap.asembly.hash.fastq.Ref.sample";
-  probandAltPath_ = bamPath_ + ".generator.V2.overlap.asembly.hash.fastq.sample";
+  probandJhashPath_ = bamPath_ + ".generator.Jhash";
+
   std::pair<int32_t, int32_t> breakpoint;
 
   if(util::isReadLeftBound(alignedContig_.CigarData)){
@@ -314,9 +312,13 @@ contigAlignment::contigAlignment(std::string bamPath, std::vector<std::string> p
   std::vector<BamTools::RefData> refData = util::populateRefData(bamPath);
   refSequence_ = util::pullRefSequenceFromRegion(breakpoint, referencePath_, refData, alignedContig_.QueryBases.size(), fastaHackPath_);
   refKmers_ = util::kmerize(refSequence_, 25);
-  altSequence_ = alignedContig_.QueryBases;
+  //altSequence_ = alignedContig_.QueryBases;
+  altSequence_ = util::calculateAltSequence(alignedContig_);
+
   altKmers_ = util::kmerize(altSequence_, 25);
 
+  std::string path = bamPath_ + ".generator.V2.ref.RepRefHash";  
+  altKmers_ = util::filterKmersFromText(path, altKmers_);
 
   contigAlignment::populateCigarString();
   contigAlignment::populateClipCoords();

@@ -173,7 +173,7 @@ void KnownAlus::findContigsContainingKnownAlus()
  }
 
 
-KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::string contigBamPath, std::string aluFastaPath, std::string aluIndexPath, std::string refPath, std::string refIndexPath, std::string vcfOutPath, std::vector<std::string> parentBams, std::string fastaHackPath) :  rawBamPath_(rawBamPath), contigFastqPath_(contigFastqPath), contigBamPath_(contigBamPath), aluFastaPath_(aluFastaPath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(rawBamPath)), vcfOutPath_(vcfOutPath), parentBams_(parentBams), fastaHackPath_(fastaHackPath){
+KnownAlus::KnownAlus(std::string rawBamPath, std::string contigFastqPath, std::string contigBamPath, std::string aluFastaPath, std::string aluIndexPath, std::string refPath, std::string refIndexPath, std::string vcfOutPath, std::vector<std::string> parentBams, std::string fastaHackPath, std::string jellyfishPath) :  rawBamPath_(rawBamPath), contigFastqPath_(contigFastqPath), contigBamPath_(contigBamPath), aluFastaPath_(aluFastaPath), aluIndexPath_(aluIndexPath), refPath_(refPath), refIndexPath_(refIndexPath), stub_(util::baseName(rawBamPath)), vcfOutPath_(vcfOutPath), parentBams_(parentBams), fastaHackPath_(fastaHackPath), jellyfishPath_(jellyfishPath){
 
   std::cout << "ref path inside of KnownAlus is: " << refPath_ << std::endl;
   std::cout << "fastaHackPath inside KnownAlus is: " << fastaHackPath_ << std::endl;
@@ -222,7 +222,7 @@ void KnownAlus::pullContigAlignments(){
 	  std::pair<std::string, int32_t> hqAlu = util::getHighestQualityAluHit(cvIt->alusHit);
 	  std::string chrom = getChromosomeFromRefID(al.RefID);
 	  BamTools::BamRegion region = {al.RefID, al.Position, al.RefID, al.GetEndPosition()};
-	  contigAlignment ca = {rawBamPath_, parentBams_, hqAlu, al, chrom, region, refPath_, fastaHackPath_};
+	  contigAlignment ca = {rawBamPath_, parentBams_, hqAlu, al, chrom, region, refPath_, fastaHackPath_, jellyfishPath_};
 	  cvIt->contigAlignments.push_back(ca);
 	}
       }

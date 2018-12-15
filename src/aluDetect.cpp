@@ -8,7 +8,7 @@
 
 int main(int argc, char *argv[] ){
   
-  if ( argc < 6 ){ 
+  if ( argc < 7 ){ 
     std::cout << "Please provide the proper number of arguments";
     exit (EXIT_FAILURE);
   }
@@ -23,13 +23,14 @@ int main(int argc, char *argv[] ){
   //std::string vcfOutPath = bamPath + ".generator.V2.overlap.hashcount.fastq.bam.vcf";
   std::string vcfOutPath = "/uufs/chpc.utah.edu/common/home/u0401321/RufAlu/bin/testy.vcf";
   std::string fastaHackPath = argv[5];
+  std::string jellyfishPath = argv[6];
   
   
   
   std::vector<std::string> parentBams;
 
 
-  for(int i = 6; i < argc; ++i){
+  for(int i = 7; i < argc; ++i){
     parentBams.push_back(std::string(argv[i]));
   }
 
@@ -44,9 +45,10 @@ int main(int argc, char *argv[] ){
   std::cout << "Reference path is: " << refPath << std::endl;
   std::cout << "Reference index path is: " << refIndexPath << std::endl;
   std::cout << "fastaHackPath is: " << fastaHackPath << std::endl;
+  std::cout << "jellyfishPath is: " << jellyfishPath << std::endl;
   //std::cout << "Vcf out path is: " << vcfOutPath << std::endl;
 
-  KnownAlus knownAlus = {bamPath, contigFilePath, contigBamPath, aluFilePath, aluIndexPath, refPath, refIndexPath, vcfOutPath, parentBams, fastaHackPath};
+  KnownAlus knownAlus = {bamPath, contigFilePath, contigBamPath, aluFilePath, aluIndexPath, refPath, refIndexPath, vcfOutPath, parentBams, fastaHackPath, jellyfishPath};
   
   std::cout << "Exiting Run." << std::endl;
   return 0;

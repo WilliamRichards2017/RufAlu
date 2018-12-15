@@ -37,16 +37,20 @@ public:
   static const bool isReadLeftBound(const std::vector<BamTools::CigarOp> &);
   static const std::vector<clipCoords> getLocalClipCoords(const BamTools::BamAlignment &);
   static const std::vector<std::pair<std::string, int32_t> > countKmersFromText(const std::string &, const std::vector<std::string> &);
+  static const std::vector<std::pair<std::string, int32_t> > countKmersFromJhash(const std::string &, const std::vector<std::string> &, const std::string &);
   static const int32_t countKmerDepth(const std::vector<std::pair<std::string, int32_t> > &);
   static const int32_t calculateModeKmerDepth(const std::vector<int32_t> &);
   static const std::vector<std::string> kmerize(const std::string &, const int32_t &);
   static const std::vector<BamTools::RefData> populateRefData(const std::string &);
-  
+  static const std::vector<std::string> filterKmersFromText(const std::string &, const std::vector<std::string> &);
+
   static const std::string revComp(const std::string);
   static const std::string getChromosomeFromRefID(const int32_t &, const std::vector<BamTools::RefData> &);
   static const std::string pullRefSequenceFromRegion(const std::pair<int32_t, int32_t> &, const std::string &, 
 						     const std::vector<BamTools::RefData> &, const int32_t &, std::string);
   static const bool fileExists(const std::string &); 
+  static const int32_t getLargestClipIndex(const std::vector<int> &);
+  static const std::string calculateAltSequence(const BamTools::BamAlignment &);
 
  private:
 

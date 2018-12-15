@@ -14,7 +14,7 @@
 class denovoEvidence{
  public:
 
-  denovoEvidence(const std::string &, const BamTools::BamRegion &, const std::string &, const std::string &, const BamTools::BamAlignment &, const std::vector<std::string> &, const std::vector<std::string> &);
+  denovoEvidence(const std::string &, const BamTools::BamRegion &, const std::string &, const std::string &, const BamTools::BamAlignment &, const std::vector<std::string> &, const std::vector<std::string> &, const std::string &);
   ~denovoEvidence();
   
 
@@ -44,10 +44,10 @@ class denovoEvidence{
   std::string aluClippedSeq_;  
   std::string parentBam_;
   std::string probandBam_;
+  std::string jellyfishPath_;
   std::vector<std::string> refKmers_;
   std::vector<std::string> altKmers_;
-  std::string refPath_;
-  std::string altPath_;
+  std::string jhashPath_;
 
   std::string refSequence_;
   std::string altSequence_;

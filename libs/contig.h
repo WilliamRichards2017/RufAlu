@@ -28,7 +28,7 @@ class contigAlignment{
 
  public:
   contigAlignment(std::string, std::vector<std::string>,  std::pair<std::string, int32_t>, 
-		  BamTools::BamAlignment, std::string, BamTools::BamRegion, std::string, std::string);
+		  BamTools::BamAlignment, std::string, BamTools::BamRegion, std::string, std::string, std::string);
   ~contigAlignment();
 
   bool isDenovo();
@@ -80,8 +80,8 @@ class contigAlignment{
   std::string chrom_;
   std::string cigarString_;
   std::string fastaHackPath_;
-  std::string probandAltPath_;
-  std::string probandRefPath_;
+  std::string jellyfishPath_;
+  std::string probandJhashPath_;
   std::string referencePath_;
   std::string refSequence_;
 
