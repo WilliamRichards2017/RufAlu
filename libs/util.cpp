@@ -397,9 +397,7 @@ const std::vector<std::pair<std::string, int32_t> > util::countKmersFromText(con
   return kmerCounts;
 }
 
-const std::vector<std::pair<std::string, int32_t> > util::countKmersFromJhash(const std::string & jhashPath, const std::vector<std::string> & kmers){
-  std::string jellyfishPath = "/uufs/chpc.utah.edu/common/home/u0401321/RUFUS/src/externals/jellyfish-2.2.5/bin/jellyfish";
-  
+const std::vector<std::pair<std::string, int32_t> > util::countKmersFromJhash(const std::string & jhashPath, const std::vector<std::string> & kmers, const std::string & jellyfishPath){
   //  std::map<std::string, int32_t> ret;
 
   std::vector<std::pair<std::string, int32_t> > ret;

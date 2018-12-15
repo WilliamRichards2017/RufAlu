@@ -22,7 +22,7 @@ struct contigAlignment;
 
 class KnownAlus{
  public:
-  KnownAlus(std::string, std::string, std::string, std::string, std::string, std::string, std::string, std::string, std::vector<std::string>, std::string);
+  KnownAlus(std::string, std::string, std::string, std::string, std::string, std::string, std::string, std::string, std::vector<std::string>, std::string, std::string);
   ~KnownAlus();
 
   const std::vector<contig> getContigVec();
@@ -38,6 +38,7 @@ class KnownAlus{
   const std::string stub_;
   const std::string vcfOutPath_;
   const std::string fastaHackPath_;
+  const std::string jellyfishPath_;
 
   std::vector<contig> contigVec_;
   std::vector<std::string> parentBams_;

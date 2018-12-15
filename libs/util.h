@@ -37,7 +37,7 @@ public:
   static const bool isReadLeftBound(const std::vector<BamTools::CigarOp> &);
   static const std::vector<clipCoords> getLocalClipCoords(const BamTools::BamAlignment &);
   static const std::vector<std::pair<std::string, int32_t> > countKmersFromText(const std::string &, const std::vector<std::string> &);
-  static const std::vector<std::pair<std::string, int32_t> > countKmersFromJhash(const std::string &, const std::vector<std::string> &);
+  static const std::vector<std::pair<std::string, int32_t> > countKmersFromJhash(const std::string &, const std::vector<std::string> &, const std::string &);
   static const int32_t countKmerDepth(const std::vector<std::pair<std::string, int32_t> > &);
   static const int32_t calculateModeKmerDepth(const std::vector<int32_t> &);
   static const std::vector<std::string> kmerize(const std::string &, const int32_t &);
