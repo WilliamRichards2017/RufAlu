@@ -209,9 +209,9 @@ void contigAlignment::populateProbandGT(){
   std::vector<std::pair<std::string, int32_t> > altKmerCounts = util::countKmersFromJhash(probandJhashPath_, altKmers_, jellyfishPath_);
 
   probandGT_.RO = util::countKmerDepth(refKmerCounts);
-  std::cout << "RO_ is: " << probandGT_.RO << std::endl;
+  //std::cout << "RO_ is: " << probandGT_.RO << std::endl;
   probandGT_.AO = util::countKmerDepth(altKmerCounts);
-  std::cout << "AO_ is: " << probandGT_.AO << std::endl;
+  //std::cout << "AO_ is: " << probandGT_.AO << std::endl;
   probandGT_.DP = probandGT_.RO + probandGT_.AO;
 
   if(probandGT_.RO > 0  and probandGT_.AO > 0){

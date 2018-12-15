@@ -33,10 +33,11 @@ TEST(KnownAluTests, knownAlusIntegrationTest){
   const std::string motherBamPath = "/scratch/ucgd/lustre/u0691312/analysis/A414_CEPH/alu_samples/1334.bam";
   const std::string fastaHackPath = "/uufs/chpc.utah.edu/common/home/u0401321/RUFUS/bin/externals/fastahack/src/fastahack_project/bin/tools/fastahack";
   const std::string vcfOutPath = "~/RufAlu/bin/gtest.out";
+  const std::string jellyfishPath = "/uufs/chpc.utah.edu/common/home/u0401321/RUFUS/src/externals/jellyfish-2.2.5/bin/jellyfish";
 
   std::vector<std::string> parentBamPaths = {fatherBamPath, motherBamPath};
 
-  auto knownAlus = new KnownAlus(bamPath, contigFilePath, contigBamPath, aluFilePath, aluIndexPath, refPath, refIndexPath, vcfOutPath, parentBamPaths, fastaHackPath);
+  auto knownAlus = new KnownAlus(bamPath, contigFilePath, contigBamPath, aluFilePath, aluIndexPath, refPath, refIndexPath, vcfOutPath, parentBamPaths, fastaHackPath, jellyfishPath);
 
 
 

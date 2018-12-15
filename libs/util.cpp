@@ -327,7 +327,7 @@ const int32_t util::countKmerDepth(const std::vector<std::pair<std::string, int3
 
 const std::vector<std::string> util::filterKmersFromText(const std::string & textPath, const std::vector<std::string> & kmers){
 
-  std::cout << "Filtering kmers from file: " << textPath << std::endl;
+  std::cout << "Filtering kmers from exclude file: " << textPath << std::endl;
   std::ifstream file(textPath);
   std::string line;
 
@@ -349,13 +349,13 @@ const std::vector<std::string> util::filterKmersFromText(const std::string & tex
     auto it = kmerMap.find(k);
     auto revIt = kmerMap.find(util::revComp(k));
     if(it == kmerMap.end() and revIt == kmerMap.end()){
-      std::cout << "Did not find kmer: " << k << " in exclude file" << std::endl;
       kmerCounts.push_back(k);
     }
     else{
-      std::cout << "Filtering out reference kmer" << k  << std::endl;
+      std::cout << "Filtered out non-unique alt kmer " << k  << std::endl;
     }
   }
+  std::cout << std::endl;
   return kmerCounts;
 }
 
@@ -372,8 +372,6 @@ const std::vector<std::pair<std::string, int32_t> > util::countKmersFromText(con
     std::vector<std::string> kmerCount((std::istream_iterator<std::string>(iss)), std::istream_iterator<std::string>());
     if(kmerCount.size() == 2){
       kmerMap.insert({kmerCount[0], atoi(kmerCount[1].c_str())});
-      //kmerCounts.push_back(std::make_pair(kmerCount[0], atoi(kmerCount[1].c_str())));
-      //std::cout << "kmer " << kmerCount[0] << " has count " << kmerCount[1] << std::endl;
     }
   }
   for(auto k : kmers){
@@ -447,11 +445,9 @@ const std::string util::pullRefSequenceFromRegion(const std::pair<int32_t, int32
 
 
   std::string cmd = fastaHackPath + " -r " + util::getChromosomeFromRefID(region.first, refData) + ":" + std::to_string(region.second) + ".." + std::to_string(region.second + refSize) + ' ' + refPath;
-  std::cout << "Executing command: " << cmd << std::endl;
   std::string out = util::exec(cmd.c_str());
 
-  std::cout << "Returning output: " << out << std::endl;
-  return out;
+    return out;
 }
 
 const std::string util::revComp (const std::string sequence){
