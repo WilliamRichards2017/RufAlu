@@ -14,8 +14,6 @@ This plugin is primarily ment to be run inside of rufus, although it can be run 
 ### Dependencies
 [Cmake](https://cmake.org/download/) - c++ build management
 
-Jellyfish
-
 ### Install
 ```
 cd bin
